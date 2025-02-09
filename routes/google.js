@@ -74,15 +74,13 @@ router.post("/auth", async (req, res) => {
 
     //เช็คแล้วไม่มี user นี้ในฐานข้อมูลให้เพิ่มเข้าฐานข้อมูล
     if (rows.length === 0) {
-      const id = Math.floor(1000 + Math.random() * 9000);
 
       //check name for save in database
       if (detectLanguage(userDetails.given_name) === "Thai") {
         console.log("thai");
         const [result] = await db.query(
-          "INSERT INTO users (user_id, user_role, user_nameth, user_nameeng, user_email, user_signature, user_money, user_position)VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+          "INSERT INTO users (user_role, user_nameth, user_nameeng, user_email, user_signature, user_money, user_position)VALUES (?, ?, ?, ?, ?, ?, ?)",
           [
-            id,
             "professor",
             userDetails.name,
             "",
@@ -95,18 +93,17 @@ router.post("/auth", async (req, res) => {
 
         rows = [
           {
-            user_id: id,
+            user_id: result.insertId,
             user_email: userDetails.email,
-            user_role: "professor",
-            user_name: userDetails.name,
-          },
-        ];
+            user_nameth: userDetails.name,
+          }
+        ]
+
       } else if (detectLanguage(userDetails.given_name) === "Eng") {
         console.log("eng");
         const [result] = await db.query(
-          "INSERT INTO users (user_id, user_role, user_nameth, user_nameeng, user_email, user_signature, user_money, user_position)VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+          "INSERT INTO users (user_role, user_nameth, user_nameeng, user_email, user_signature, user_money, user_position)VALUES (?, ?, ?, ?, ?, ?, ?)",
           [
-            id,
             "professor",
             "",
             userDetails.name,
@@ -119,11 +116,13 @@ router.post("/auth", async (req, res) => {
 
         rows = [
           {
-            user_id: id,
+            user_id: result.insertId,
             user_email: userDetails.email,
-            user_role: "professor",
-          },
-        ];
+            user_nameeng: userDetails.name,
+          }
+        ]
+
+        console.log('result :', result)
       }
     }
 
@@ -131,7 +130,7 @@ router.post("/auth", async (req, res) => {
 
     //create JWT Token
     const token = jwt.sign(
-      { userId: user.user_id, email: user.user_email, role: user.user_role },
+      { userId: user.user_id, email: user.user_email },
       process.env.SECRET_KEY,
       { expiresIn: "1h" } //อายุของ Token
     );

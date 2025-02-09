@@ -1,32 +1,34 @@
 -- สร้างตาราง Users 
 CREATE TABLE Users ( 
-    user_id Integer PRIMARY KEY UNIQUE,
-    user_role ENUM('professor', 'admin', 'insector', 'approver') NOT NULL,
-    user_name VARCHAR(255) NOT NULL,
-    user_email VARCHAR(255) NOT NULL, 
-    user_signature VARCHAR(255) NOT NULL ,
-    user_money Integer NOT NULL ,
-    user_position VARCHAR(255) NOT NULL
+	user_id Integer PRIMARY KEY UNIQUE  AUTO_INCREMENT,
+	user_role ENUM('professor', 'admin', 'hr', 'research', 'finance', 'associate', 'dean') NOT NULL,
+	user_nameth VARCHAR(255),
+	user_nameeng VARCHAR(255),
+	user_email VARCHAR(255) NOT NULL, 
+	user_signature VARCHAR(255),
+	user_money Integer,
+	user_position VARCHAR(255) NOT NULL
 );
-
 -- ตารางเอกสารขออนุมัติค่าเดินทาง (Conference)
 CREATE TABLE Conference (
     conf_id INTEGER PRIMARY KEY AUTO_INCREMENT UNIQUE,
     user_id INTEGER NOT NULL,
     conf_times INT NOT NULL,
     conf_days DATE NOT NULL,
-    trav_date DATE NOT NULL,
+    trav_dateStart DATE NOT NULL,
+    trav_dateEnd DATE NOT NULL,
     conf_research VARCHAR(255) NOT NULL,
     conf_name VARCHAR(255) NOT NULL,
-    date_of_conf DATE NOT NULL,
+    meeting_date DATE NOT NULL,
     meeting_venue VARCHAR(255) NOT NULL,
-    dat_article_submission DATE NOT NULL,
-    date_announce_article DATE NOT NULL,
+    date_submit_orrganizer DATE NOT NULL,
+    argument_date_review DATE NOT NULL,
     last_day_register DATE NOT NULL,
     meeting_type ENUM('คณะจัด ไม่อยู่scopus', 'อยู่ในscopus') NOT NULL,
     quality_meeting ENUM('มาตรฐาน', 'ดีมาก') NOT NULL,
     presenter_type ENUM('First Author', 'Corresponding Author') NOT NULL,
     time_of_leave ENUM('1', '2') NOT NULL,
+    locattion_1 ENUM('ในประเทศ', 'ต่างประเทศ'),
     wos_2_leave ENUM('WoS-Q1', 'WoS-Q2'),
     name_2_leave VARCHAR(255),
     withdraw ENUM('50%', '100%'),
@@ -34,7 +36,7 @@ CREATE TABLE Conference (
     wd_name_100 VARCHAR(255),
     country_conf ENUM('ณ ต่างประเทศ', 'ภายในประเทศ') NOT NULL,
     num_register_articles INT NOT NULL,
-    regist_amount_1_article INT NOT NULL,
+	regist_amount_1_article INT NOT NULL,
     total_amount INT NOT NULL,
     domestic_expenses INT,
     overseas_expenses INT,
@@ -48,11 +50,9 @@ CREATE TABLE Conference (
     daily_allowance INT,
     total_allowance INT,
     all_money INT NOT NULL,
-    user_signature VARCHAR(255) NOT NULL,
-    doc_submission_date DATE NOT NULL,
+    doc_submit_date DATE DEFAULT (CURRENT_DATE),
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
-
 -- ตารางคำนวณคะแนนคุณภาพการประชุมวิชาการ (Score)
 CREATE TABLE Score (
     sc_id INTEGER PRIMARY KEY AUTO_INCREMENT,
@@ -62,11 +62,11 @@ CREATE TABLE Score (
     sjr_year INT,
     hindex_score INT,
     hindex_year INT,
+    citat INT,
     score_result INT,
     core_rank VARCHAR(255),
     FOREIGN KEY (conf_id) REFERENCES Conference(conf_id)
 );
-
 -- ตารางเอกสารขออนุมัติค่า Page Charge (Page_Charge)
 CREATE TABLE Page_Charge (
     pageC_id INTEGER PRIMARY KEY AUTO_INCREMENT,
@@ -74,7 +74,7 @@ CREATE TABLE Page_Charge (
     pageC_times INT NOT NULL,
     pageC_days DATE NOT NULL,
     journal_name VARCHAR(255) NOT NULL,
-    quality_journal ENUM('SJR', 'ISI', 'Scopus', 'Nature') NOT NULL,
+    quality_journal JSON NOT NULL,
     pc_isi_year INT,
     pc_sjr_year INT,
     pc_scopus_year INT,
@@ -88,7 +88,7 @@ CREATE TABLE Page_Charge (
     month INT NOT NULL,
     year INT NOT NULL,
     ISSN_ISBN VARCHAR(255) NOT NULL,
-    Submission_date DATE NOT NULL,
+    submission_date DATE NOT NULL,
 	date_review_announce DATE NOT NULL,
     final_date DATE NOT NULL,
     article_research_ject VARCHAR(255) NOT NULL,
@@ -99,98 +99,137 @@ CREATE TABLE Page_Charge (
     annual INT NOT NULL,
     presenter_type ENUM('First Author', 'Corresponding Author') NOT NULL,
     request_support INT NOT NULL,
+    doc_submit_date DATE DEFAULT (CURRENT_DATE),
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
-
 -- Table for Research_KRIS 
 CREATE TABLE Research_KRIS ( 
-    kris_id INT AUTO_INCREMENT PRIMARY KEY, 
-    user_id INTEGER NOT NULL, 
-    name_research_th VARCHAR(255) NOT NULL,
-    name_research_en VARCHAR(255) NOT NULL,
-    research_cluster ENUM ('ICT_R&A','ICT_S&I', 'Battery&EV', 'Renewable Energy', 'Biomedical', 'Agriculture& Food', 'Future Mobility & Logistic', 'Materials', 'Creative Economy','other') NOT NULL,
-    res_cluster_other VARCHAR(255),
-    res_standard ENUM ('ใช้สัตว์ทดลอง', 'วิจัยในมนุษย์', 'วิจัยด้านเทคโนโลยีชีวภาพสมัยใหม่หรือพันธุวิศวกรรม', 'ใช้พันธุ์พืช')  NOT NULL,
-    res_standard_plants ENUM ('52', '53'),
-    h_index Integer NOT NULL,
-    project_period Date NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES Users(user_id) 
+	kris_id INT AUTO_INCREMENT PRIMARY KEY, 
+	user_id INTEGER NOT NULL, 
+	name_research_th VARCHAR(255) NOT NULL,
+	name_research_en VARCHAR(255) NOT NULL,
+	research_cluster JSON NOT NULL,
+	res_cluster_other VARCHAR(255),
+	res_standard JSON NOT NULL,
+	res_standard_trade JSON NOT NULL, -- เปลี่ยนชื่อด้วยมันเป้นมาตรา 52,53
+	h_index Integer NOT NULL,
+	his_inveninno Varchar (255) NOT NULL,
+	participation_percen INTEGER NOT NULL,
+	year INTEGER NOT NULL,
+	project_periodStart Date NOT NULL,
+	project_periodEnd Date NOT NULL,
+	doc_submit_date DATE DEFAULT (CURRENT_DATE),
+	FOREIGN KEY (user_id) REFERENCES Users(user_id) 
 );
-
+ALTER TABLE Research_KRIS MODIFY COLUMN research_cluster JSON;
+ALTER TABLE Research_KRIS MODIFY COLUMN res_standard JSON;
+ALTER TABLE Research_KRIS MODIFY COLUMN res_standard_trade JSON;
 -- สร้างตาราง Form 
 CREATE TABLE Form ( 
-    form_id INTEGER PRIMARY KEY AUTO_INCREMENT UNIQUE, 
-    form_type ENUM('Conference', 'Page_Charge', 'Research_KRIS') NOT NULL, 
-    conf_id INTEGER, 
-    pageC_id INTEGER,
-    kris_id INTEGER,
-    form_status ENUM('ตรวจสอบ','ฝ่ายบริหารทรัพยากรบุคคล','ฝ่ายบริหารงานวิจัย',  'ฝ่ายบริหารการเงิน', 'รองคณบดี', 'คณบดี','รออนุมัติ', 'อนุมัติ', 'ไม่อนุมัติ') NOT NULL, 
-    form_money INTEGER NOT NULL, 
-    FOREIGN KEY (conf_id) REFERENCES Conference(conf_id),
-    FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id),
-    FOREIGN KEY (kris_id) REFERENCES Research_KRIS(kris_id) 
+	form_id INTEGER PRIMARY KEY AUTO_INCREMENT UNIQUE, 
+	form_type ENUM('Conference', 'Page_Charge', 'Research_KRIS') NOT NULL, 
+	conf_id INTEGER, 
+	pageC_id INTEGER,
+	kris_id INTEGER,
+	form_status ENUM('ตรวจสอบ','ฝ่ายบริหารทรัพยากรบุคคล','ฝ่ายบริหารงานวิจัย',  'ฝ่ายบริหารการเงิน', 'รองคณบดี', 'คณบดี','รออนุมัติ', 'อนุมัติ', 'ไม่อนุมัติ') NOT NULL, 
+	form_money INTEGER NOT NULL, 
+	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id),
+	FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id),
+	FOREIGN KEY (kris_id) REFERENCES Research_KRIS(kris_id) 
 );
 -- ตารางเก็บเอกสาร PDF (File_pdf)
 CREATE TABLE File_pdf (
-    file_id INTEGER PRIMARY KEY AUTO_INCREMENT UNIQUE,
-    type ENUM ('Conference', 'Page_Charge','Research_KRIS') NOT NULL,
-   conf_id INTEGER,
-    pageC_id INTEGER,
-    kris_id INTEGER,
-    kris_file VARCHAR(255),
-    full_page VARCHAR(255),
-    ac_for_claim VARCHAR(255),
-    q_proof VARCHAR(255),
-    call_for_paper VARCHAR(255),
-    fee_receipt VARCHAR(255),
-    fx_rate_document VARCHAR(255),
-    conf_proof VARCHAR(255),
-    Pc_proof VARCHAR(255),
-    q_pc_proof VARCHAR(255),
-    Invoice VARCHAR(255),
-    accepted VARCHAR(255),
-    FOREIGN KEY (conf_id) REFERENCES Conference(conf_id), 
-    FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id), 
-    FOREIGN KEY (kris_id) REFERENCES Research_KRIS(kris_id)
+	file_id INTEGER PRIMARY KEY AUTO_INCREMENT UNIQUE,
+	type ENUM ('Conference', 'Page_Charge','Research_KRIS') NOT NULL,
+	conf_id INTEGER,
+	pageC_id INTEGER,
+	kris_id INTEGER,
+	kris_file VARCHAR(255),
+	full_page VARCHAR(255), -- confer
+	date_published_journals VARCHAR(255),
+	published_journals VARCHAR(255),
+	q_proof VARCHAR(255),
+	call_for_paper VARCHAR(255),
+	fee_receipt VARCHAR(255),
+	fx_rate_document VARCHAR(255),
+	conf_proof VARCHAR(255),
+	other_name VARCHAR(255),
+	other_file VARCHAR(255),
+	pc_proof VARCHAR(255), -- pc
+	quartile_order VARCHAR(255),
+	q_pc_proof VARCHAR(255),
+	invoice_public VARCHAR(255),
+	accepted VARCHAR(255), -- canfer && pc
+	copy_article VARCHAR(255),
+	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id), 
+	FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id), 
+	FOREIGN KEY (kris_id) REFERENCES Research_KRIS(kris_id)
 );
 -- Table for Officer's_opinion_pc
 CREATE TABLE Officers_opinion_pc ( 
-    p_offic_id INT AUTO_INCREMENT PRIMARY KEY, 
-    pageC_id INTEGER NOT NULL UNIQUE, 
-    p_research_admin ENUM('อนุมัติ', 'ไม่อนุมัติ', 'อื่น ๆ') NOT NULL, 
-    p_reason VARCHAR(255) NOT NULL, 
-    p_deputy_dean VARCHAR(255) NOT NULL, 
-    p_date_dean_approve DATE NOT NULL, 
-    p_approve_result ENUM('อนุมัติ', 'ไม่อนุมัติ', 'อื่น ๆ') NOT NULL,
-    FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id)
+	p_offic_id INT AUTO_INCREMENT PRIMARY KEY, 
+	pageC_id INTEGER NOT NULL UNIQUE, 
+	p_research_admin ENUM('อนุมัติ', 'ไม่อนุมัติ', 'อื่น ๆ') NOT NULL, 
+	p_reason VARCHAR(255) NOT NULL, 
+	p_deputy_dean VARCHAR(255), 
+	p_date_dean_approve DATE, 
+	p_approve_result ENUM('อนุมัติ', 'ไม่อนุมัติ', 'อื่น ๆ'),
+    research_doc_submit_date DATE DEFAULT (CURRENT_DATE), 
+    associate_doc_submit_date DATE DEFAULT (CURRENT_DATE),
+    dean_doc_submit_date DATE DEFAULT (CURRENT_DATE),
+	FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id)
 );
-
-
 -- Table: Officer's_opinion_conf
 CREATE TABLE Officers_opinion_conf ( 
-    c_offic_id INTEGER PRIMARY KEY AUTO_INCREMENT, 
-    conf_id INTEGER NOT NULL UNIQUE,
-    c_research_admin ENUM('ถูกต้อง', 'ไม่ถูกต้อง', 'อื่น ๆ') NOT NULL, 
-    c_reason VARCHAR(255) NOT NULL, 
-    c_meet_quality ENUM('มาตรฐาน', 'ดีมาก') NOT NULL, 
-    c_good_reason VARCHAR(255) NOT NULL, 
-    c_deputy_dean VARCHAR(255) NOT NULL, 
-    c_approve_result ENUM('อนุมัติ', 'ไม่อนุมัติ', 'อื่น ๆ') NOT NULL, 
-    FOREIGN KEY (conf_id) REFERENCES Conference(conf_id) 
+	c_offic_id INTEGER PRIMARY KEY AUTO_INCREMENT, 
+	conf_id INTEGER NOT NULL UNIQUE,
+	c_research_admin ENUM('ถูกต้อง', 'ไม่ถูกต้อง', 'อื่น ๆ') NOT NULL, 
+	c_reason VARCHAR(255) NOT NULL, 
+	c_meet_quality ENUM('มาตรฐาน', 'ดีมาก'), 
+	c_good_reason VARCHAR(255), 
+	c_deputy_dean VARCHAR(255), 
+	c_approve_result ENUM('อนุมัติ', 'ไม่อนุมัติ', 'อื่น ๆ'),
+    hr_doc_submit_date DATE DEFAULT (CURRENT_DATE), 
+    research_doc_submit_date DATE DEFAULT (CURRENT_DATE), 
+    associate_doc_submit_date DATE DEFAULT (CURRENT_DATE),
+    dean_doc_submit_date DATE DEFAULT (CURRENT_DATE),
+	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id) 
+);
+CREATE TABLE Budget (
+	budget_id INT AUTO_INCREMENT PRIMARY KEY,
+	type ENUM ('Conference', 'Page_Charge') NOT NULL,
+	conf_id INTEGER,
+	pageC_id INTEGER,
+	budget_year INT NOT NULL, 
+	total_amount INT NOT NULL,
+	num_expenses_approved INT NOT NULL,
+	total_amount_approved INT NOT NULL,
+	remaining_credit_limit INT NOT NULL,
+	money_confer INT NOT NULL,
+	total_remaining_credit_limit INT NOT NULL,
+    doc_submit_date DATE DEFAULT (CURRENT_DATE),
+	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id),
+	FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id)
 );
 
-CREATE TABLE Budget (
-    budget_id INT AUTO_INCREMENT PRIMARY KEY,
-    type ENUM ('Conference', 'Page_Charge') NOT NULL,
-    conf_id INTEGER,
-    pageC_id INTEGER,
-    budget_year INT NOT NULL, 
-    total_amount INT NOT NULL,
-    num_expenses_approved INT NOT NULL,
-    total_amount_approved INT NOT NULL,
-    remaining_credit_limit INT NOT NULL,
-    money_confer INT NOT NULL,
-    total_remaining_credit_limit INT NOT NULL,
-    FOREIGN KEY (conf_id) REFERENCES Conference(conf_id),
-    FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id)
+INSERT INTO Users (
+    user_role, user_nameth, user_nameeng, user_email, user_signature, user_money, user_position
+) VALUES (
+    'professor', 'พีรณัฐ ทิพย์รักษ์', 'Peeranut Thiprak', 'wine@gmail.com', 'jkhdfkuseiw', 2678902, 'professor'
 );
+
+INSERT INTO Page_Charge (
+    user_id, pageC_times, pageC_days, journal_name, quality_journal, 
+    pc_isi_year, pc_sjr_year, pc_scopus_year, impact_factor, sjr_score, 
+    cite_score, support_limit, article_title, vol_journal, issue_journal, 
+    month, year, ISSN_ISBN, submission_date, date_review_announce, final_date, 
+    article_research_ject, research_type, research_type2, name_funding_source, 
+    budget_limit, annual, presenter_type, request_support
+   )VALUES
+    (1, 2, STR_TO_DATE('01-02-2024', '%d-%m-%Y'), 'Journal of Science', '{"ISI": true, "Scopus": false}', 
+    2023, 2023, 2023, 5, 3, 
+    10, 5000, 'A Study on AI', 15, 2, 
+    6, 2024, '1234-5678', STR_TO_DATE('15-01-2024', '%d-%m-%Y'), STR_TO_DATE('01-02-2024', '%d-%m-%Y'), 
+    STR_TO_DATE('10-02-2024', '%d-%m-%Y'), 'Artificial Intelligence', 'วิจัยพื้นฐาน', 'Machine Learning', 
+    'National Science Fund', 100000, 2024, 'First Author', 3000
+    );
