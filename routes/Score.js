@@ -29,5 +29,20 @@ router.get("/scores", async (req, res) => {
     }
 });
 
-
+router.get("/score/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [score] = await db.query(
+      "SELECT * FROM Score WHERE conf_id = ?",
+      [id]
+    );
+    if (score.length === 0) {
+      return res.status(404).json({ message: "score not found" });
+    }
+    console.log("Get score: ", score[0]);
+    res.status(200).json(score[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 exports.router = router;
