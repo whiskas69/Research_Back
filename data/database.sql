@@ -6,9 +6,14 @@ CREATE TABLE Users (
 	user_nameeng VARCHAR(255),
 	user_email VARCHAR(255) NOT NULL, 
 	user_signature VARCHAR(255),
-	user_money Integer,
-	user_position VARCHAR(255) NOT NULL
+	user_moneyPC DECIMAL(10,2),
+    user_moneyCF DECIMAL(10,2),
+	user_positionth VARCHAR(255) NOT NULL,
+    user_positioneng VARCHAR(255) NOT NULL,
+    user_startwork date NOT NULL,
+    user_year int NOT NULL
 );
+
 -- ตารางเอกสารขออนุมัติค่าเดินทาง (Conference)
 CREATE TABLE Conference (
     conf_id INTEGER PRIMARY KEY AUTO_INCREMENT UNIQUE,
@@ -213,10 +218,49 @@ CREATE TABLE Budget (
 );
 
 INSERT INTO Users (
-    user_role, user_nameth, user_nameeng, user_email, user_signature, user_money, user_position
-) VALUES (
-    'professor', 'พีรณัฐ ทิพย์รักษ์', 'Peeranut Thiprak', 'wine@gmail.com', 'jkhdfkuseiw', 2678902, 'professor'
-);
+    user_role, user_nameth, user_nameeng, user_email, user_signature,user_moneyPC,
+    user_moneyCF, user_positionth, user_positioneng, user_startwork, user_year
+) VALUES
+('professor', 'โอฬาร วงศ์วิรัตน์', 'Olarn Wongwirat', 'olarn@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '1998-09-06', TIMESTAMPDIFF(YEAR, '1998-09-06', CURRENT_DATE)),
+('professor', 'นพพร โชติกกำธร', 'Nopporn Chotikakamthorn', 'nopporn@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '1996-03-19', TIMESTAMPDIFF(YEAR, '1996-03-19', CURRENT_DATE)),
+('professor', 'อัครินทร์ คุณกิตติ', 'Akharin Khunkitti', 'akharin@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.', 'Asst. Prof.', '1989-03-01', TIMESTAMPDIFF(YEAR, '1989-03-01', CURRENT_DATE)),
+('professor', 'วรพจน์ กรีสุระเดช', 'Worapoj Kreesuradej', 'worapoj@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '1997-01-30', TIMESTAMPDIFF(YEAR, '1997-01-30', CURRENT_DATE)),
+('professor', 'อาริต  ธรรมโน', 'Arit Thammano', 'arit@it.kmitl.ac.th', NULL, 0, 80000, 'ศ.ดร.', 'Prof. Dr.', '1998-10-01', TIMESTAMPDIFF(YEAR, '1998-10-01', CURRENT_DATE)),
+('professor', 'โชติพัชร์ ภรณวลัย', 'Chotipat Pornavalai', 'chotipat@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '1999-01-20', TIMESTAMPDIFF(YEAR, '1999-01-20', CURRENT_DATE)),
+('professor', 'ภัทรชัย ลลิตโรจน์วงศ์', 'Pattarachai Lalitrojwong', 'pattarachai@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '1999-07-01', TIMESTAMPDIFF(YEAR, '1999-07-01', CURRENT_DATE)),
+('professor', 'วารุนี  บัววิรัตน์', 'Warune Buavirat', 'warune@it.kmitl.ac.th', NULL, 0, 80000, 'อาจารย์', 'Mrs.', '2001-11-01', TIMESTAMPDIFF(YEAR, '2001-11-01', CURRENT_DATE)),
+('professor', 'พรฤดี  เนติโสภากุล', 'Ponrudee Netisopakul', 'ponrudee@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2002-08-01', TIMESTAMPDIFF(YEAR, '2002-08-01', CURRENT_DATE)),
+('professor', 'พัฒนพงษ์  ฉันทมิตรโอภาส', 'Pattanapong Chantamit-O-Pas', 'pattanapong@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '2003-08-01', TIMESTAMPDIFF(YEAR, '2003-08-01', CURRENT_DATE)),
+('professor', 'สุเมธ  ประภาวัต', 'Sumet Prabhavat', 'sumet@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '2003-10-01', TIMESTAMPDIFF(YEAR, '2003-10-01', CURRENT_DATE)),
+('professor', 'อนันตพัฒน์  อนันตชัย', 'Anuntapat Anuntachai', 'anuntapat@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '2003-10-01', TIMESTAMPDIFF(YEAR, '2003-10-01', CURRENT_DATE)),
+('professor', 'บุญประเสริฐ  สุรักษ์รัตนสกุล', 'Boonprasert Surakratanasakul', 'boonprasert@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '2003-10-01', TIMESTAMPDIFF(YEAR, '2003-10-01', CURRENT_DATE)),
+('professor', 'ลภัส  ประดิษฐ์ทัศนีย์', 'Lapas Pradittasnee', 'lapas@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '2003-10-16', TIMESTAMPDIFF(YEAR, '2003-10-16', CURRENT_DATE)),
+('professor', 'สุพัณณดา  โชติพันธ์', 'Supannada Chotipant', 'supannada@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '2005-05-02', TIMESTAMPDIFF(YEAR, '2005-05-02', CURRENT_DATE)),
+('professor', 'สมเกียรติ  วังศิริพิทักษ์', 'Somkiat Wangsiripitak', 'somkiat@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '1998-04-27', TIMESTAMPDIFF(YEAR, '1998-04-27', CURRENT_DATE)),
+('professor', 'สุขสันต์  พาณิชพาพิบูล', 'Sooksan Panichpapiboon', 'sooksan@it.kmitl.ac.th', NULL, 0, 80000, 'ศ.ดร.', 'Prof. Dr.', '2006-10-31', TIMESTAMPDIFF(YEAR, '2006-10-31', CURRENT_DATE)),
+('professor', 'ปานวิทย์  ธุวะนุติ', 'Panwit Tuwanut', 'panwit@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2009-12-15', TIMESTAMPDIFF(YEAR, '2009-12-15', CURRENT_DATE)),
+('professor', 'สุภวรรณ  ทัศนประเสริฐ', 'Supawan Tassanaprasert', 'supawan@it.kmitl.ac.th', NULL, 0, 80000, 'ดร.', 'Dr.', '2010-03-02', TIMESTAMPDIFF(YEAR, '2010-03-02', CURRENT_DATE)),
+('professor', 'กิติ์สุชาต  พสุภา', 'Kitsuchart Pasupa', 'kitsuchart@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2011-06-01', TIMESTAMPDIFF(YEAR, '2011-06-01', CURRENT_DATE)),
+('professor', 'กันต์พงษ์  วรรัตน์ปัญญา', 'Kuntpong Woraratpanya', 'kuntpong@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2011-08-01', TIMESTAMPDIFF(YEAR, '2011-08-01', CURRENT_DATE)),
+('professor', 'สุภกิจ  นุตยะสกุล', 'Supakit Nootyaskool', 'supakit@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '2011-12-01', TIMESTAMPDIFF(YEAR, '2011-12-01', CURRENT_DATE)),
+('professor', 'มานพ  พันธ์โคกกรวด', 'Manop Phankokkruad', 'manop@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '2011-12-01', TIMESTAMPDIFF(YEAR, '2011-12-01', CURRENT_DATE)),
+('professor', 'กนกวรรณ  อัจฉริยะชาญวณิช', 'Kanokwan Atchariyachanvanich', 'kanokwan@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '2012-08-16', TIMESTAMPDIFF(YEAR, '2012-08-16', CURRENT_DATE)),
+('professor', 'บัณฑิต  ฐานะโสภณ', 'Bundit Thanasopon', 'bundit@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '2015-09-11', TIMESTAMPDIFF(YEAR, '2015-09-11', CURRENT_DATE)),
+('professor', 'สิริอร  วิทยากร', 'Sirion Vittayakorn', 'sirion@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '2017-01-16', TIMESTAMPDIFF(YEAR, '2017-01-16', CURRENT_DATE)),
+('professor', 'พรสุรีย์  แจ่มศรี', 'Pornsuree Jamsri', 'pornsuree@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '2017-02-01', TIMESTAMPDIFF(YEAR, '2017-02-01', CURRENT_DATE)),
+('professor', 'สามารถ หมุดและ', 'Samart Moodleah', 'samart@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '2017-02-20', TIMESTAMPDIFF(YEAR, '2017-02-20', CURRENT_DATE)),
+('professor', 'ธราวิเชษฐ์  ธิติจรูญโรจน์', 'Taravichet Titijaroonroj', 'taravichet@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '2019-06-03', TIMESTAMPDIFF(YEAR, '2019-06-03', CURRENT_DATE)),
+('professor', 'นนท์  คนึงสุขเกษม', 'Nont Kanungsukkasem', 'nont@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '2020-01-02', TIMESTAMPDIFF(YEAR, '2020-01-02', CURRENT_DATE)),
+('professor', 'ประพันธ์  ปวรางกูร', 'Praphan Pavarangkoon', 'praphan@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '2020-06-01', TIMESTAMPDIFF(YEAR, '2020-06-01', CURRENT_DATE)),
+('professor', 'ศิรสิทธิ์  โล่ห์ชนะจิต', 'Sirasit Lochanachit', 'sirasit@it.kmitl.ac.th', NULL, 0, 80000, 'ดร.', 'Dr.', '2020-09-01', TIMESTAMPDIFF(YEAR, '2020-09-01', CURRENT_DATE)),
+('professor', 'ทัศนัย  พลอยสุวรรณ', 'Tuchsanai Ploysuwan', 'tuchsanai@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '2022-06-01', TIMESTAMPDIFF(YEAR, '2022-06-01', CURRENT_DATE)),
+('professor', 'ณัฏฐ์  ดิลกธนากุล', 'Nat Dilokthanakul', 'nat@it.kmitl.ac.th', NULL, 0, 80000, 'ดร.', 'Dr.', '2022-07-01', TIMESTAMPDIFF(YEAR, '2022-07-01', CURRENT_DATE)),
+('professor', 'สุวิทย์ ภูมิฤทธิกุล', 'Suvit Poomrittigul', 'suvit@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '2022-12-01', TIMESTAMPDIFF(YEAR, '2022-12-01', CURRENT_DATE)),
+('professor', 'ภัทรภร  วัฒนาชีพ', 'Bhattarabhorn Wattanacheep', 'Bhattarabhorn@it.kmitl.ac.th', NULL, 0, 80000, 'ดร.', 'Dr.', '2023-09-01', TIMESTAMPDIFF(YEAR, '2023-09-01', CURRENT_DATE)),
+('professor', 'อิสสระพงศ์  ค้วนเครือ', 'Issarapong Khuankrue', 'Issarapong@it.kmitl.ac.th', NULL, 0, 80000, 'ดร.', 'Dr.', '2023-09-01', TIMESTAMPDIFF(YEAR, '2023-09-01', CURRENT_DATE)),
+('professor', 'บุญเลิศ  วัจจะตรากุล', 'Boonlert Watjatrakul', 'boonlert@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2024-01-02', TIMESTAMPDIFF(YEAR, '2024-01-02', CURRENT_DATE)),
+('professor', 'จันทร์บูรณ์  สถิตวิริยวงศ์', 'Chanboon Sathitwiriyawong', 'chanboon@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE));
+
 
 INSERT INTO Page_Charge (
     user_id, pageC_times, pageC_days, journal_name, quality_journal, 
