@@ -5,6 +5,9 @@
 ### file ###
 config.js
 
+### floder ###
+uploads/
+
 ### Node ###
 # Logs
 logs
