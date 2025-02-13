@@ -44,6 +44,38 @@ router.post('/opinionConf', async (req, res) => {
   }
 });
 
+router.put('opinionConf/id', async (req,res) => {
+  console.log("in Update opinionConf")
+  // const { id } = req.params;
+  const updates = req.body;
+  try{
+    const [result] = await db.query(
+      `INSERT INTO Officers_opinion_conf 
+          (conf_id, c_research_admin, c_reason, c_meet_quality, c_good_reason, 
+          c_deputy_dean, c_approve_result, hr_doc_submit_date, research_doc_submit_date, 
+          associate_doc_submit_date, dean_doc_submit_date) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [data.conf_id, data.c_research_admin, data.c_reason, data.c_meet_quality || null, 
+        data.c_good_reason|| null, data.c_deputy_dean|| null, data.c_approve_result || null,
+        data.hr_doc_submit_date || null, data.research_doc_submit_date || null, 
+        data.associate_doc_submit_date || null, data.dean_doc_submit_date || null]
+    );
+    
+    const [updateForm] = await db.query(
+      `UPDATE Form SET form_type = ?, conf_id = ?, form_status = ? WHERE conf_id = ?`,
+      [ "Conference", updates.conf_id, "ฝ่ายบริหารการเงิน", req.params]
+    );
+
+    console.log("update : ", updateForm);
+
+    res.status(201).json({ message: "Officers_opinion_conf created successfully!", id: result.insertId });
+  
+  }catch (err) {
+    res.status(500).json({ error: err.message });
+    console.log(err.message);
+  }
+})
+
 router.get("/allopinionConf", async (req, res) => {
   try {
     const [allopinionConf] = await db.query("SELECT * FROM Officers_opinion_conf");
@@ -53,5 +85,20 @@ router.get("/allopinionConf", async (req, res) => {
   }
 });
 
-
+router.get("/opinionConf/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [opinionConf] = await db.query(
+      "SELECT * FROM Officers_opinion_conf WHERE conf_id = ?",
+      [id]
+    );
+    if (opinionConf.length === 0) {
+      return res.status(404).json({ message: "opinionConf not found" });
+    }
+    console.log("Get opinionConf: ", opinionConf[0]);
+    res.status(200).json(opinionConf[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 exports.router = router;

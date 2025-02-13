@@ -129,8 +129,6 @@ router.post('/kris', uploadDocuments.fields([
   }
 });
 
-
-
 router.get("/allkris", async (req, res) => {
   try {
     const [allkris] = await db.query("SELECT * FROM Research_KRIS");
@@ -140,5 +138,20 @@ router.get("/allkris", async (req, res) => {
   }
 });
 
-
+router.get("/kris/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [kris] = await db.query(
+      "SELECT * FROM Research_KRIS WHERE kris_id = ?",
+      [id]
+    );
+    if (kris.length === 0) {
+      return res.status(404).json({ message: "kris not found" });
+    }
+    console.log("Get kris: ", kris[0]);
+    res.status(200).json(kris[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 exports.router = router;
