@@ -117,7 +117,7 @@ CREATE TABLE Research_KRIS (
 	res_cluster_other VARCHAR(255),
 	res_standard JSON NOT NULL,
 	res_standard_trade JSON NOT NULL, -- เปลี่ยนชื่อด้วยมันเป้นมาตรา 52,53
-	h_index DECIMAL(10,2)eger NOT NULL,
+	h_index DECIMAL(10,2) NOT NULL,
 	his_inveninno Varchar (255) NOT NULL,
 	participation_percen DECIMAL(10,2) NOT NULL,
 	year INTEGER NOT NULL,
@@ -268,9 +268,9 @@ INSERT INTO Users (
 ('professor', 'ภัทรภร  วัฒนาชีพ', 'Bhattarabhorn Wattanacheep', 'Bhattarabhorn@it.kmitl.ac.th', NULL, 0, 80000, 'ดร.', 'Dr.', '2023-09-01', TIMESTAMPDIFF(YEAR, '2023-09-01', CURRENT_DATE)),
 ('professor', 'อิสสระพงศ์  ค้วนเครือ', 'Issarapong Khuankrue', 'Issarapong@it.kmitl.ac.th', NULL, 0, 80000, 'ดร.', 'Dr.', '2023-09-01', TIMESTAMPDIFF(YEAR, '2023-09-01', CURRENT_DATE)),
 ('professor', 'บุญเลิศ  วัจจะตรากุล', 'Boonlert Watjatrakul', 'boonlert@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2024-01-02', TIMESTAMPDIFF(YEAR, '2024-01-02', CURRENT_DATE)),
-('professor', 'จันทร์บูรณ์  สถิตวิริยวงศ์', 'Chanboon Sathitwiriyawong', 'chanboon@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE));
+('professor', 'จันทร์บูรณ์  สถิตวิริยวงศ์', 'Chanboon Sathitwiriyawong', 'chanboon@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE)),
 
-('admin', 'พีรณัฐ ทิพย์รักษ์', 'Chanboon Sathitwiriyawong', '64070075@kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE));
+('admin', 'พีรณัฐ ทิพย์รักษ์', 'Chanboon Sathitwiriyawong', '64070075@kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE)),
 
 ('admin', 'ศศิกานต์ หลงกระจ่าง', 'Chanboon Sathitwiriyawong', '64070105@kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE));
 
