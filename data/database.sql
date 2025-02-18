@@ -200,6 +200,14 @@ CREATE TABLE Officers_opinion_conf (
     dean_doc_submit_date DATE DEFAULT (CURRENT_DATE),
 	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id) 
 );
+-- Table: Officer's_opinion_kris
+CREATE TABLE Officers_opinion_kris ( 
+	k_offic_id INTEGER PRIMARY KEY AUTO_INCREMENT, 
+	kris_id INTEGER NOT NULL UNIQUE,
+	research_admin ENUM('ถูกต้อง', 'ไม่ถูกต้อง', 'อื่น ๆ') NOT NULL,
+    doc_submit_date DATE DEFAULT (CURRENT_DATE),
+	FOREIGN KEY (kris_id) REFERENCES Research_KRIS(kris_id)
+);
 CREATE TABLE Budget (
 	budget_id INT AUTO_INCREMENT PRIMARY KEY,
 	type ENUM ('Conference', 'Page_Charge') NOT NULL,
