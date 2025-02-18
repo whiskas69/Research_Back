@@ -174,11 +174,12 @@ CREATE TABLE File_pdf (
 CREATE TABLE Officers_opinion_pc ( 
 	p_offic_id INT AUTO_INCREMENT PRIMARY KEY, 
 	pageC_id INTEGER NOT NULL UNIQUE, 
-	p_research_admin ENUM('อนุมัติ', 'ไม่อนุมัติ', 'อื่น ๆ') NOT NULL, 
-	p_reason VARCHAR(255) NOT NULL, 
+	p_research_admin ENUM('อนุมัติ', 'ไม่อนุมัติ', 'อื่น ๆ'), 
+	p_reason VARCHAR(255), 
 	p_deputy_dean VARCHAR(255), 
-	p_date_dean_approve DATE, 
-	p_approve_result ENUM('อนุมัติ', 'ไม่อนุมัติ', 'อื่น ๆ'),
+	p_date_accepted_approve DATE, -- วันที่เอกสารได้รับการอนุมัติ
+	p_approve_result ENUM('รับทราบ','อนุมัติ', 'ไม่อนุมัติ', 'อื่น ๆ'),
+    p_reason_dean_appeove VARCHAR(255),
     research_doc_submit_date DATE DEFAULT (CURRENT_DATE), 
     associate_doc_submit_date DATE DEFAULT (CURRENT_DATE),
     dean_doc_submit_date DATE DEFAULT (CURRENT_DATE),
@@ -188,12 +189,12 @@ CREATE TABLE Officers_opinion_pc (
 CREATE TABLE Officers_opinion_conf ( 
 	c_offic_id INTEGER PRIMARY KEY AUTO_INCREMENT, 
 	conf_id INTEGER NOT NULL UNIQUE,
-	c_research_admin ENUM('ถูกต้อง', 'ไม่ถูกต้อง', 'อื่น ๆ') NOT NULL, 
-	c_reason VARCHAR(255) NOT NULL, 
+	c_research_hr ENUM('ถูกต้อง', 'ไม่ถูกต้อง', 'อื่น ๆ'), 
+	c_reason VARCHAR(255), 
 	c_meet_quality ENUM('มาตรฐาน', 'ดีมาก'), 
 	c_good_reason VARCHAR(255), 
 	c_deputy_dean VARCHAR(255), 
-	c_approve_result ENUM('อนุมัติ', 'ไม่อนุมัติ', 'อื่น ๆ'),
+	c_approve_result ENUM('รับทราบ', 'ไม่อนุมัติ'),
     hr_doc_submit_date DATE DEFAULT (CURRENT_DATE), 
     research_doc_submit_date DATE DEFAULT (CURRENT_DATE), 
     associate_doc_submit_date DATE DEFAULT (CURRENT_DATE),
@@ -204,7 +205,7 @@ CREATE TABLE Officers_opinion_conf (
 CREATE TABLE Officers_opinion_kris ( 
 	k_offic_id INTEGER PRIMARY KEY AUTO_INCREMENT, 
 	kris_id INTEGER NOT NULL UNIQUE,
-	research_admin ENUM('ถูกต้อง', 'ไม่ถูกต้อง', 'อื่น ๆ') NOT NULL,
+	research_admin ENUM('ถูกต้อง', 'ไม่ถูกต้อง', 'อื่น ๆ'),
     doc_submit_date DATE DEFAULT (CURRENT_DATE),
 	FOREIGN KEY (kris_id) REFERENCES Research_KRIS(kris_id)
 );
