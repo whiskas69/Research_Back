@@ -83,7 +83,7 @@ router.post('/kris', uploadDocuments.fields([
       Array.isArray(data.research_cluster) ? JSON.stringify(data.research_cluster) : data.research_cluster,
       data.res_cluster_other || null,
       Array.isArray(data.res_standard) ? JSON.stringify(data.res_standard) : data.res_standard,
-      Array.isArray(data.res_standard_trade) ? JSON.stringify(data.res_standard_trade) : data.res_standard_trade,
+      data.res_standard_trade || null,
       data.h_index,
       data.his_inveninno,
       data.participation_percen || null,

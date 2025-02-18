@@ -116,7 +116,7 @@ CREATE TABLE Research_KRIS (
 	research_cluster JSON NOT NULL,
 	res_cluster_other VARCHAR(255),
 	res_standard JSON NOT NULL,
-	res_standard_trade JSON NOT NULL, -- เปลี่ยนชื่อด้วยมันเป้นมาตรา 52,53
+	res_standard_trade ENUM('52', '53'), -- เปลี่ยนชื่อด้วยมันเป้นมาตรา 52,53
 	h_index DECIMAL(10,2) NOT NULL,
 	his_inveninno Varchar (255) NOT NULL,
 	participation_percen DECIMAL(10,2) NOT NULL,
