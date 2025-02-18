@@ -44,37 +44,43 @@ router.post('/opinionConf', async (req, res) => {
   }
 });
 
-router.put('opinionConf/id', async (req,res) => {
-  console.log("in Update opinionConf")
-  // const { id } = req.params;
+router.put('/opinionConf/:id', async (req, res) => {
+  console.log("in Update opinionConf");
+  
+  const { id } = req.params; // Extracting ID from URL params
   const updates = req.body;
-  try{
+
+  try {
     const [result] = await db.query(
-      `INSERT INTO Officers_opinion_conf 
-          (conf_id, c_research_admin, c_reason, c_meet_quality, c_good_reason, 
-          c_deputy_dean, c_approve_result, hr_doc_submit_date, research_doc_submit_date, 
-          associate_doc_submit_date, dean_doc_submit_date) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [data.conf_id, data.c_research_admin, data.c_reason, data.c_meet_quality || null, 
-        data.c_good_reason|| null, data.c_deputy_dean|| null, data.c_approve_result || null,
-        data.hr_doc_submit_date || null, data.research_doc_submit_date || null, 
-        data.associate_doc_submit_date || null, data.dean_doc_submit_date || null]
+      `UPDATE Officers_opinion_conf SET 
+          conf_id = ?, c_research_admin = ?, c_reason = ?, c_meet_quality = ?, 
+          c_good_reason = ?, c_deputy_dean = ?, c_approve_result = ?, hr_doc_submit_date = ?, 
+          research_doc_submit_date = ?, associate_doc_submit_date = ?, dean_doc_submit_date = ?
+       WHERE conf_id = ?`,
+      [
+        updates.conf_id, updates.c_research_admin, updates.c_reason, updates.c_meet_quality || null,
+        updates.c_good_reason || null, updates.c_deputy_dean || null, updates.c_approve_result || null,
+        updates.hr_doc_submit_date || null, updates.research_doc_submit_date || null, 
+        updates.associate_doc_submit_date || null, updates.dean_doc_submit_date || null, id
+      ]
     );
-    
+    console.log("update: ", result);
+
     const [updateForm] = await db.query(
       `UPDATE Form SET form_type = ?, conf_id = ?, form_status = ? WHERE conf_id = ?`,
-      [ "Conference", updates.conf_id, "ฝ่ายบริหารการเงิน", req.params]
+      ["Conference", updates.conf_id, updates.form_status, id]
     );
 
-    console.log("update : ", updateForm);
-
-    res.status(201).json({ message: "Officers_opinion_conf created successfully!", id: result.insertId });
+    console.log("update: ", updateForm);
+    
+    res.status(200).json({ message: "Officers_opinion_conf updated successfully!", id });
   
-  }catch (err) {
+  } catch (err) {
     res.status(500).json({ error: err.message });
     console.log(err.message);
   }
-})
+});
+
 
 router.get("/allopinionConf", async (req, res) => {
   try {

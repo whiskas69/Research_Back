@@ -107,13 +107,13 @@ router.post('/conference', uploadDocuments.fields([
     const scoreData = {
       conf_id: confId,
       score_formular,
-      sjr_score, 
-      sjr_year, 
-      hindex_score, 
-      hindex_year, 
-      citat, 
-      score_result, 
-      core_rank
+      sjr_score: sjr_score || null, 
+      sjr_year: sjr_year || null, 
+      hindex_score: hindex_score || null, 
+      hindex_year: hindex_year || null, 
+      citat: citat || null, 
+      score_result: score_result || null, 
+      core_rank: core_rank || null,
     }
     console.log("Score data to insert:", scoreData);
     await db.query("INSERT INTO Score SET ?", scoreData);

@@ -22,7 +22,7 @@ router.post('/form', async (req, res) => {
 router.get("/formsOffice", async (req, res) => {
   try {
     const [forms] = await db.query("SELECT * FROM Form WHERE form_status = 'ตรวจสอบ'");
-    console.log(forms);
+    // console.log(forms);
 
     let confer = [];
     let pageC = [];
@@ -33,16 +33,17 @@ router.get("/formsOffice", async (req, res) => {
         if (forms[i].conf_id != null) {
           console.log("1", forms[i]);
           const [conferData] = await db.query("SELECT user_id FROM Conference WHERE conf_id = ?", [forms[i].conf_id]);
+          const [nameC] = await db.query("SELECT user_id, user_nameth, user_nameeng FROM Users WHERE user_id = ?", [conferData[0].user_id]);
+          console.log("nameC", nameC)
 
-          if (conferData.length > 0) {
-            const [nameC] = await db.query("SELECT user_id, user_nameth, user_nameeng FROM Users WHERE user_id = ?", [conferData[0].user_id]);
-            confer.push(nameC[0]); // Push only the first element of the result
-            console.log("Confer Data:", nameC[0]);
-          }
+          newC = []
+          newC.push(forms[i].conf_id, nameC[0])
+          console.log("900", newC)
+          confer.push(newC)
         }
 
         if (forms[i].pageC_id != null) {
-          console.log("form", forms[i])
+          // console.log("form", forms[i])
           console.log("Page 2", forms[i]);
           const [pageCData] = await db.query("SELECT user_id FROM Page_Charge WHERE pageC_id = ?", [forms[i].pageC_id]);
           const [nameP] = await db.query("SELECT user_id, user_nameth, user_nameeng FROM Users WHERE user_id = ?", [pageCData[0].user_id]);
