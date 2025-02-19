@@ -140,6 +140,8 @@ router.get("/allkris", async (req, res) => {
 
 router.get("/kris/:id", async (req, res) => {
   const { id } = req.params;
+
+  console.log("id, ", id)
   try {
     const [kris] = await db.query(
       "SELECT * FROM Research_KRIS WHERE kris_id = ?",

@@ -101,4 +101,35 @@ router.get("/formsOffice", async (req, res) => {
   }
 });
 
+router.get("/form/:id", async (req, res) => {
+  const { id } = req.params;
+
+  console.log("id: ", id);
+
+  try {
+    const [form] = await db.query(
+      `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, f.kris_id, f.form_status, f.form_money
+      ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
+      ,COALESCE(k.name_research_th,c.conf_research, p.article_title ) AS article_title 
+      ,COALESCE(c.conf_name, p.journal_name) AS article_name
+      FROM form f
+      LEFT JOIN research_kris k ON f.kris_id = k.kris_id
+      LEFT JOIN conference c ON f.conf_id = c.conf_id
+      LEFT JOIN page_charge p ON f.pageC_id = p.pageC_id
+      WHERE COALESCE(k.user_id, c.user_id, p.user_id) = ?`, [id]
+    );
+
+    if (form.length === 0) {
+      return res.status(404).json({ message: "has not data"});
+    }
+
+    console.log("get, ", form);
+    console.log("get, ", form[0]);
+
+    res.status(200).json(form);
+  } catch (error) {
+    res.status(500).json({ error: err.message });
+  }
+})
+
 exports.router = router;
