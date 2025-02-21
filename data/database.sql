@@ -136,7 +136,7 @@ CREATE TABLE Form (
 	conf_id INTEGER, 
 	pageC_id INTEGER,
 	kris_id INTEGER,
-	form_status ENUM('ตรวจสอบ','ฝ่ายบริหารทรัพยากรบุคคล','ฝ่ายบริหารงานวิจัย',  'ฝ่ายบริหารการเงิน', 'รองคณบดี', 'คณบดี','รออนุมัติ', 'อนุมัติ', 'ไม่อนุมัติ') NOT NULL, 
+	form_status ENUM('ฝ่ายบริหารทรัพยากรบุคคล','ฝ่ายบริหารงานวิจัย',  'ฝ่ายบริหารการเงิน', 'รองคณบดี', 'คณบดี','รออนุมัติ', 'อนุมัติ', 'ไม่อนุมัติ', 'เข้าที่ประชุม') NOT NULL, 
 	form_money DECIMAL(10,2) NOT NULL, 
 	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id),
 	FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id),

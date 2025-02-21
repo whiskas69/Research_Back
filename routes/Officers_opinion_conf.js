@@ -9,11 +9,11 @@ router.post('/opinionConf', async (req, res) => {
   try {
     const [result] = await db.query(
       `INSERT INTO Officers_opinion_conf 
-          (conf_id, c_research_admin, c_reason, c_meet_quality, c_good_reason, 
+          (conf_id, c_research_hr, c_reason, c_meet_quality, c_good_reason, 
           c_deputy_dean, c_approve_result, hr_doc_submit_date, research_doc_submit_date, 
           associate_doc_submit_date, dean_doc_submit_date) 
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [data.conf_id, data.c_research_admin, data.c_reason, data.c_meet_quality || null, 
+      [data.conf_id, data.c_research_hr, data.c_reason, data.c_meet_quality || null, 
         data.c_good_reason|| null, data.c_deputy_dean|| null, data.c_approve_result || null,
         data.hr_doc_submit_date || null, data.research_doc_submit_date || null, 
         data.associate_doc_submit_date || null, data.dean_doc_submit_date || null]
@@ -53,12 +53,12 @@ router.put('/opinionConf/:id', async (req, res) => {
   try {
     const [result] = await db.query(
       `UPDATE Officers_opinion_conf SET 
-          conf_id = ?, c_research_admin = ?, c_reason = ?, c_meet_quality = ?, 
+          conf_id = ?, c_research_hr = ?, c_reason = ?, c_meet_quality = ?, 
           c_good_reason = ?, c_deputy_dean = ?, c_approve_result = ?, hr_doc_submit_date = ?, 
           research_doc_submit_date = ?, associate_doc_submit_date = ?, dean_doc_submit_date = ?
        WHERE conf_id = ?`,
       [
-        updates.conf_id, updates.c_research_admin, updates.c_reason, updates.c_meet_quality || null,
+        updates.conf_id, updates.c_research_hr, updates.c_reason, updates.c_meet_quality || null,
         updates.c_good_reason || null, updates.c_deputy_dean || null, updates.c_approve_result || null,
         updates.hr_doc_submit_date || null, updates.research_doc_submit_date || null, 
         updates.associate_doc_submit_date || null, updates.dean_doc_submit_date || null, id
@@ -82,7 +82,7 @@ router.put('/opinionConf/:id', async (req, res) => {
 });
 
 
-router.get("/allopinionConf", async (req, res) => {
+router.get("/allOpinionConf", async (req, res) => {
   try {
     const [allopinionConf] = await db.query("SELECT * FROM Officers_opinion_conf");
     res.status(200).json(allopinionConf);
