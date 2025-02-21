@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors')
 const cookieParser = require("cookie-parser");
+const path = require('path');
 
 require("dotenv").config();
 
@@ -10,7 +11,8 @@ const PORT = 3000;
 app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
 app.use(cookieParser())
 // Statics
-app.use(express.static('static'))
+// app.use(express.static('static'))
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json()) // for parsing application/json
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 
