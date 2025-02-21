@@ -132,4 +132,13 @@ router.get("/form/:id", async (req, res) => {
   }
 })
 
+router.get("/allForms", async (req, res) => {
+  console.log("allForms")
+  try {
+    const [form] = await db.query("SELECT * FROM Form");
+    res.status(200).json(form);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 exports.router = router;
