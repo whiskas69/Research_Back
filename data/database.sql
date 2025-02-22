@@ -174,7 +174,7 @@ CREATE TABLE File_pdf (
 CREATE TABLE Officers_opinion_pc ( 
 	p_offic_id INT AUTO_INCREMENT PRIMARY KEY, 
 	pageC_id INTEGER NOT NULL UNIQUE, 
-	p_research_admin ENUM('อนุมัติ', 'ไม่อนุมัติ', 'อื่น ๆ'), 
+	p_research_admin ENUM('อนุมัติ', 'รอหนังสือตอบรับ', 'อื่น ๆ'), 
 	p_reason VARCHAR(255), 
 	p_deputy_dean VARCHAR(255), 
 	p_date_accepted_approve DATE, -- วันที่เอกสารได้รับการอนุมัติ
