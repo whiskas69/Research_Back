@@ -3,25 +3,36 @@ const db = require("../config.js");
 
 router = express.Router();
 
-router.post('/form', async (req, res) => {
-    console.log("in post formss")
-    const data = req.body;
-    try {
-        const [result] = await db.query(
-          "INSERT INTO Form (form_type, conf_id, pageC_id, kris_id, form_status, form_money) VALUES (?, ?, ?, ?, ?, ?)",
-          [data.form_type, data.conf_id || null, data.pageC_id || null, data.kris_id || null, data.form_status, data.form_money]
-        );
-        console.log(data)
-        res.status(201).json({ message: "Form created successfully!", id: result.insertId });
-      } catch (err) {
-        res.status(500).json({ error: err.message });
-        console.log(err.message);
-    }
+router.post("/form", async (req, res) => {
+  console.log("in post formss");
+  const data = req.body;
+  try {
+    const [result] = await db.query(
+      "INSERT INTO Form (form_type, conf_id, pageC_id, kris_id, form_status, form_money) VALUES (?, ?, ?, ?, ?, ?)",
+      [
+        data.form_type,
+        data.conf_id || null,
+        data.pageC_id || null,
+        data.kris_id || null,
+        data.form_status,
+        data.form_money,
+      ]
+    );
+    console.log(data);
+    res
+      .status(201)
+      .json({ message: "Form created successfully!", id: result.insertId });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+    console.log(err.message);
+  }
 });
 
 router.get("/formsOffice", async (req, res) => {
   try {
-    const [forms] = await db.query("SELECT * FROM Form WHERE form_status = 'ตรวจสอบ'");
+    const [forms] = await db.query(
+      "SELECT * FROM Form WHERE form_status = 'ตรวจสอบ'"
+    );
     // console.log(forms);
 
     let confer = [];
@@ -32,32 +43,44 @@ router.get("/formsOffice", async (req, res) => {
       for (let i = 0; i < forms.length; i++) {
         if (forms[i].conf_id != null) {
           console.log("1", forms[i]);
-          const [conferData] = await db.query("SELECT user_id FROM Conference WHERE conf_id = ?", [forms[i].conf_id]);
-          const [nameC] = await db.query("SELECT user_id, user_nameth, user_nameeng FROM Users WHERE user_id = ?", [conferData[0].user_id]);
-          console.log("nameC", nameC)
+          const [conferData] = await db.query(
+            "SELECT user_id FROM Conference WHERE conf_id = ?",
+            [forms[i].conf_id]
+          );
+          const [nameC] = await db.query(
+            "SELECT user_id, user_nameth, user_nameeng FROM Users WHERE user_id = ?",
+            [conferData[0].user_id]
+          );
+          console.log("nameC", nameC);
 
-          newC = []
-          newC.push(forms[i].conf_id, nameC[0])
-          console.log("900", newC)
-          confer.push(newC)
+          newC = [];
+          newC.push(forms[i].conf_id, nameC[0]);
+          console.log("900", newC);
+          confer.push(newC);
         }
 
         if (forms[i].pageC_id != null) {
           // console.log("form", forms[i])
           console.log("Page 2", forms[i]);
-          const [pageCData] = await db.query("SELECT user_id FROM Page_Charge WHERE pageC_id = ?", [forms[i].pageC_id]);
-          const [nameP] = await db.query("SELECT user_id, user_nameth, user_nameeng FROM Users WHERE user_id = ?", [pageCData[0].user_id]);
-          console.log("nameP", nameP)
+          const [pageCData] = await db.query(
+            "SELECT user_id FROM Page_Charge WHERE pageC_id = ?",
+            [forms[i].pageC_id]
+          );
+          const [nameP] = await db.query(
+            "SELECT user_id, user_nameth, user_nameeng FROM Users WHERE user_id = ?",
+            [pageCData[0].user_id]
+          );
+          console.log("nameP", nameP);
 
           // forms.push(nameP[0])
           // console.log("forms", forms)
 
-          newC = []
-          newC.push(forms[i].pageC_id, nameP[0])
-          console.log("newD", newC)
+          newC = [];
+          newC.push(forms[i].pageC_id, nameP[0]);
+          console.log("newD", newC);
           //[PC_id , nameP]
           // pageC.push(nameP[0])
-          pageC.push(newC)
+          pageC.push(newC);
 
           // console.log("pageC", pageC)
 
@@ -70,15 +93,20 @@ router.get("/formsOffice", async (req, res) => {
 
         if (forms[i].kris_id != null) {
           console.log("3", forms[i]);
-          const [krisData] = await db.query("SELECT user_id FROM Research_KRIS WHERE kris_id = ?", [forms[i].kris_id]);
-          const [nameK] = await db.query("SELECT user_id, user_nameth, user_nameeng FROM Users WHERE user_id = ?", [krisData[0].user_id]);
-          console.log("nameK", nameK)
+          const [krisData] = await db.query(
+            "SELECT user_id FROM Research_KRIS WHERE kris_id = ?",
+            [forms[i].kris_id]
+          );
+          const [nameK] = await db.query(
+            "SELECT user_id, user_nameth, user_nameeng FROM Users WHERE user_id = ?",
+            [krisData[0].user_id]
+          );
+          console.log("nameK", nameK);
 
-          newK = []
-          newK.push(forms[i].kris_id, nameK[0])
-          console.log("32323", newK)
-          kris.push(newK)
-
+          newK = [];
+          newK.push(forms[i].kris_id, nameK[0]);
+          console.log("32323", newK);
+          kris.push(newK);
 
           // if (krisData.length > 0) {
           //   const [nameK] = await db.query("SELECT user_id, user_nameth, user_nameeng FROM Users WHERE user_id = ?", [krisData[0].user_id]);
@@ -93,9 +121,8 @@ router.get("/formsOffice", async (req, res) => {
       forms: forms,
       confer: confer,
       pageC: pageC,
-      kris: kris
+      kris: kris,
     });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -107,6 +134,8 @@ router.get("/form/:id", async (req, res) => {
   console.log("id: ", id);
 
   try {
+    console.log('ki ')
+    
     const [form] = await db.query(
       `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, f.kris_id, f.form_status, f.form_money
       ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
@@ -120,7 +149,7 @@ router.get("/form/:id", async (req, res) => {
     );
 
     if (form.length === 0) {
-      return res.status(404).json({ message: "has not data"});
+      return res.status(404).json({ message: "has not data" });
     }
 
     console.log("get, ", form);
@@ -128,17 +157,76 @@ router.get("/form/:id", async (req, res) => {
 
     res.status(200).json(form);
   } catch (error) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: error.message });
   }
-})
+});
 
 router.get("/allForms", async (req, res) => {
-  console.log("allForms")
+  console.log("allForms");
   try {
     const [form] = await db.query("SELECT * FROM Form");
     res.status(200).json(form);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: error.message });
   }
 });
+
+router.get("/form/kris/:id", async (req, res) => {
+  console.log("in");
+
+  const { id } = req.params;
+  console.log("id:", id);
+
+  if (id != null || id != "") {
+    try {
+      const [form] = await db.query("SELECT * FROM Form WHERE form_id = ?", [
+        id,
+      ]);
+
+      console.log('kris.id, ', form[0].kris_id);
+
+      const kris_id = form[0].kris_id;
+
+      const [kris] = await db.query("SELECT * FROM File_pdf WHERE kris_id = ?", [ kris_id ]);
+
+      console.log(kris)
+
+      res.status(200).json({
+        form: form[0],
+        kris: kris
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+});
+
+router.get("/form/confer/:id", async (req, res) => {
+  console.log("in");
+
+  const { id } = req.params;
+  console.log("id:, id");
+
+  if (id != null || id != "") {
+    try {
+      const [form] = await db.query("SELECT * FROM Form WHERE form_id = ?", [id,]);
+
+      console.log('form.id, ', form[0].conf_id);
+
+      const conf_id = form[0].conf_id;
+
+      const [conf] = await db.query("SELECT * FROM File_pdf WHERE conf_id = ?", [conf_id]);
+
+      console.log(conf)
+
+      res.status(200).json({
+        form: form[0],
+        conf: conf
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+});
+
 exports.router = router;
