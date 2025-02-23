@@ -64,7 +64,7 @@ router.put('/opinionConf/:id', async (req, res) => {
         updates.associate_doc_submit_date || null, updates.dean_doc_submit_date || null, id
       ]
     );
-    console.log("update: ", result);
+    console.log("update: ", updates);
 
     const [updateForm] = await db.query(
       `UPDATE Form SET form_type = ?, conf_id = ?, form_status = ? WHERE conf_id = ?`,

@@ -178,6 +178,7 @@ CREATE TABLE Officers_opinion_pc (
 	p_reason VARCHAR(255), 
 	p_deputy_dean VARCHAR(255), 
 	p_date_accepted_approve DATE, -- วันที่เอกสารได้รับการอนุมัติ
+    p_acknowledge ENUM('รับทราบ', 'ไม่อนุมัติ'),
 	p_approve_result ENUM('รับทราบ','อนุมัติ', 'ไม่อนุมัติ', 'อื่น ๆ'),
     p_reason_dean_appeove VARCHAR(255),
     research_doc_submit_date DATE DEFAULT (CURRENT_DATE), 

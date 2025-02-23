@@ -57,7 +57,6 @@ router.get("/budget/pageCharge/:id", async (req, res) => {
   }
 });
 
-
 router.get("/budget/conference/:id", async (req, res) => {
   const { id } = req.params;
   try {
