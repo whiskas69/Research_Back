@@ -3,6 +3,7 @@ const multer = require("multer");
 const db = require("../config.js");
 const fs = require("fs");
 const path = require("path");
+const { error } = require("console");
 
 router = express.Router();
 
@@ -246,7 +247,7 @@ router.get("/page_charge/calc/:id", async (req, res) => {
 
         if (filterword.length > 0) {
           console.log("have filterword: ", filterword);
-          console.log(quartile)
+          console.log(quartile);
 
           if (quartile == 1) {
             withdrawn = money_request < 60000 ? money_request : 60000;
@@ -264,7 +265,7 @@ router.get("/page_charge/calc/:id", async (req, res) => {
             // }
           }
         } else {
-          console.log("don't have filterword")
+          console.log("don't have filterword");
           if (quartile == 1) {
             withdrawn = money_request >= 60000 ? 60000 : money_request;
             // if (money_request >= 60000) {
@@ -304,6 +305,42 @@ router.get("/page_charge/calc/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+//update pc_file
+router.put(
+  "/page_charge/:id",
+  uploadDocuments.fields([
+    { name: "pc_proof" },
+    { name: "q_pc_proof" },
+    { name: "invoice_public" },
+    { name: "accepted" },
+    { name: "copy_article" },
+  ]),
+  async (req, res) => {
+    const data = req.body;
+
+    if (req.invalidFiles && req.invalidFiles.length > 0) {
+      return res.status(400).json({ error: req.invalidFiles });
+    }
+
+    console.log("data, ", data)
+
+    // try {
+    //   const update = await db.query(
+    //     `UPDATE File_pdf 
+    //      SET pc_proof = ?, q_pc_proof = ?, invoice_public = ?, accepted = ?, copy_article = ? 
+    //      WHERE pageC_id = ?`,
+    //     [data.pc_proof, data.q_pc_proof, data.invoice_public, data.accepted, data.copy_article, id]
+    //   );
+      
+    //   console.log("up, ", update);
+      
+    //   res.status(200).json(update);
+    // } catch (error) {
+    //   res.status(500).json*{ error: error.message };
+    // }
+  }
+);
 
 // Get page_charge:  {
 //   pageC_id: 1,

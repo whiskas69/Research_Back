@@ -134,8 +134,8 @@ router.get("/form/:id", async (req, res) => {
   console.log("id: ", id);
 
   try {
-    console.log('ki ')
-    
+    console.log("ki ");
+
     const [form] = await db.query(
       `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, f.kris_id, f.form_status, f.form_money
       ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
@@ -145,7 +145,8 @@ router.get("/form/:id", async (req, res) => {
       LEFT JOIN research_kris k ON f.kris_id = k.kris_id
       LEFT JOIN conference c ON f.conf_id = c.conf_id
       LEFT JOIN page_charge p ON f.pageC_id = p.pageC_id
-      WHERE COALESCE(k.user_id, c.user_id, p.user_id) = ?`, [id]
+      WHERE COALESCE(k.user_id, c.user_id, p.user_id) = ?`,
+      [id]
     );
 
     if (form.length === 0) {
@@ -172,60 +173,76 @@ router.get("/allForms", async (req, res) => {
 });
 
 router.get("/form/kris/:id", async (req, res) => {
-  console.log("in");
-
+  //get kris_id
   const { id } = req.params;
-  console.log("id:", id);
 
-  if (id != null || id != "") {
-    try {
-      const [form] = await db.query("SELECT * FROM Form WHERE form_id = ?", [
-        id,
-      ]);
+  if (id == null || id == "") {
+    res.status(500).json("ไม่มีแบบฟอร์มนี้");
+  }
 
-      console.log('kris.id, ', form[0].kris_id);
+  try {
+    const [form] = await db.query("SELECT * FROM Form WHERE kris_id = ?", [id]);
+    const [kris] = await db.query("SELECT * FROM File_pdf WHERE kris_id = ?", [
+      id,
+    ]);
 
-      const kris_id = form[0].kris_id;
+    console.log(kris);
 
-      const [kris] = await db.query("SELECT * FROM File_pdf WHERE kris_id = ?", [ kris_id ]);
-
-      console.log(kris)
-
-      res.status(200).json({
-        form: form[0],
-        kris: kris
-      });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
+    res.status(200).json({
+      form: form[0],
+      kris: kris[0],
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
 router.get("/form/confer/:id", async (req, res) => {
-  console.log("in");
-
+  //get conf_id
   const { id } = req.params;
-  console.log("id:, id");
 
-  if (id != null || id != "") {
-    try {
-      const [form] = await db.query("SELECT * FROM Form WHERE form_id = ?", [id,]);
+  if (id == null || id == "") {
+    res.status(500).json("ไม่มีแบบฟอร์มนี้");
+  }
 
-      console.log('form.id, ', form[0].conf_id);
+  try {
+    const [form] = await db.query("SELECT * FROM Form WHERE conf_id = ?", [id]);
+    const [conf] = await db.query("SELECT * FROM File_pdf WHERE conf_id = ?", [
+      id,
+    ]);
 
-      const conf_id = form[0].conf_id;
+    res.status(200).json({
+      form: form[0],
+      conf: conf[0],
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
-      const [conf] = await db.query("SELECT * FROM File_pdf WHERE conf_id = ?", [conf_id]);
+//use status Pc
+router.get("/form/Pc/:id", async (req, res) => {
+  //get pageC_id
+  const { id } = req.params;
 
-      console.log(conf)
+  if (id == null || id == "") {
+    res.status(500).json("ไม่มีแบบฟอร์มนี้");
+  }
 
-      res.status(200).json({
-        form: form[0],
-        conf: conf
-      });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
+  try {
+    const [form] = await db.query("SELECT * FROM Form WHERE pageC_id = ?", [
+      id,
+    ]);
+    const [pC] = await db.query("SELECT * FROM File_pdf WHERE pageC_id = ?", [
+      id,
+    ]);
+
+    res.status(200).json({
+      form: form[0],
+      pC: pC[0],
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 

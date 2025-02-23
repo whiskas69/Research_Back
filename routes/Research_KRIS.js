@@ -114,7 +114,7 @@ router.post('/kris', uploadDocuments.fields([
     const formData = {
       form_type: "Research_KRIS",
       kris_id: krisID,
-      form_status: "ตรวจสอบ",
+      form_status: "ฝ่ายบริหารทรัพยากรบุคคล",
       form_money: 0,
     }
     console.log("formData data to insert:", formData);
