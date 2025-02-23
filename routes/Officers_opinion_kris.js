@@ -14,14 +14,14 @@ router.post('/opinionKris', async (req, res) => {
       [data.kris_id, data.research_admin, data.doc_submit_date]
     );
     console.log("result:", result)
-    const krisId = data.kris_id;
-    console.log("krisId", krisId)
+    // const krisId = data.kris_id;
+    console.log("data: ", data)
+    // console.log("krisId : ", krisId);
 
     const [update] = await db.query(
-      `UPDATE Form SET form_type = ?, krisId = ?, form_status = ? WHERE krisId = ?`,
-      [ "Research_KRIS", data.krisId, "เข้าที่ประชุม", data.krisId]
+      `UPDATE Form SET form_type = ?, kris_id = ?, form_status = ? WHERE kris_id = ?`,
+      [ "Research_KRIS", data.kris_id, "เข้าที่ประชุม", data.kris_id]
     );
-
     console.log("update : ", update);
 
     res.status(201).json({ message: "Officers_opinion_kris created successfully!", id: result.insertId });
@@ -30,3 +30,4 @@ router.post('/opinionKris', async (req, res) => {
     console.log(err.message);
   }
 });
+exports.router = router;
