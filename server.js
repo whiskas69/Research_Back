@@ -25,6 +25,7 @@ const form = require('./routes/Form');
 const pdf = require('./routes/File_pdf');
 const opinionPC = require('./routes/Officers_opinion_pc');
 const opinionConf = require('./routes/Officers_opinion_conf');
+const opinionKris = require('./routes/Officers_opinion_kris');
 const budget = require('./routes/Budget');
 
 const PCall = require('./routes/PageCharge_all');
@@ -41,6 +42,7 @@ app.use(form.router)
 app.use(pdf.router)
 app.use(opinionPC.router)
 app.use(opinionConf.router)
+app.use(opinionKris.router)
 app.use(budget.router)
 
 app.use(PCall.router)

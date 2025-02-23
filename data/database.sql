@@ -186,6 +186,9 @@ CREATE TABLE Officers_opinion_pc (
     dean_doc_submit_date DATE DEFAULT (CURRENT_DATE),
 	FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id)
 );
+SELECT 
+    DATE_FORMAT(CONVERT_TZ(research_doc_submit_date, '+00:00', '+07:00'), '%Y-%m-%d') AS research_doc_submit_date
+FROM Officers_opinion_pc;
 -- Table: Officer's_opinion_conf
 CREATE TABLE Officers_opinion_conf ( 
 	c_offic_id INTEGER PRIMARY KEY AUTO_INCREMENT, 
@@ -202,11 +205,12 @@ CREATE TABLE Officers_opinion_conf (
     dean_doc_submit_date DATE DEFAULT (CURRENT_DATE),
 	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id) 
 );
+
 -- Table: Officer's_opinion_kris
 CREATE TABLE Officers_opinion_kris ( 
 	k_offic_id INTEGER PRIMARY KEY AUTO_INCREMENT, 
 	kris_id INTEGER NOT NULL UNIQUE,
-	research_admin ENUM('ถูกต้อง', 'ไม่ถูกต้อง', 'อื่น ๆ'),
+	research_admin ENUM('รับทราบ', 'ไม่รับทราบ'),
     doc_submit_date DATE DEFAULT (CURRENT_DATE),
 	FOREIGN KEY (kris_id) REFERENCES Research_KRIS(kris_id)
 );
