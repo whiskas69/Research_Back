@@ -142,7 +142,6 @@ router.post(
         form_type: type,
         pageC_id: pageCId,
         form_status: req.body.form_status,
-        form_money: req.body.form_money,
       };
       console.log("formData data to insert:", formData);
       await db.query("INSERT INTO Form SET ?", formData);

@@ -145,7 +145,6 @@ router.post('/conference', uploadDocuments.fields([
       form_type: type,
       conf_id: confId,
       form_status: "ฝ่ายบริหารทรัพยากรบุคคล",
-      form_money: req.body.form_money,
     };
     console.log("formData data to insert:", formData);
     await db.query("INSERT INTO Form SET ?", formData);
