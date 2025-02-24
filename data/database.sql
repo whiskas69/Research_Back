@@ -86,6 +86,9 @@ CREATE TABLE Page_Charge (
     impact_factor DECIMAL(10,2),
     sjr_score DECIMAL(10,2),
     cite_score DECIMAL(10,2),
+    qt_isi INT,
+    qt_sjr INT,
+    qt_scopus INT,
     support_limit INT NOT NULL,
     article_title VARCHAR(255) NOT NULL,
     vol_journal INT NOT NULL,
@@ -161,7 +164,6 @@ CREATE TABLE File_pdf (
 	other_name VARCHAR(255),
 	other_file VARCHAR(255),
 	pc_proof VARCHAR(255), -- pc
-	quartile_order VARCHAR(255),
 	q_pc_proof VARCHAR(255),
 	invoice_public VARCHAR(255),
 	accepted VARCHAR(255), -- canfer && pc

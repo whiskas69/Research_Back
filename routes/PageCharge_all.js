@@ -120,7 +120,7 @@ router.post(
       console.log("pcID: ", pageCId);
 
       //ลืมใส่ มีช่อง input ด้วย
-      const { type, quartile_order } = req.body;
+      const { type } = req.body;
       // Insert uploaded file data into the database
       const files = req.files;
       console.log("filesss", req.files);
@@ -128,7 +128,6 @@ router.post(
         type,
         pageC_id: pageCId,
         pc_proof: files?.pc_proof?.[0]?.filename || null,
-        quartile_order,
         q_pc_proof: files?.q_pc_proof?.[0]?.filename || null,
         invoice_public: files?.invoice_public?.[0]?.filename || null,
         accepted: files?.accepted?.[0]?.filename || null,
