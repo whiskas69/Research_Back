@@ -17,7 +17,7 @@ CREATE TABLE Users (
 -- ตารางเอกสารขออนุมัติค่าเดินทาง (Conference)
 CREATE TABLE Conference (
     conf_id INTEGER PRIMARY KEY AUTO_INCREMENT UNIQUE,
-    user_id INTEGER NOT NULL UNIQUE,
+    user_id INTEGER NOT NULL,
     conf_times INT NOT NULL,
     conf_days DATE NOT NULL,
     trav_dateStart DATE NOT NULL,
@@ -75,7 +75,7 @@ CREATE TABLE Score (
 -- ตารางเอกสารขออนุมัติค่า Page Charge (Page_Charge)
 CREATE TABLE Page_Charge (
     pageC_id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    user_id INTEGER NOT NULL UNIQUE,
+    user_id INTEGER NOT NULL,
     pageC_times INT NOT NULL,
     pageC_days DATE NOT NULL,
     journal_name VARCHAR(255) NOT NULL,
@@ -113,7 +113,7 @@ CREATE TABLE Page_Charge (
 -- Table for Research_KRIS 
 CREATE TABLE Research_KRIS ( 
 	kris_id INT AUTO_INCREMENT PRIMARY KEY, 
-	user_id INTEGER NOT NULL UNIQUE, 
+	user_id INTEGER NOT NULL, 
 	name_research_th VARCHAR(255) NOT NULL,
 	name_research_en VARCHAR(255) NOT NULL,
 	research_cluster JSON NOT NULL,

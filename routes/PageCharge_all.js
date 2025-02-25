@@ -77,11 +77,12 @@ router.post(
       INSERT INTO Page_Charge (
         user_id, pageC_times, pageC_days, journal_name, quality_journal,
         pc_isi_year, pc_sjr_year, pc_scopus_year, impact_factor, sjr_score,
-        cite_score, support_limit, article_title, vol_journal, issue_journal,
-        month, year, ISSN_ISBN, submission_date, date_review_announce,
-        final_date, article_research_ject, research_type, research_type2,
-        name_funding_source, budget_limit, annual, presenter_type, request_support,doc_submit_date
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        cite_score, qt_isi, qt_sjr, qt_scopus, support_limit, article_title, 
+        vol_journal, issue_journal, month, year, ISSN_ISBN, submission_date, 
+        date_review_announce, final_date, article_research_ject, research_type, 
+        research_type2, name_funding_source, budget_limit, annual, presenter_type, 
+        request_support, doc_submit_date
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
       const [result] = await db.query(query, [
         data.user_id,
@@ -95,6 +96,9 @@ router.post(
         data.impact_factor || null,
         data.sjr_score || null,
         data.cite_score || null,
+        data.qt_isi || null, 
+        data.qt_sjr || null, 
+        data.qt_scopus || null,
         data.support_limit,
         data.article_title,
         data.vol_journal,
@@ -105,12 +109,12 @@ router.post(
         data.submission_date,
         data.date_review_announce,
         data.final_date,
-        data.article_research_ject,
-        data.research_type,
+        data.article_research_ject || null,
+        data.research_type || null,
         data.research_type2 || null,
-        data.name_funding_source,
-        data.budget_limit,
-        data.annual,
+        data.name_funding_source || null,
+        data.budget_limit || null,
+        data.annual || null,
         data.presenter_type,
         data.request_support,
         data.doc_submit_date,
