@@ -3,7 +3,7 @@ const multer = require("multer");
 const db = require("../config.js");
 const fs = require("fs");
 const path = require("path");
-const { error } = require("console");
+const { error, info } = require("console");
 
 router = express.Router();
 
@@ -96,8 +96,8 @@ router.post(
         data.impact_factor || null,
         data.sjr_score || null,
         data.cite_score || null,
-        data.qt_isi || null, 
-        data.qt_sjr || null, 
+        data.qt_isi || null,
+        data.qt_sjr || null,
         data.qt_scopus || null,
         data.support_limit,
         data.article_title,
@@ -308,9 +308,43 @@ router.get("/page_charge/calc/:id", async (req, res) => {
   }
 });
 
+//status page
+router.get("/form/Pc/:id", async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(401).json({ error: "ไม่มีแบบฟอร์มนี้" });
+  }
+
+  try {
+    const [form] = await db.query("SELECT * FROM Form WHERE pageC_id = ?", [
+      id,
+    ]);
+    const [page_c] = await db.query(
+      "SELECT * FROM File_pdf WHERE pageC_id = ?",
+      [id]
+    );
+
+    const [info_pageC] = await db.query(
+      "SELECT journal_name, article_title FROM page_charge WHERE pageC_id = ? ",
+      [id]
+    );
+
+    res.status(200).json({
+      form: form[0],
+      page_c: page_c[0],
+      journal: info_pageC[0].journal_name,
+      name: info_pageC[0].article_title,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "เกิดข้อผิดพลาดในเซิร์ฟเวอร์" });
+  }
+});
+
 //update pc_file
 router.put(
-  "/page_charge/:id",
+  "/updateFilePage_C",
   uploadDocuments.fields([
     { name: "pc_proof" },
     { name: "q_pc_proof" },
@@ -319,28 +353,39 @@ router.put(
     { name: "copy_article" },
   ]),
   async (req, res) => {
-    const data = req.body;
-
     if (req.invalidFiles && req.invalidFiles.length > 0) {
       return res.status(400).json({ error: req.invalidFiles });
     }
 
-    console.log("data, ", data)
+    const data = req.body;
 
-    // try {
-    //   const update = await db.query(
-    //     `UPDATE File_pdf 
-    //      SET pc_proof = ?, q_pc_proof = ?, invoice_public = ?, accepted = ?, copy_article = ? 
-    //      WHERE pageC_id = ?`,
-    //     [data.pc_proof, data.q_pc_proof, data.invoice_public, data.accepted, data.copy_article, id]
-    //   );
-      
-    //   console.log("up, ", update);
-      
-    //   res.status(200).json(update);
-    // } catch (error) {
-    //   res.status(500).json*{ error: error.message };
-    // }
+    console.log("data, ", data);
+    console.log("data, ", data.pageC_id);
+    try {
+      const files = req.files;
+
+      if (!files) {
+        throw new Error("No files received.");
+      }
+    
+      const fileData = {
+        q_pc_proof: files.q_pc_proof?.[0]?.filename || null,
+        invoice_public: files.invoice_public?.[0]?.filename || null,
+        accepted: files.accepted?.[0]?.filename || null,
+        copy_article: files.copy_article?.[0]?.filename || null
+      };
+    
+      const update = await db.query(
+        `UPDATE File_pdf
+         SET q_pc_proof = ?, invoice_public = ?, accepted = ?, copy_article = ?
+         WHERE pageC_id = ?`,
+        [fileData.q_pc_proof, fileData.invoice_public, fileData.accepted, fileData.copy_article, data.pageC_id]
+      );
+    
+      console.log("✅ Update successful:", update);
+    } catch (error) {
+      console.error("❌ Error updating database:", error.message);
+    }
   }
 );
 

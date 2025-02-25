@@ -9,6 +9,7 @@ router = express.Router();
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const dir = 'uploads' //สร้างโฟเดอร์ 'uploads'
+
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir)
     }
@@ -147,13 +148,53 @@ router.get("/kris/:id", async (req, res) => {
       "SELECT * FROM Research_KRIS WHERE kris_id = ?",
       [id]
     );
+
     if (kris.length === 0) {
       return res.status(404).json({ message: "kris not found" });
     }
-    console.log("Get kris: ", kris[0]);
+
     res.status(200).json(kris[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
+//status page
+router.get("/form/kris/:id", async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(401).json({ error: "ไม่มีแบบฟอร์มนี้" });
+  }
+
+  try {
+    const [form] = await db.query("SELECT * FROM Form WHERE kris_id = ?", [id]);
+    const [name] = await db.query("SELECT name_research_th FROM research_kris WHERE kris_id = ?", [id]);
+
+    if (!form.length && !name.length) {
+      return res.status(404).json({ error: "ไม่พบข้อมูลฟอร์ม" });
+    }
+
+    return res.status(200).json({
+      form: form[0],
+      name: name[0]?.name_research_th
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "เกิดข้อผิดพลาดในเซิร์ฟเวอร์" });
+  }
+});
+
+router.get("/getFilekris", async (req, res) => {
+  const { kris_id } = req.query;
+
+  const file = await db.query(
+    "SELECT kris_file FROM file_pdf WHERE kris_id = ?", [kris_id]
+  );
+
+  const fileUrl = `http://localhost:3000/uploads/${file[0]?.[0]?.kris_file}`
+
+  res.json({message: 'Get File successfully', fileUrl});
+})
+
 exports.router = router;

@@ -139,13 +139,14 @@ router.get("/form/:id", async (req, res) => {
     const [form] = await db.query(
       `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, f.kris_id, f.form_status, f.form_money
       ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
-      ,COALESCE(k.name_research_th,c.conf_research, p.article_title ) AS article_title 
+      ,COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title 
       ,COALESCE(c.conf_name, p.journal_name) AS article_name
       FROM form f
       LEFT JOIN research_kris k ON f.kris_id = k.kris_id
       LEFT JOIN conference c ON f.conf_id = c.conf_id
       LEFT JOIN page_charge p ON f.pageC_id = p.pageC_id
-      WHERE COALESCE(k.user_id, c.user_id, p.user_id) = ?`,
+      WHERE COALESCE(k.user_id, c.user_id, p.user_id) = ?
+      ORDER BY f.form_id DESC`, 
       [id]
     );
 
@@ -168,31 +169,6 @@ router.get("/allForms", async (req, res) => {
     const [form] = await db.query("SELECT * FROM Form");
     res.status(200).json(form);
   } catch (err) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.get("/form/kris/:id", async (req, res) => {
-  //get kris_id
-  const { id } = req.params;
-
-  if (id == null || id == "") {
-    res.status(500).json("ไม่มีแบบฟอร์มนี้");
-  }
-
-  try {
-    const [form] = await db.query("SELECT * FROM Form WHERE kris_id = ?", [id]);
-    const [kris] = await db.query("SELECT * FROM File_pdf WHERE kris_id = ?", [
-      id,
-    ]);
-
-    console.log(kris);
-
-    res.status(200).json({
-      form: form[0],
-      kris: kris[0],
-    });
-  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -220,30 +196,7 @@ router.get("/form/confer/:id", async (req, res) => {
   }
 });
 
-//use status Pc
-router.get("/form/Pc/:id", async (req, res) => {
-  //get pageC_id
-  const { id } = req.params;
 
-  if (id == null || id == "") {
-    res.status(500).json("ไม่มีแบบฟอร์มนี้");
-  }
 
-  try {
-    const [form] = await db.query("SELECT * FROM Form WHERE pageC_id = ?", [
-      id,
-    ]);
-    const [pC] = await db.query("SELECT * FROM File_pdf WHERE pageC_id = ?", [
-      id,
-    ]);
-
-    res.status(200).json({
-      form: form[0],
-      pC: pC[0],
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
 
 exports.router = router;
