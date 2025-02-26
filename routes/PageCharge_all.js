@@ -359,8 +359,6 @@ router.put(
 
     const data = req.body;
 
-    console.log("data, ", data);
-    console.log("data, ", data.pageC_id);
     try {
       const files = req.files;
 
@@ -383,11 +381,29 @@ router.put(
       );
     
       console.log("✅ Update successful:", update);
+      res.json({ success: true, message: "อัปเดตข้อมูลสำเร็จ" });
     } catch (error) {
       console.error("❌ Error updating database:", error.message);
+      res.status(500).json({ success: false, message: "เกิดข้อผิดพลาด" });
     }
   }
 );
+
+router.get("/getFilepage_c", async (req, res) => {
+  const { pageC_id } = req.query;
+
+  const file = await db.query(
+    `SELECT pc_proof, q_pc_proof, invoice_public, accepted, copy_article FROM file_pdf WHERE pageC_id = ?`, [pageC_id]
+  );
+
+  const file_pc_proof = `http://localhost:3000/uploads/${file[0]?.[0]?.pc_proof}`;
+  const file_q_pc_proof = `http://localhost:3000/uploads/${file[0]?.[0]?.q_pc_proof}`;
+  const file_invoice_public = `http://localhost:3000/uploads/${file[0]?.[0]?.invoice_public}`;
+  const file_accepted = `http://localhost:3000/uploads/${file[0]?.[0]?.accepted}`;
+  const file_copy_article = `http://localhost:3000/uploads/${file[0]?.[0]?.copy_article}`;
+
+  res.json({message: 'Get File Successfully', file_pc_proof,file_q_pc_proof, file_invoice_public, file_accepted, file_copy_article});
+})
 
 // Get page_charge:  {
 //   pageC_id: 1,

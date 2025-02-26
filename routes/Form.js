@@ -172,31 +172,4 @@ router.get("/allForms", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-router.get("/form/confer/:id", async (req, res) => {
-  //get conf_id
-  const { id } = req.params;
-
-  if (id == null || id == "") {
-    res.status(500).json("ไม่มีแบบฟอร์มนี้");
-  }
-
-  try {
-    const [form] = await db.query("SELECT * FROM Form WHERE conf_id = ?", [id]);
-    const [conf] = await db.query("SELECT * FROM File_pdf WHERE conf_id = ?", [
-      id,
-    ]);
-
-    res.status(200).json({
-      form: form[0],
-      conf: conf[0],
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-
-
-
 exports.router = router;
