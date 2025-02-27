@@ -58,7 +58,6 @@ router.post('/kris', uploadDocuments.fields([
   }
 
   try {
-    console.log("in post Research_KRIS");
     const data = req.body;
 
     const query = `INSERT INTO Research_KRIS (
@@ -93,39 +92,31 @@ router.post('/kris', uploadDocuments.fields([
       data.project_periodEnd
     ];
 
-    console.log("Executing query:", query, "with values:", values);
-
     const [result] = await db.query(query, values);
-
-    console.log("Data inserted successfully with ID:", result.insertId);
 
     const krisID = result.insertId;
 
     const files = req.files;
-    console.log("Uploaded files:", files);
 
     const fileData = {
       type: "Research_KRIS",
       kris_id: krisID,
       kris_file: files?.kris_file?.[0]?.filename || null,
     };
-    console.log("File data to insert:", fileData);
     await db.query('INSERT INTO File_pdf SET ?', fileData);
 
     const formData = {
       form_type: "Research_KRIS",
       kris_id: krisID,
-      form_status: "ฝ่ายบริหารทรัพยากรบุคคล",
+      form_status: "ฝ่ายบริหารงานวิจัย",
       form_money: 0,
     }
-    console.log("formData data to insert:", formData);
     await db.query('INSERT INTO Form SET ?', formData);
 
 
     res.status(201).json({ message: "Research_KRIS created successfully!", id: krisID });
 
   } catch (err) {
-    console.error("Error inserting data:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
