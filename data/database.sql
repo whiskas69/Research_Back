@@ -93,7 +93,7 @@ CREATE TABLE Page_Charge (
     article_title VARCHAR(255) NOT NULL,
     vol_journal INT NOT NULL,
     issue_journal INT NOT NULL,
-    month INT NOT NULL,
+    month VARCHAR(255) NOT NULL,
     year INT NOT NULL,
     ISSN_ISBN VARCHAR(255) NOT NULL,
     submission_date DATE NOT NULL,
@@ -274,22 +274,4 @@ INSERT INTO Users (
 ('professor', 'จันทร์บูรณ์  สถิตวิริยวงศ์', 'Chanboon Sathitwiriyawong', 'chanboon@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE)),
 
 ('admin', 'พีรณัฐ ทิพย์รักษ์', 'Chanboon Sathitwiriyawong', '64070075@kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE)),
-
-('admin', 'ศศิกานต์ หลงกระจ่าง', 'Chanboon Sathitwiriyawong', '64070105@kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE));
-
-
-INSERT INTO Page_Charge (
-    user_id, pageC_times, pageC_days, journal_name, quality_journal, 
-    pc_isi_year, pc_sjr_year, pc_scopus_year, impact_factor, sjr_score, 
-    cite_score, support_limit, article_title, vol_journal, issue_journal, 
-    month, year, ISSN_ISBN, submission_date, date_review_announce, final_date, 
-    article_research_ject, research_type, research_type2, name_funding_source, 
-    budget_limit, annual, presenter_type, request_support
-   )VALUES
-    (1, 2, STR_TO_DATE('01-02-2024', '%d-%m-%Y'), 'Journal of Science', '{"ISI": true, "Scopus": false}', 
-    2023, 2023, 2023, 5, 3, 
-    10, 5000, 'A Study on AI', 15, 2, 
-    6, 2024, '1234-5678', STR_TO_DATE('15-01-2024', '%d-%m-%Y'), STR_TO_DATE('01-02-2024', '%d-%m-%Y'), 
-    STR_TO_DATE('10-02-2024', '%d-%m-%Y'), 'Artificial Intelligence', 'วิจัยพื้นฐาน', 'Machine Learning', 
-    'National Science Fund', 100000, 2024, 'First Author', 3000
-    );
+('professor', 'ศศิกานต์ หลงกระจ่าง', 'Chanboon Sathitwiriyawong', '64070105@kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE));

@@ -55,9 +55,21 @@ const uploadDocuments = multer({
 
 const today = DateTime.now().toISODate(); // ได้รูปแบบ YYYY-MM-DD
 
+// แปลง JSON String > Array
+const parseJsonArray = (value, helpers) => {
+  try {
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed)) {
+      throw new Error();
+    }
+    return parsed;
+  } catch (err) {
+    return helpers.error("any.invalid");
+  }
+};
+
 const pageChargeSchema = Joi.object({
-  user_id: Joi.number()
-    .required()
+  user_id: Joi.number().required()
     .messages({ "any.required": "กรุณาระบุ user_id" }),
 
   pageC_times: Joi.number().greater(0).required().messages({
@@ -70,155 +82,118 @@ const pageChargeSchema = Joi.object({
     "date.max": "วันที่ต้องไม่มากกว่าวันนี้",
   }),
 
-  journal_name: Joi.string()
-    .required()
+  journal_name: Joi.string().required()
     .messages({ "any.required": "กรุณาระบุชื่อวารสาร" }),
 
-  quality_journal: Joi.alternatives()
-    .try(
-      Joi.string()
-        .custom((value, helpers) => {
-          try {
-            const parsed = JSON.parse(value);
-            if (!Array.isArray(parsed)) {
-              throw new Error();
-            }
-            return parsed;
-          } catch (err) {
-            return helpers.error("any.invalid");
-          }
-        })
-        .messages({
-          "any.invalid":
-            "ข้อมูลไม่ถูกต้อง ต้องเป็น JSON Array ของ ISI, SJR, Scopus, หรือ Nature",
-        }),
-
+  quality_journal: Joi.alternatives().try(
+      Joi.string().custom(parseJsonArray),
       Joi.array().items(Joi.string().valid("ISI", "SJR", "Scopus", "nature"))
-    )
-    .required()
+    ).required()
     .messages({
+      "any.invalid":
+        "ข้อมูลไม่ถูกต้อง ต้องเป็น JSON Array ของ ISI, SJR, Scopus, หรือ Nature",
       "any.required": "กรุณาเลือกคุณภาพของวารสาร",
     }),
 
-  pc_isi_year: Joi.when("quality_journal", {
-    is: Joi.array().items(Joi.string().valid("ISI")).min(1),
-    then: Joi.number()
-      .integer()
-      .max(new Date().getFullYear())
-      .required()
-      .messages({
-        "any.required": "กรุณากรอกปี ISI",
-        "number.base": "ปี ISI ต้องเป็นจำนวนเต็ม",
-      }),
-    otherwise: Joi.forbidden(), // ห้ามส่ง ถ้าไม่มี "ISI"
+  pc_isi_year: Joi.alternatives().conditional("quality_journal", {
+    is: Joi.array().has("ISI"),
+    then: Joi.number().integer().max(new Date().getFullYear()).required()
+    .messages({
+      "any.required": "กรุณากรอกปี ISI",
+      "number.base": "ปี ISI ต้องเป็นจำนวนเต็ม",
+    }),
+    otherwise: Joi.forbidden(),
   }),
 
-  pc_sjr_year: Joi.when("quality_journal", {
-    is: Joi.array().items(Joi.string().valid("SJR")).min(1),
-    then: Joi.number()
-      .integer()
-      .max(new Date().getFullYear())
-      .required()
-      .messages({
-        "any.required": "กรุณากรอกปี SJR",
-        "number.base": "ปี SJR ต้องเป็นจำนวนเต็ม",
-      }),
-    otherwise: Joi.forbidden(), // ห้ามส่ง ถ้าไม่มี "SJR"
+  pc_sjr_year: Joi.alternatives().conditional("quality_journal", {
+    is: Joi.array().has("SJR"),
+    then: Joi.number().integer().max(new Date().getFullYear()).required()
+    .messages({
+      "any.required": "กรุณากรอกปี SJR",
+      "number.base": "ปี SJR ต้องเป็นจำนวนเต็ม",
+    }),
+    otherwise: Joi.forbidden(),
   }),
 
-  pc_scopus_year: Joi.when("quality_journal", {
-    is: Joi.array().items(Joi.string().valid("Scopus")).min(1),
-    then: Joi.number()
-      .integer()
-      .max(new Date().getFullYear())
-      .required()
-      .messages({
-        "any.required": "กรุณากรอกปี Scopus",
-        "number.base": "ปี Scopus ต้องเป็นจำนวนเต็ม",
-      }),
-    otherwise: Joi.forbidden(), // ห้ามส่ง ถ้าไม่มี "Scopus"
+  pc_scopus_year: Joi.alternatives().conditional("quality_journal", {
+    is: Joi.array().has("Scopus"),
+    then: Joi.number().integer().max(new Date().getFullYear()).required()
+    .messages({
+      "any.required": "กรุณากรอกปี Scopus",
+      "number.base": "ปี Scopus ต้องเป็นจำนวนเต็ม",
+    }),
+    otherwise: Joi.forbidden(),
   }),
 
-  impact_factor: Joi.when("quality_journal", {
-    is: Joi.array().items(Joi.string().valid("ISI")).min(1), // ต้องมี "ISI" อย่างน้อย 1 ค่า
+  impact_factor: Joi.alternatives().conditional("quality_journal", {
+    is: Joi.array().has("ISI"),
     then: Joi.number().greater(0).required().messages({
       "number.base": "Impact Factor ต้องเป็นตัวเลข",
       "number.greater": "Impact Factor ต้องมากกว่า 0",
       "any.required": "กรุณากรอก Impact Factor เนื่องจากเลือก ISI",
     }),
-    otherwise: Joi.forbidden(), // ห้ามส่งค่า impact_factor ถ้าไม่มี "ISI"
+    otherwise: Joi.forbidden(),
   }),
 
-  sjr_score: Joi.when("quality_journal", {
-    is: Joi.array().items(Joi.string().valid("SJR")).min(1), // ต้องมี "SJR" อย่างน้อย 1 ค่า
+  sjr_score: Joi.alternatives().conditional("quality_journal", {
+    is: Joi.array().has("SJR"),
     then: Joi.number().greater(0).required().messages({
       "number.base": "SJR Score ต้องเป็นตัวเลข",
       "number.greater": "SJR Score ต้องมากกว่า 0",
       "any.required": "กรุณากรอก SJR Score เนื่องจากเลือก SJR",
     }),
-    otherwise: Joi.forbidden(), // ห้ามส่งค่า SJR Score ถ้าไม่มี "SJR"
+    otherwise: Joi.forbidden(),
   }),
 
-  cite_score: Joi.when("quality_journal", {
-    is: Joi.array().items(Joi.string().valid("Scopus")).min(1), // ต้องมี "Scopus" อย่างน้อย 1 ค่า
+  cite_score: Joi.alternatives().conditional("quality_journal", {
+    is: Joi.array().has("Scopus"),
     then: Joi.number().greater(0).required().messages({
       "number.base": "Cite Score ต้องเป็นตัวเลข",
       "number.greater": "Cite Score ต้องมากกว่า 0",
       "any.required": "กรุณากรอก Cite Score เนื่องจากเลือก Scopus",
     }),
-    otherwise: Joi.forbidden(), // ห้ามส่งค่า Cite Score ถ้าไม่มี "Scopus"
+    otherwise: Joi.forbidden(),
   }),
 
-  qt_isi: Joi.when("quality_journal", {
-    is: Joi.array().items(Joi.string().valid("ISI")).min(1), // ต้องมี "ISI" อย่างน้อย 1 ค่า
+  qt_isi: Joi.alternatives().conditional("quality_journal", {
+    is: Joi.array().has("ISI"),
     then: Joi.number().valid(1, 2, 3, 4).required().messages({
       "any.only": "ลำดับ Quartile ต้องเป็น 1, 2, 3 หรือ 4 เท่านั้น",
       "any.required": "กรุณากรอก Quartile เนื่องจากเลือก ISI",
     }),
-    otherwise: Joi.forbidden(), // ห้ามส่งค่า qt_isi ถ้าไม่มี "ISI"
+    otherwise: Joi.forbidden(),
   }),
 
   qt_sjr: Joi.when("quality_journal", {
-    is: Joi.array().items(Joi.string().valid("SJR")).min(1), // ต้องมี "SJR" อย่างน้อย 1 ค่า
+    is: Joi.array().has("SJR"),
     then: Joi.number().valid(1, 2, 3, 4).required().messages({
       "any.only": "ลำดับ Quartile ต้องเป็น 1, 2, 3 หรือ 4 เท่านั้น",
       "any.required": "กรุณากรอก Quartile เนื่องจากเลือก SJR",
     }),
-    otherwise: Joi.forbidden(), // ห้ามส่งค่า qt_SJR ถ้าไม่มี "SJR"
+    otherwise: Joi.forbidden(),
   }),
 
   qt_scopus: Joi.when("quality_journal", {
-    is: Joi.array().items(Joi.string().valid("Scopus")).min(1), // ต้องมี "Scopus" อย่างน้อย 1 ค่า
+    is: Joi.array().has("Scopus"),
     then: Joi.number().valid(1, 2, 3, 4).required().messages({
       "any.only": "ลำดับ Quartile ต้องเป็น 1, 2, 3 หรือ 4 เท่านั้น",
       "any.required": "กรุณากรอก Quartile เนื่องจากเลือก Scopus",
     }),
-    otherwise: Joi.forbidden(), // ห้ามส่งค่า qt_Scopus ถ้าไม่มี "Scopus"
+    otherwise: Joi.forbidden(),
   }),
 
-  support_limit: Joi.number()
-    .valid(10000, 20000, 30000, 40000, 60000, 70000)
-    .required()
+  support_limit: Joi.number().valid(10000, 20000, 30000, 40000, 60000, 70000).required()
     .messages({
       "any.required": "กรุณาระบุวงเงินสนับสนุน",
       "any.only":
         "วงเงินต้องเป็น 10000, 20000, 30000, 40000, 60000 หรือ 70000 เท่านั้น",
     }),
 
-  article_title: Joi.string()
-    .required()
-    .messages({ "any.required": "กรุณาระบุชื่อบทความ" }),
+  article_title: Joi.string().required().messages({ "any.required": "กรุณาระบุชื่อบทความ" }),
 
-  vol_journal: Joi.number()
-    .integer()
-    .min(new Date().getFullYear())
-    .required()
-    .messages({ "any.required": "กรุณาระบุปีที่ตีพิมพ์ (Vol.)" }),
+  vol_journal: Joi.number().integer().min(new Date().getFullYear()).required().messages({ "any.required": "กรุณาระบุปีที่ตีพิมพ์ (Vol.)" }),
 
-  issue_journal: Joi.number()
-    .integer()
-    .required()
-    .messages({ "any.required": "กรุณาระบุฉบับวารสาร (Issue)" }),
+  issue_journal: Joi.number().integer().required().messages({ "any.required": "กรุณาระบุฉบับวารสาร (Issue)" }),
 
   month: Joi.string()
     .valid(
@@ -235,27 +210,18 @@ const pageChargeSchema = Joi.object({
       "พฤศจิกายน",
       "ธันวาคม"
     )
-    .required()
-    .messages({ "any.required": "กรุณาระบุเดือนที่ตีพิมพ์" }),
+    .required().messages({ "any.required": "กรุณาระบุเดือนที่ตีพิมพ์" }),
 
-  year: Joi.number()
-    .integer()
-    .required()
-    .min(new Date().getFullYear())
-    .messages({ "any.required": "กรุณาระบุปีที่ตีพิมพ์" }),
+  year: Joi.number().integer().required().min(new Date().getFullYear()).messages({ "any.required": "กรุณาระบุปีที่ตีพิมพ์" }),
 
-  ISSN_ISBN: Joi.string()
-    .required()
-    .messages({ "any.required": "กรุณาระบุ ISSN/ISBN" }),
+  ISSN_ISBN: Joi.string().required().messages({ "any.required": "กรุณาระบุ ISSN/ISBN" }),
 
   submission_date: Joi.date().max(today).required().messages({
     "any.required": "กรุณาระบุวันที่ส่งบทความ",
     "date.max": "วันที่ส่งบทความต้องไม่มากกว่าวันนี้",
   }),
 
-  date_review_announce: Joi.date()
-    .min(Joi.ref("submission_date"))
-    .required()
+  date_review_announce: Joi.date().min(Joi.ref("submission_date")).required()
     .messages({
       "any.required": "กรุณาระบุวันที่ประกาศผล",
       "date.min": "วันที่ประกาศผลต้องไม่เร็วกว่าวันที่ส่งบทความ",
@@ -268,43 +234,28 @@ const pageChargeSchema = Joi.object({
 
   article_research_ject: Joi.string().allow(null),
 
-  research_type: Joi.string()
-    .valid("วิจัยพื้นฐาน", "วิจัยประยุกต์", "วิจัยและพัฒนา", "อื่น ๆ")
-    .when("article_research_ject", { is: Joi.exist(), then: Joi.required() })
+  research_type: Joi.string().valid("วิจัยพื้นฐาน", "วิจัยประยุกต์", "วิจัยและพัฒนา", "อื่น ๆ").when("article_research_ject", { is: Joi.exist(), then: Joi.required() })
     .messages({ "any.required": "กรุณาระบุประเภทของการวิจัย" }),
 
-  research_type2: Joi.string()
-    .when("research_type", { is: "อื่น ๆ", then: Joi.required() })
+  research_type2: Joi.string().when("research_type", { is: "อื่น ๆ", then: Joi.required() })
     .messages({
       "any.required": "กรุณาระบุรายละเอียดเพิ่มเติมสำหรับ 'วิจัยอื่น ๆ'",
     }),
 
-  name_funding_source: Joi.string()
-    .when("article_research_ject", { is: Joi.exist(), then: Joi.required() })
-    .messages({ "any.required": "กรุณาระบุแหล่งทุน" }),
+  name_funding_source: Joi.string().when("article_research_ject", { is: Joi.exist(), then: Joi.required() }).messages({ "any.required": "กรุณาระบุแหล่งทุน" }),
 
-  budget_limit: Joi.number()
-    .when("article_research_ject", { is: Joi.exist(), then: Joi.required() })
-    .messages({ "any.required": "กรุณาระบุวงเงิน" }),
+  budget_limit: Joi.number().when("article_research_ject", { is: Joi.exist(), then: Joi.required() }).messages({ "any.required": "กรุณาระบุวงเงิน" }),
 
-  annual: Joi.number()
-    .integer()
-    .min(new Date().getFullYear())
-    .when("article_research_ject", { is: Joi.exist(), then: Joi.required() })
-    .messages({ "any.required": "กรุณาระบุปี" }),
+  annual: Joi.number().integer().max(new Date().getFullYear()).when("article_research_ject", { is: Joi.exist(), then: Joi.required() }).messages({ "any.required": "กรุณาระบุปี" }),
 
-  presenter_type: Joi.string()
-    .valid("First Author", "Corresponding Author")
-    .required()
+  presenter_type: Joi.string().valid("First Author", "Corresponding Author").required()
     .messages({
       "any.required": "กรุณาระบุประเภทผู้นำเสนอ",
       "any.only":
         "ประเภทต้องเป็น First Author หรือ Corresponding Author เท่านั้น",
     }),
 
-  request_support: Joi.number().required().messages({
-    "any.required": "กรุณาระบุคำร้องขอการสนับสนุนค่าใช้จ่ายในการลงตีพิมพ์",
-  }),
+  request_support: Joi.number().required().messages({"any.required": "กรุณาระบุคำร้องขอการสนับสนุนค่าใช้จ่ายในการลงตีพิมพ์",}),
 });
 
 //insert to database
@@ -318,12 +269,11 @@ router.post(
     { name: "copy_article" },
   ]),
   async (req, res) => {
-
     const requiredFiles = ["pc_proof", "q_pc_proof", "copy_article"];
     const missingFiles = requiredFiles.filter((field) => !req.files[field]);
 
     if (missingFiles.length > 0) {
-      console.log(`กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`)
+      console.log(`กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`);
       return res.status(400).json({
         error: `กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`,
       });
@@ -357,14 +307,14 @@ router.post(
         date_review_announce, final_date, article_research_ject, research_type, 
         research_type2, name_funding_source, budget_limit, annual, presenter_type, 
         request_support
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+       
       const [result] = await db.query(query, [
         data.user_id,
         data.pageC_times,
         data.pageC_days,
         data.journal_name,
-        data.quality_journal,
+        JSON.stringify(data.quality_journal),
         data.pc_isi_year || null,
         data.pc_sjr_year || null,
         data.pc_scopus_year || null,
@@ -460,7 +410,8 @@ router.get("/page_charge/:id", async (req, res) => {
 
 router.get("/page_charge/calc/:id", async (req, res) => {
   const { id } = req.params;
-  let withdrawn = 0; //เงืนที่เบิกได้
+
+  let withdrawn = 0; //เงินที่เบิกได้
   let quartile = "";
 
   try {
@@ -500,16 +451,6 @@ router.get("/page_charge/calc/:id", async (req, res) => {
         console.log("Journal is 'nature'");
 
         withdrawn = money_request < 70000 ? money_request : 70000;
-
-        // if (money_request < 70000) {
-        //   console.log("requested less than 70000");
-
-        //   withdrawn = money_request;
-        // } else if (money_request >= 70000) {
-        //   console.log("requested more than or equal 70000");
-
-        //   withdrawn = 70000;
-        // }
         break; //ออกจาก loop
       } else {
         const keyword = ["mdpi", "frontiers", "hindawi"];
@@ -524,49 +465,31 @@ router.get("/page_charge/calc/:id", async (req, res) => {
 
           if (quartile == 1) {
             withdrawn = money_request < 60000 ? money_request : 60000;
-            // if (money_request >= 60000) {
-            //   withdrawn = 60000;
-            // } else {
-            //   withdrawn = money_request;
-            // }
+
+            break;
           } else if (quartile == 2) {
             withdrawn = money_request >= 40000 ? 40000 : money_request;
-            // if (money_request >= 40000) {
-            //   withdrawn = 40000;
-            // } else {
-            //   withdrawn = money_request;
-            // }
+            
+            break;
           }
         } else {
           console.log("don't have filterword");
           if (quartile == 1) {
             withdrawn = money_request >= 60000 ? 60000 : money_request;
-            // if (money_request >= 60000) {
-            //   withdrawn = 60000;
-            // } else {
-            //   withdrawn = money_request;
-            // }
+            
+            break;
           } else if (quartile == 2) {
             withdrawn = money_request >= 40000 ? 40000 : money_request;
-            // if (money_request >= 40000) {
-            //   withdrawn = 40000;
-            // } else {
-            //   withdrawn = money_request;
-            // }
+            
+            break;
           } else if (quartile == 3) {
             withdrawn = money_request < 30000 ? money_request : 30000;
-            // if (money_request >= 30000) {
-            //   withdrawn = 30000;
-            // } else {
-            //   withdrawn = money_request;
-            // }
+            
+            break;
           } else if (quartile == 4) {
             withdrawn = money_request < 20000 ? money_request : 20000;
-            // if (money_request >= 20000) {
-            //   withdrawn = 20000;
-            // } else {
-            //   withdrawn = money_request;
-            // }
+            
+            break;
           }
         }
       }
