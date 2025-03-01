@@ -476,18 +476,18 @@ router.get("/page_charge/calc/:id", async (req, res) => {
     const money_request = page_charge[0].request_support;
     const quality_journal = page_charge[0].quality_journal;
     const journal_name = page_charge[0].journal_name;
-    const impact_factor = page_charge[0].impact_factor;
-    const sjr_score = page_charge[0].sjr_score;
-    const cite_score = page_charge[0].cite_score;
+    const qt_isi = page_charge[0].qt_isi;
+    const qt_sjr = page_charge[0].qt_sjr;
+    const qt_scopus = page_charge[0].qt_scopus;
 
     //check quartile
-    if (sjr_score >= 16) {
+    if (qt_isi == 1 || qt_sjr == 1 || qt_scopus == 1) {
       quartile = 1;
-    } else if (sjr_score >= 8) {
+    } else if (qt_isi == 2 || qt_sjr == 2 || qt_scopus == 2) {
       quartile = 2;
-    } else if (sjr_score >= 4) {
+    } else if (qt_isi == 3 || qt_sjr == 3 || qt_scopus == 3) {
       quartile = 3;
-    } else if (sjr_score >= 2) {
+    } else if (qt_isi == 4 || qt_sjr == 4 || qt_scopus == 4) {
       quartile = 4;
     }
 
