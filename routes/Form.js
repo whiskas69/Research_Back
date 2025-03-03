@@ -129,7 +129,7 @@ router.get("/form/:id", async (req, res) => {
       LEFT JOIN conference c ON f.conf_id = c.conf_id
       LEFT JOIN page_charge p ON f.pageC_id = p.pageC_id
       WHERE COALESCE(k.user_id, c.user_id, p.user_id) = ?
-      ORDER BY f.form_id DESC`, 
+      ORDER BY f.form_id DESC`,
       [id]
     );
 
@@ -177,13 +177,29 @@ router.get("/allForms", async (req, res) => {
   }
 });
 
-router.get("/allForms", async (req, res) => {
-  console.log("allForms");
+router.put("/form/:id", async (req, res) => {
+  console.log("in Update form");
+  const { id } = req.params;
+  console.log("form id: ", id);
+  const updates = req.body;
   try {
-    const [form] = await db.query("SELECT * FROM Form");
-    res.status(200).json(form);
+    console.log("updates: ", updates);
+    const [form] = await db.query(
+      `UPDATE Form SET
+    form_type = ?, conf_id = ?, pageC_id = ?, kris_id = ?, 
+    form_status = ?, form_money = ?
+  WHERE form_id = ?`,
+      [
+        updates.form_type, updates.conf_id || null, updates.pageC_id || null,
+        updates.kris_id || null, updates.form_status, updates.form_money,
+        id
+      ]
+    );
+    console.log("update form: ", form);
+    res.status(200).json({ message: "form updated successfully!", id });
   } catch (err) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: err.message });
   }
 });
+
 exports.router = router;

@@ -20,7 +20,7 @@ router.post('/opinionKris', async (req, res) => {
 
     const [update] = await db.query(
       `UPDATE Form SET form_type = ?, kris_id = ?, form_status = ? WHERE kris_id = ?`,
-      [ "Research_KRIS", data.kris_id, "เข้าที่ประชุม", data.kris_id]
+      [ "Research_KRIS", data.kris_id, data.form_status, data.kris_id]
     );
     console.log("update : ", update);
 
