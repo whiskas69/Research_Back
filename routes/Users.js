@@ -33,35 +33,35 @@ const upload = multer({ storage, fileFilter });
 router = express.Router();
 
 router.put("/uploadSignature", upload.single("user_signature"), async (req, res) => {
-    if (req.errorMessage) {
-      return res.status(422).json({ message: req.errorMessage });
-    }
-
-    const { user_id } = req.body;
-    const signatureFile = req.file;
-
-    const check = await db.query(
-      "SELECT user_signature FROM Users WHERE user_id = ?",
-      [user_id]
-    );
-
-    console.log("check,", check[0]);
-
-    if (check[0].user_signature == "" || check[0].user_signature == null) {
-      try {
-        const data = await db.query(
-          "UPDATE Users SET user_signature = ? WHERE user_id = ?",
-          [signatureFile.filename, user_id]
-        );
-
-        return res.status(200).json({ message: "Upload Success" });
-      } catch (error) {
-        res.status(500).json({ error: error.message });
-      }
-    } else {
-      res.status(400).json({ message: "has signature" });
-    }
+  if (req.errorMessage) {
+    return res.status(422).json({ message: req.errorMessage });
   }
+
+  const { user_id } = req.body;
+  const signatureFile = req.file;
+
+  const check = await db.query(
+    "SELECT user_signature FROM Users WHERE user_id = ?",
+    [user_id]
+  );
+
+  console.log("check,", check[0]);
+
+  if (check[0].user_signature == "" || check[0].user_signature == null) {
+    try {
+      const data = await db.query(
+        "UPDATE Users SET user_signature = ? WHERE user_id = ?",
+        [signatureFile.filename, user_id]
+      );
+
+      return res.status(200).json({ message: "Upload Success" });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  } else {
+    res.status(400).json({ message: "has signature" });
+  }
+}
 );
 
 router.get("/mySignature", async (req, res) => {
@@ -131,6 +131,46 @@ router.get("/user/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+router.put("/updateRoles", (req, res) => {
+  const { userRoles } = req.body;
+  console.log("Received userRoles:", userRoles);
+
+  if (!userRoles || !Array.isArray(userRoles)) {
+    console.error("Invalid request data");
+    return res.status(400).json({ error: "Invalid request data" });
+  }
+
+  const queries = userRoles.map(({ id, value }) => {
+    console.log(`Updating user_id: ${id} -> role: ${value}`);
+    return new Promise((resolve, reject) => {
+      db.query(
+        "UPDATE Users SET user_role = ? WHERE user_id = ?",
+        [value, id],
+        (err, result) => {
+          if (err) {
+            console.error("DB Update Error:", err);
+            reject(err);
+          } else {
+            console.log(`Updated user ${id} successfully`);
+            resolve(result);
+          }
+        }
+      );
+    });
+  });
+
+  Promise.all(queries)
+    .then(() => {
+      console.log("All updates successful, sending response...");
+      res.json({ success: true, message: "User roles updated successfully" });
+    })
+    .catch((err) => {
+      console.error("Error updating roles:", err);
+      res.status(500).json({ error: err.message });
+    });
+});
+
 
 router.delete("/user/:id", (req, res) => {
   const id = req.params.id;
