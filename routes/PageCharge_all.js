@@ -234,12 +234,12 @@ const pageChargeSchema = Joi.object({
 
   article_research_ject: Joi.string().allow(null),
 
-  research_type: Joi.string().valid("วิจัยพื้นฐาน", "วิจัยประยุกต์", "วิจัยและพัฒนา", "อื่น ๆ").when("article_research_ject", { is: Joi.exist(), then: Joi.required() })
+  research_type: Joi.string().valid("วิจัยพื้นฐาน", "วิจัยประยุกต์", "วิจัยและพัฒนา", "อื่นๆ").when("article_research_ject", { is: Joi.exist(), then: Joi.required() })
     .messages({ "any.required": "กรุณาระบุประเภทของการวิจัย" }),
 
   research_type2: Joi.string().when("research_type", { is: "อื่น ๆ", then: Joi.required() })
     .messages({
-      "any.required": "กรุณาระบุรายละเอียดเพิ่มเติมสำหรับ 'วิจัยอื่น ๆ'",
+      "any.required": "กรุณาระบุรายละเอียดเพิ่มเติมสำหรับ 'วิจัยอื่นๆ'",
     }),
 
   name_funding_source: Joi.string().when("article_research_ject", { is: Joi.exist(), then: Joi.required() }).messages({ "any.required": "กรุณาระบุแหล่งทุน" }),
@@ -297,6 +297,8 @@ router.post(
 
     try {
       const data = req.body;
+
+      console.log(data)
 
       const query = `
       INSERT INTO Page_Charge (
