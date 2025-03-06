@@ -6,31 +6,6 @@ const authenticate = require("../middleware/authenticate.js");
 
 router = express.Router();
 
-//check ว่าชื่อให้มาเป็นภาษาอังกฤษ หรือไทย
-function detectLanguage(text) {
-  let isThai = false;
-  let isEnglish = false;
-
-  for (let char of text) {
-    const code = char.charCodeAt(0);
-
-    if (code >= 0x0e00 && code <= 0x0e7f) {
-      isThai = true;
-    } else if (
-      (code >= 0x0041 && code <= 0x005a) || // ตัวพิมพ์ใหญ่
-      (code >= 0x0061 && code <= 0x007a) // ตัวพิมพ์เล็ก
-    ) {
-      isEnglish = true;
-    }
-  }
-
-  if (isThai) {
-    return "Thai";
-  } else if (isEnglish) {
-    return "Eng";
-  }
-}
-
 router.post("/auth", async (req, res) => {
   try {
     // get the code from fronted
@@ -40,7 +15,6 @@ router.post("/auth", async (req, res) => {
 
     if (!code)
       return res.status(400).json({ message: "Missing authorization code" });
-    // console.log("Authorization Code:", code);
 
     //Exchange the authorization code for an access token
     const response = await axios.post("https://oauth2.googleapis.com/token", {
@@ -52,7 +26,6 @@ router.post("/auth", async (req, res) => {
     });
 
     const accessToken = response.data.access_token;
-    // console.log("Access Token:", accessToken);
 
     //Fetch user details using the access token
     const userResponse = await axios.get(
@@ -65,65 +38,19 @@ router.post("/auth", async (req, res) => {
     );
 
     const userDetails = userResponse.data;
-    console.log("User Details :", userDetails);
+
+    if (!userDetails.email.endsWith("@it.kmitl.ac.th")) {
+      return res.status(403).json({ message: "อีเมลของคุณไม่ได้รับอนุญาต กรุณาใช้ @it.kmitl.ac.th เท่านั้น" });
+    }
 
     //ตรวจสอบในฐานข้อมูลว่ามีผู้ใช้อยู่หรือไม่
     let [rows] = await db.query("SELECT * FROM users WHERE user_email = ?", [
       userDetails.email,
     ]);
 
-    //เช็คแล้วไม่มี user นี้ในฐานข้อมูลให้เพิ่มเข้าฐานข้อมูล
+    //เช็คแล้วไม่มี user
     if (rows.length === 0) {
-
-      //check name for save in database
-      if (detectLanguage(userDetails.given_name) === "Thai") {
-        console.log("thai");
-        const [result] = await db.query(
-          "INSERT INTO users (user_role, user_nameth, user_nameeng, user_email, user_signature, user_money, user_position)VALUES (?, ?, ?, ?, ?, ?, ?)",
-          [
-            "professor",
-            userDetails.name,
-            "",
-            userDetails.email,
-            "",
-            20000,
-            "",
-          ]
-        );
-
-        rows = [
-          {
-            user_id: result.insertId,
-            user_email: userDetails.email,
-            user_nameth: userDetails.name,
-          }
-        ]
-
-      } else if (detectLanguage(userDetails.given_name) === "Eng") {
-        console.log("eng");
-        const [result] = await db.query(
-          "INSERT INTO users (user_role, user_nameth, user_nameeng, user_email, user_signature, user_money, user_position)VALUES (?, ?, ?, ?, ?, ?, ?)",
-          [
-            "professor",
-            "",
-            userDetails.name,
-            userDetails.email,
-            "",
-            20000,
-            "",
-          ]
-        );
-
-        rows = [
-          {
-            user_id: result.insertId,
-            user_email: userDetails.email,
-            user_nameeng: userDetails.name,
-          }
-        ]
-
-        console.log('result :', result)
-      }
+      return res.status(403).json({ message: "ไม่พบข้อมูลของคุณ กรุณาติดต่อเจ้าหน้าที่ที่เกี่ยวข้อง" });
     }
 
     const user = rows[0];
@@ -144,10 +71,10 @@ router.post("/auth", async (req, res) => {
     });
 
     //Process user details and perform necessary actions
-    res.status(200).json({ message: "Authentication successful", userDetails });
+    res.status(200).json({ message: "เข้าสู่ระบบสำเร็จ", userDetails });
   } catch (error) {
     console.log("Error saving code:", error);
-    res.status(500).json({ message: "Failed to save code" });
+    res.status(500).json({ message: "เกิดข้อผิดพลาด กรุณาติดต่อเจ้าหน้าที่ หรือลองอีกครั้งในภายหลัง" });
   }
 });
 
@@ -156,7 +83,7 @@ router.get("/me", authenticate, async (req, res) => {
   console.log("Cookie received: ", req.cookie);
 
   if (!req.user) {
-    return res.status(403).json({ message: "Unauthorized" });
+    return res.status(403).json({ message: "ไม่ได้เข้าสู่ระบบ กรุณาทำการเข้าสู่ระบบอีกครั้ง" });
   }
 
   try {
@@ -165,19 +92,19 @@ router.get("/me", authenticate, async (req, res) => {
     ]);
 
     if (rows.length === 0) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "ไม่พบข้อมูล กรุณาติดต่อเจ้าหน้าที่" });
     }
 
     res.status(200).json({ user: rows[0] });
   } catch (error) {
-    res.status(500).json({ message: "Error fetching user data" });
+    res.status(500).json({ message: "เกิดข้อผิดพลาด กรุณาติดต่อเจ้าหน้าที่ หรือลองใหม่ภายหลัง" });
   }
 });
 
 //clear Cookie
 router.post("/logout", (req, res) => {
   res.clearCookie("token");
-  res.status(200).json({ message: "Logged out successfully" });
+  res.status(200).json({ message: "ออกจากระบบเรียบร้อย" });
   console.log("Logout success");
 });
 

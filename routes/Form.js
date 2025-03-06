@@ -114,11 +114,7 @@ router.get("/formsOffice", async (req, res) => {
 router.get("/form/:id", async (req, res) => {
   const { id } = req.params;
 
-  console.log("id: ", id);
-
   try {
-    console.log("ki ");
-
     const [form] = await db.query(
       `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, f.kris_id, f.form_status, f.form_money
       ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
@@ -133,9 +129,9 @@ router.get("/form/:id", async (req, res) => {
       [id]
     );
 
-    if (form.length === 0) {
-      return res.status(404).json({ message: "has not data" });
-    }
+    // if (form.length === 0) {
+    //   return res.status(200).json({ message: "ไม่มีการส่งข้อมูล" });
+    // }
 
     console.log("get, ", form);
     console.log("get, ", form[0]);
