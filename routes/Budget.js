@@ -39,10 +39,7 @@ router.get("/budget/pageCharge/:id", async (req, res) => {
   const { id } = req.params;
   try {
     const [pageC] = await db.query(
-      `SELECT b.*, COALESCE(f.form_money, 0) AS form_money
-       FROM Budget AS b
-       LEFT JOIN Form AS f ON b.pageC_id = f.pageC_id
-       WHERE b.pageC_id = ?`,
+      `SELECT b.*, COALESCE(f.form_money, 0) AS form_money FROM Budget AS b LEFT JOIN Form AS f ON b.pageC_id = f.pageC_id WHERE b.pageC_id = ?`,
       [id]
     );
     console.log("Query result:", pageC);

@@ -237,7 +237,7 @@ const pageChargeSchema = Joi.object({
   research_type: Joi.string().valid("วิจัยพื้นฐาน", "วิจัยประยุกต์", "วิจัยและพัฒนา", "อื่นๆ").when("article_research_ject", { is: Joi.exist(), then: Joi.required() })
     .messages({ "any.required": "กรุณาระบุประเภทของการวิจัย" }),
 
-  research_type2: Joi.string().when("research_type", { is: "อื่น ๆ", then: Joi.required() })
+  research_type2: Joi.string().when("research_type", { is: "อื่นๆ", then: Joi.required() })
     .messages({
       "any.required": "กรุณาระบุรายละเอียดเพิ่มเติมสำหรับ 'วิจัยอื่นๆ'",
     }),
@@ -300,17 +300,15 @@ router.post(
 
       console.log(data)
 
-      const query = `
-      INSERT INTO Page_Charge (
+      const query = `INSERT INTO Page_Charge (
         user_id, pageC_times, pageC_days, journal_name, quality_journal,
         pc_isi_year, pc_sjr_year, pc_scopus_year, impact_factor, sjr_score,
-        cite_score, qt_isi, qt_sjr, qt_scopus, support_limit, article_title, 
-        vol_journal, issue_journal, month, year, ISSN_ISBN, submission_date, 
-        date_review_announce, final_date, article_research_ject, research_type, 
-        research_type2, name_funding_source, budget_limit, annual, presenter_type, 
-        request_support
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-       
+        cite_score, qt_isi, qt_sjr, qt_scopus, support_limit, article_title,
+        vol_journal, issue_journal, month, year, ISSN_ISBN, submission_date,
+        date_review_announce, final_date, article_research_ject, research_type,
+        research_type2, name_funding_source, budget_limit, annual, presenter_type,
+        request_support)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
       const [result] = await db.query(query, [
         data.user_id,
         data.pageC_times,
@@ -471,26 +469,21 @@ router.get("/page_charge/calc/:id", async (req, res) => {
             break;
           } else if (quartile == 2) {
             withdrawn = money_request >= 40000 ? 40000 : money_request;
-            
             break;
           }
         } else {
           console.log("don't have filterword");
           if (quartile == 1) {
             withdrawn = money_request >= 60000 ? 60000 : money_request;
-            
             break;
           } else if (quartile == 2) {
             withdrawn = money_request >= 40000 ? 40000 : money_request;
-            
             break;
           } else if (quartile == 3) {
             withdrawn = money_request < 30000 ? money_request : 30000;
-            
             break;
           } else if (quartile == 4) {
             withdrawn = money_request < 20000 ? money_request : 20000;
-            
             break;
           }
         }
@@ -570,9 +563,7 @@ router.put(
       };
 
       const update = await db.query(
-        `UPDATE File_pdf
-         SET q_pc_proof = ?, invoice_public = ?, accepted = ?, copy_article = ?
-         WHERE pageC_id = ?`,
+        `UPDATE File_pdf SET q_pc_proof = ?, invoice_public = ?, accepted = ?, copy_article = ? WHERE pageC_id = ?`,
         [
           fileData.q_pc_proof,
           fileData.invoice_public,
