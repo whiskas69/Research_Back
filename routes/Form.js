@@ -4,7 +4,7 @@ const db = require("../config.js");
 router = express.Router();
 
 router.post("/form", async (req, res) => {
-  console.log("in post formss");
+  console.log("in post forms");
   const data = req.body;
   try {
     const [result] = await db.query(
@@ -28,7 +28,7 @@ router.post("/form", async (req, res) => {
   }
 });
 
-router.get("/formsOffice", async (req, res) => {
+router.get("/formsofficee", async (req, res) => {
   try {
     const [forms] = await db.query(
       "SELECT * FROM Form"
@@ -118,7 +118,7 @@ router.get("/form/:id", async (req, res) => {
     const [form] = await db.query(
       `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, f.kris_id, f.form_status, f.form_money
       ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
-      ,COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title 
+      ,COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title
       ,COALESCE(c.conf_name, p.journal_name) AS article_name
       FROM form f
       LEFT JOIN research_kris k ON f.kris_id = k.kris_id
@@ -150,7 +150,7 @@ router.get("/allForms", async (req, res) => {
     const [form] = await db.query(
       `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, f.kris_id, f.form_status, f.form_money
       ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
-      ,COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title 
+      ,COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title
       ,COALESCE(c.conf_name, p.journal_name) AS article_name
       ,u.user_nameth
       FROM form f
@@ -182,7 +182,7 @@ router.put("/form/:id", async (req, res) => {
     console.log("updates: ", updates);
     const [form] = await db.query(
       `UPDATE Form SET
-    form_type = ?, conf_id = ?, pageC_id = ?, kris_id = ?, 
+    form_type = ?, conf_id = ?, pageC_id = ?, kris_id = ?,
     form_status = ?, form_money = ?
   WHERE form_id = ?`,
       [

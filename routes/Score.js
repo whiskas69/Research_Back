@@ -8,8 +8,8 @@ router.post('/score', async (req, res) => {
     const data = req.body;
     try {
         const [result] = await db.query(
-          "INSERT INTO Score (conf_id, score_formular, sjr_score, sjr_year, hindex_score, hindex_year, score_result, core_rank) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-          [data.conf_id, data.score_formular, data.sjr_score || null, data.sjr_year || null, 
+          "INSERT INTO Score (conf_id, score_type, sjr_score, sjr_year, hindex_score, hindex_year, score_result, core_rank) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+          [data.conf_id, data.score_type, data.sjr_score || null, data.sjr_year || null,
             data.hindex_score || null, data.hindex_year || null, data.score_result || null, data.core_rank || null]
         );
         console.log(data)

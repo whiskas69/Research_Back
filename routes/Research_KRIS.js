@@ -71,11 +71,11 @@ const researchSchema = Joi.object({
     .required()
     .messages({ "any.required": "กรุณาระบุค่า H-index" }),
 
-  his_inveninno: Joi.string()
+  his_invention: Joi.string()
     .required()
     .messages({ "any.required": "กรุณาระบุประวัติสิ่งประดิษฐ์หรือการพัฒนา" }),
 
-  participation_percen: Joi.number().greater(0).max(100).required().messages({
+  participation_percent: Joi.number().greater(0).max(100).required().messages({
     "number.greater": "เปอร์เซ็นต์การมีส่วนร่วมต้องมากกว่า 0",
     "number.max": "เปอร์เซ็นต์การมีส่วนร่วมต้องไม่เกิน 100",
     "any.required": "กรุณาระบุเปอร์เซ็นต์การมีส่วนร่วม",
@@ -129,8 +129,8 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
       res_standard,
       res_standard_trade,
       h_index,
-      his_inveninno,
-      participation_percen,
+      his_invention,
+      participation_percent,
       year,
       project_periodStart,
       project_periodEnd
@@ -149,8 +149,8 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
         : data.res_standard,
       data.res_standard_trade || null,
       data.h_index,
-      data.his_inveninno,
-      data.participation_percen || null,
+      data.his_invention,
+      data.participation_percent || null,
       data.year,
       data.project_periodStart,
       data.project_periodEnd,

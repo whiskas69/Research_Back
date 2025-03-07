@@ -42,7 +42,7 @@ const uploadDocuments = multer({
       if (file.mimetype == 'application/pdf') {
         acceptFile = true
       }
-    } 
+    }
     //ติดเงื่อนไขที่ ถ้าไม่ใช่ pdf จะไม่สามารถแอดได้  ---how to edit TT---
     else if (!acceptFile){
       console.log('not pdf ja')
@@ -77,7 +77,6 @@ router.post('/pdf', uploadDocuments.fields([
     const { type, conf_id, pageC_id, kris_id } = req.body;
     const files = req.files;
     console.log('filesss',req.files)
-   
     // if (!files.mimetype == 'application/pdf') {
     //   return res.status(400).json({ message: "Please upload a file PDF!!!!!!!!!!" });
     // }
