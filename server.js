@@ -27,6 +27,7 @@ const opinionKris = require('./routes/Officers_opinion_kris');
 const budget = require('./routes/Budget');
 const PCall = require('./routes/PageCharge_all');
 const google = require('./routes/google');
+const ruleBase = require('./routes/RuleBase');
 
 
 app.use(users.router)
@@ -40,6 +41,7 @@ app.use(opinionKris.router)
 app.use(budget.router)
 app.use(PCall.router)
 app.use(google.router)
+app.use(ruleBase.router)
 
 // Middleware
 app.use(express.json());

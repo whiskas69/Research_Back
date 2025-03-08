@@ -62,7 +62,7 @@ CREATE TABLE Conference (
 CREATE TABLE Score (
     sc_id INTEGER PRIMARY KEY AUTO_INCREMENT,
     conf_id INTEGER NOT NULL UNIQUE,
-    score_type ENUM('SJR', 'CIF', 'CORE') NOT NULL,
+    score_type ENUM('SJR', 'CIF', 'CORE'),
     sjr_score DECIMAL(10,2),
     sjr_year INT,
     hindex_score DECIMAL(10,2),
