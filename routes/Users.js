@@ -132,52 +132,70 @@ router.get("/user/:id", async (req, res) => {
   }
 });
 
-router.put("/updateRoles", (req, res) => {
-  const { userRoles } = req.body;
-  console.log("Received userRoles:", userRoles);
+router.put("/updateRoles", async (req, res) => {
+  const { userUpdates } = req.body;
 
-  if (!userRoles || !Array.isArray(userRoles)) {
-    console.error("Invalid request data");
+  console.log("Received userUpdates:", userUpdates);
+
+  if (!Array.isArray(userUpdates) || userUpdates.length === 0) {
     return res.status(400).json({ error: "Invalid request data" });
   }
 
-  const queries = userRoles.map(({ id, value }) => {
-    console.log(`Updating user_id: ${id} -> role: ${value}`);
-    return new Promise((resolve, reject) => {
-      db.query(
-        "UPDATE Users SET user_role = ? WHERE user_id = ?",
-        [value, id],
-        (err, result) => {
-          if (err) {
-            console.error("DB Update Error:", err);
-            reject(err);
-          } else {
-            console.log(`Updated user ${id} successfully`);
-            resolve(result);
-          }
-        }
-      );
-    });
-  });
+  try {
+    const queries = userUpdates.map(({ id, value }) => {
+      const isMoney = !isNaN(value) && String(value).trim() !== "";
+      const field = isMoney ? "user_moneyCF" : "user_role";
 
-  Promise.all(queries)
-    .then(() => {
-      console.log("All updates successful, sending response...");
-      res.json({ success: true, message: "User roles updated successfully" });
-    })
-    .catch((err) => {
-      console.error("Error updating roles:", err);
-      res.status(500).json({ error: err.message });
+      console.log(`📝 Processing update for user_id: ${id} -> ${field}: ${value}`);
+
+      return new Promise((resolve, reject) => {
+        db.query(
+          `UPDATE Users SET ${field} = ? WHERE user_id = ?`,
+          [value, id],
+          (err, result) => {
+            if (err) {
+              console.error(`❌ DB Update Error for user_id ${id}:`, err);
+              reject(err);
+            } else if (result.affectedRows === 0) {
+              console.warn(`⚠️ No rows updated for user_id ${id}`);
+              resolve(result); // หรือ reject ขึ้นอยู่กับความต้องการ
+            } else {
+              console.log(`✅ Updated ${field} for user_id ${id}`);
+              resolve(result);
+            }
+          }
+        );
+      });
     });
+
+    console.log("addtodatabsela:");
+    console.log("✅ All updates successful, sending response...");
+    res.status(200).json({ success: true, message: "User data updated successfully" });
+    // const results = await Promise.allSettled(queries);
+    // console.log("results:", results); // ตรวจสอบว่าสามารถแสดงผลได้
+
+    // const errors = results.filter(result => result.status === 'rejected');
+
+    // if (errors.length > 0) {
+    //   console.error("❌ Some updates failed:", errors);
+    //   return res.status(500).json({ error: "Some updates failed", details: errors });
+    // }
+
+  } catch (err) {
+    console.error("❌ Error updating roles:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 
 router.delete("/user/:id", (req, res) => {
+  console.log("delete")
   const id = req.params.id;
   db.query("DELETE FROM Users WHERE user_id = ?", [id], (err, result) => {
     if (err) return res.status(500).json(err);
     res.status(200).json({ message: "Record deleted successfully!" });
   });
+  res.status(200).json({ success: true, message: "User data updated successfully" });
 });
 
 exports.router = router;
