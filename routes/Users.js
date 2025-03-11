@@ -83,24 +83,32 @@ router.get("/mySignature", async (req, res) => {
 });
 
 router.post("/user", async (req, res) => {
+  console.log("in post user");
   const data = req.body;
+  console.log("data",data)
   try {
     const [result] = await db.query(
-      "INSERT INTO Users (user_role, user_nameth, user_nameeng, user_email, user_signature, user_money, user_position) VALUES (?, ?, ?, ?, ?, ?,?)",
+      `INSERT INTO Users (
+      user_role, user_nameth, user_nameeng, user_email, user_moneyCF, user_positionth, 
+      user_positioneng, user_startwork, user_year
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         data.user_role,
-        data.user_nameth || null,
-        data.user_nameeng || null,
+        data.user_nameth,
+        data.user_nameeng,
         data.user_email,
-        data.user_signature || null,
-        data.user_money || null,
-        data.user_position,
+        data.user_moneyCF || null,
+        data.user_positionth || null,
+        data.user_positioneng || null,
+        data.user_startwork,
+        data.user_year
       ]
     );
-    console.log(data);
+    console.log(result);
     res
       .status(201)
-      .json({ message: "User created successfully!", id: result.insertId });
+      .json({ message: "user created successfully!", id: result.insertId });
   } catch (err) {
     res.status(500).json({ error: err.message });
     console.log(err.message);
