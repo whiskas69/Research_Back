@@ -178,6 +178,7 @@ CREATE TABLE officers_opinion_pc (
 	pageC_id INTEGER NOT NULL UNIQUE,
 	p_research_admin ENUM('อนุมัติ', 'รอหนังสือตอบรับ', 'อื่นๆ'),
 	p_reason VARCHAR(255),
+    p_haveAccep ENUM('มี', 'ไม่มี'),
 	p_deputy_dean VARCHAR(255),
 	p_date_accepted_approve DATE, -- วันที่เอกสารได้รับการอนุมัติ
     p_acknowledge ENUM('รับทราบ', 'ไม่อนุมัติ'),
