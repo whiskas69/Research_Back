@@ -1,7 +1,7 @@
 const express = require("express");
 const multer = require("multer");
 const db = require("../config.js");
-// const Joi = require("joi");
+const Joi = require("joi");
 const { DateTime } = require("luxon");
 const fs = require("fs");
 const path = require("path");
@@ -57,8 +57,6 @@ const uploadDocuments = multer({
   },
 });
 
-const today = DateTime.now().toISODate(); // ได้รูปแบบ YYYY-MM-DD
-
 // แปลง JSON String > Array
 const parseJsonArray = (value, helpers) => {
   try {
@@ -72,296 +70,204 @@ const parseJsonArray = (value, helpers) => {
   }
 };
 
-// const ConferSchema = Joi.object({
-//   user_id: Joi.number()
-//     .required()
-//     .messages({ "any.required": "กรุณาระบุ user_id" }),
+const today = DateTime.now().toISODate();
 
-//   conf_times: Joi.number().greater(0).required().messages({
-//     "any.required": "กรุณาระบุจำนวนครั้ง",
-//     "number.greater": "ต้องมากกว่า 0",
-//   }),
+console.log("today", today);
 
-//   conf_days: Joi.date().max(today).required().messages({
-//     "any.required": "กรุณาระบุวันที่",
-//     "date.max": "วันที่ต้องไม่มากกว่าวันนี้",
-//   }),
+const ConferSchema = Joi.object({
+  user_id: Joi.number().integer().required(),
+  conf_times: Joi.number().integer().greater(0).required(),
+  conf_days: Joi.date().iso().max(today).required(),
+  trav_dateStart: Joi.date().iso().greater(today).required(),
+  trav_dateEnd: Joi.date().iso().min(Joi.ref("trav_dateStart")).required(), //test ก่อนนะ
+  conf_research: Joi.string().required(),
+  conf_name: Joi.string().required(),
+  meeting_date: Joi.date().iso().min(Joi.ref("trav_dateStart")).max(Joi.ref("trav_dateEnd")).required(),
+  meeting_venue: Joi.string().required(),
+  date_submit_organizer: Joi.date().iso().max(today).required(),//กำหนดให้ส่งก่อนยื่น
+  last_day_register: Joi.date().iso().greater(Joi.ref("date_submit_organizer")).greater(today).required(),
+  argument_date_review: Joi.date().iso().greater(Joi.ref("date_submit_organizer")).less(Joi.ref("last_day_register")).required(),
+  meeting_type: Joi.any().valid("คณะจัด ไม่อยู่scopus", "อยู่ในscopus").required(),
+  quality_meeting: Joi.any().when("meeting_type", {
+    is: "อยู่ในscopus",
+    then: Joi.any().valid("มาตรฐาน", "ดีมาก").required(),
+    otherwise: Joi.any().allow(null, ""), // ถ้าเป็นคณะจัด ไม่อยู่scopus
+  }),
+  presenter_type: Joi.any().valid("First Author", "Corresponding Author").required(),
+  time_of_leave: Joi.any().valid("1", "2").required(),
+  location_1: Joi.any().when("time_of_leave", {
+    is: "1",
+    then: Joi.any().valid("ในประเทศ", "ต่างประเทศ").required(),
+    otherwise: Joi.forbidden(),
+  }),
+  wos_2_leave: Joi.any().when("time_of_leave", {
+    is: "2",
+    then: Joi.any().valid("WoS-Q1", "WoS-Q2").required(),
+    otherwise: Joi.forbidden(),
+  }),
+  // wd_100_quality: Joi.when("wos_2_leave", {
+  //   is: "100%",
+  //   then: Joi.string()
+  //     .valid("WoS-Q1", "WoS-Q2", "WoS-Q3", "SJR-Q1", "SJR-Q2")
+  //     .required()
+  //     .messages({
+  //       "any.required":
+  //         "กรุณาเลือกคุณภาพงานวิจัยเมื่อเลือก WoS-Q1 หรือ WoS-Q2 ที่ 100%",
+  //     }),
+  //   otherwise: Joi.forbidden(),
+  // }),
 
-//   trav_dateStart: Joi.date().greater(today).required().messages({
-//     "date.greater": "วันเริ่มต้นการเดินทางต้องเป็นวันหลังจากวันนี้",
-//     "any.required": "กรุณากรอกวันเริ่มต้นการเดินทาง",
-//   }),
+  // wd_name_100: Joi.when("wos_2_leave", {
+  //   is: "100%",
+  //   then: Joi.string().required().messages({
+  //     "any.required":
+  //       "กรุณากรอกชื่อ WoS-Q1/Q2 100% เมื่อเลือก WoS-Q1 หรือ WoS-Q2 ที่ 100%",
+  //   }),
+  //   otherwise: Joi.forbidden(),
+  // }),
 
-//   trav_dateEnd: Joi.date()
-//     .greater(Joi.ref("trav_dateStart"))
-//     .required()
-//     .messages({
-//       "date.greater": "วันสิ้นสุดการเดินทางต้องเป็นวันหลังวันเริ่มต้น",
-//       "any.required": "กรุณากรอกวันสิ้นสุดการเดินทาง",
-//     }),
+  // name_2_leave: Joi.when("time_of_leave", {
+  //   is: "2",
+  //   then: Joi.string().required().messages({
+  //     "any.required": "กรุณากรอกชื่อเมื่อเลือกลาแบบที่ 2",
+  //   }),
+  //   otherwise: Joi.forbidden(),
+  // }),
 
-//   conf_research: Joi.string()
-//     .required()
-//     .messages({ "any.required": "ชื่อผลงานวิจัยที่นำเสนอ" }),
+  // withdraw: Joi.when("location_1", {
+  //   is: "ต่างประเทศ",
+  //   then: Joi.required().messages({
+  //     "any.required": "กรุณากรอกข้อมูล withdraw เมื่อเลือก 'ต่างประเทศ'",
+  //   }),
+  //   otherwise: Joi.forbidden(),
+  // }),
 
-//   conf_name: Joi.string()
-//     .required()
-//     .messages({ "any.required": "ชื่อการประชุมทางวิชาการ" }),
+  // country_conf: Joi.string()
+  //   .valid("ณ ต่างประเทศ", "ภายในประเทศ")
+  //   .required()
+  //   .messages({
+  //     "any.required": "กรุณาเลือกสถานที่ประชุม",
+  //     "any.only": "ต้องเลือก 'ณ ต่างประเทศ' หรือ 'ภายในประเทศ'",
+  //   }),
 
-//   meeting_date: Joi.date()
-//     .min(Joi.ref("trav_dateStart"))
-//     .max(Joi.ref("trav_dateEnd"))
-//     .required()
-//     .messages({
-//       "date.min": "วันที่จัดต้องเป็นวันเดียวกันหรือหลังวันเริ่มต้นการเดินทาง",
-//       "date.max": "วันที่จัดต้องเป็นวันก่อนหรือวันเดียวกับวันสิ้นสุดการเดินทาง",
-//       "any.required": "กรุณากรอกวันที่จัด",
-//     }),
+  // num_register_articles: Joi.number().precision(2).required().messages({
+  //   "any.required": "กรุณากรอกจำนวนบทความที่ลงทะเบียน",
+  //   "number.base": "ต้องเป็นตัวเลขทศนิยม",
+  // }),
 
-//   meeting_venue: Joi.string()
-//     .required()
-//     .messages({ "any.required": "สถานที่จัด" }),
+  // regist_amount_1_article: Joi.number().integer().required().messages({
+  //   "any.required": "กรุณากรอกจำนวนเงินต่อบทความ",
+  //   "number.base": "ต้องเป็นจำนวนเต็ม",
+  // }),
 
-//   date_submit_organizer: Joi.date()
-//     .less(Joi.ref("trav_dateStart")) // ต้องเกิดก่อน trav_dateStart
-//     .required()
-//     .messages({
-//       "date.less": "วันส่งบทความต้องเกิดก่อนวันเริ่มต้นการเดินทาง",
-//       "any.required": "กรุณากรอกวันส่งบทความ",
-//     }),
+  // total_amount: Joi.number()
+  //   .custom((value, helpers) => {
+  //     const { num_register_articles, regist_amount_1_article } =
+  //       helpers.state.ancestors[0];
+  //     return num_register_articles * regist_amount_1_article;
+  //   }, "คำนวณค่า total_amount")
+  //   .required(),
 
-//   argument_date_review: Joi.date()
-//     .min(Joi.ref("date_submit_organizer")) // ต้องเกิดหลัง หรือ วันเดียวกับ date_submit_organizer
-//     .required()
-//     .messages({
-//       "date.min": "วันตอบรับบทความต้องเป็นวันเดียวกันหรือหลังวันส่งบทความ",
-//       "any.required": "กรุณากรอกวันตอบรับบทความ",
-//     }),
+  // domestic_expenses: Joi.number().precision(2).allow(null),
 
-//   last_day_register: Joi.date()
-//     .greater(Joi.ref("argument_date_review")) // ต้องเกิดหลัง argument_date_review
-//     .less(Joi.ref("meeting_date")) // ต้องเกิดก่อน meeting_date
-//     .required()
-//     .messages({
-//       "date.greater":
-//         "วันสุดท้ายของการลงทะเบียนต้องเป็นวันหลังจากวันตอบรับบทความ",
-//       "date.less": "วันสุดท้ายของการลงทะเบียนต้องเป็นวันก่อนวันประชุม",
-//       "any.required": "กรุณากรอกวันสุดท้ายของการลงทะเบียน",
-//     }),
+  // overseas_expenses: Joi.number().precision(2).allow(null),
 
-//   meeting_type: Joi.string()
-//     .valid("คณะจัด ไม่อยู่scopu", "อยู่ในscopus")
-//     .required()
-//     .messages({
-//       "any.required": "กรุณาระบุรายละเอียดการประชุมทางวิชาการ",
-//       "any.only":
-//         "ประเภทต้องเป็น คณะจัด ไม่อยู่scopus หรือ อยู่ในscopus เท่านั้น",
-//     }),
+  // travel_country: Joi.string().allow(null, ""),
 
-//   quality_meeting: Joi.when("meeting_type", {
-//     is: "อยู่ในscopus",
-//     then: Joi.string().valid("มาตรฐาน", "ดีมาก").required().messages({
-//       "any.required": "กรุณาเลือกคุณภาพการประชุมทางวิชาการ",
-//       "any.only":
-//         "คุณภาพการประชุมต้องเป็น มาตรฐาน หรือ ดีมาก เท่านั้น เมื่อเลือก 'อยู่ในscopus'",
-//     }),
-//     otherwise: Joi.string().allow(null, ""), // ถ้าเป็นประเภทอื่น ไม่บังคับกรอก
-//   }),
+  // inter_expenses: Joi.number().precision(2).allow(null),
 
-//   presenter_type: Joi.string()
-//     .valid("First Author", "Corresponding Author")
-//     .required()
-//     .messages({
-//       "any.required": "กรุณาระบุประเภทผู้นำเสนอ",
-//       "any.only":
-//         "ประเภทต้องเป็น First Author หรือ Corresponding Author เท่านั้น",
-//     }),
+  // airplane_tax: Joi.number().precision(2).allow(null),
 
-//   time_of_leave: Joi.string().valid("1", "2").required().messages({
-//     "any.required": "กรุณาเลือกประเภทการลา",
-//     "any.only": "ต้องเลือก 1 หรือ 2 เท่านั้น",
-//   }),
+  // num_days_room: Joi.number().integer().allow(null),
 
-//   location_1: Joi.when("time_of_leave", {
-//     is: "1",
-//     then: Joi.string().valid("ในประเทศ", "ต่างประเทศ").required().messages({
-//       "any.required": "กรุณาเลือกสถานที่ เมื่อเลือกลาแบบที่ 1",
-//       "any.only": "ต้องเลือก 'ในประเทศ' หรือ 'ต่างประเทศ'",
-//     }),
-//     otherwise: Joi.forbidden(),
-//   }),
+  // room_cost_per_night: Joi.number().precision(2).allow(null),
 
-//   wos_2_leave: Joi.when("time_of_leave", {
-//     is: "2",
-//     then: Joi.string().valid("WoS-Q1", "WoS-Q2").required().messages({
-//       "any.required": "กรุณาเลือก WoS-Q1 หรือ WoS-Q2 เมื่อเลือกลาแบบที่ 2",
-//     }),
-//     otherwise: Joi.forbidden(),
-//   }),
+  // total_room: Joi.number()
+  //   .custom((value, helpers) => {
+  //     const { num_days_room, room_cost_per_night } = helpers.state.ancestors[0];
+  //     return num_days_room * room_cost_per_night;
+  //   }, "คำนวณค่า total_room")
+  //   .allow(null),
 
-//   wd_100_quality: Joi.when("wos_2_leave", {
-//     is: "100%",
-//     then: Joi.string()
-//       .valid("WoS-Q1", "WoS-Q2", "WoS-Q3", "SJR-Q1", "SJR-Q2")
-//       .required()
-//       .messages({
-//         "any.required":
-//           "กรุณาเลือกคุณภาพงานวิจัยเมื่อเลือก WoS-Q1 หรือ WoS-Q2 ที่ 100%",
-//       }),
-//     otherwise: Joi.forbidden(),
-//   }),
+  // num_travel_days: Joi.number().integer().required().messages({
+  //   "any.required": "กรุณากรอกจำนวนวันเดินทาง",
+  //   "number.base": "ต้องเป็นจำนวนเต็ม",
+  // }),
 
-//   wd_name_100: Joi.when("wos_2_leave", {
-//     is: "100%",
-//     then: Joi.string().required().messages({
-//       "any.required":
-//         "กรุณากรอกชื่อ WoS-Q1/Q2 100% เมื่อเลือก WoS-Q1 หรือ WoS-Q2 ที่ 100%",
-//     }),
-//     otherwise: Joi.forbidden(),
-//   }),
+  // daily_allowance: Joi.number().precision(2).required().messages({
+  //   "any.required": "กรุณากรอกเบี้ยเลี้ยงต่อวัน",
+  //   "number.base": "ต้องเป็นตัวเลขทศนิยม",
+  // }),
 
-//   name_2_leave: Joi.when("time_of_leave", {
-//     is: "2",
-//     then: Joi.string().required().messages({
-//       "any.required": "กรุณากรอกชื่อเมื่อเลือกลาแบบที่ 2",
-//     }),
-//     otherwise: Joi.forbidden(),
-//   }),
+  // total_allowance: Joi.number()
+  //   .custom((value, helpers) => {
+  //     const { num_travel_days, daily_allowance } = helpers.state.ancestors[0];
+  //     return num_travel_days * daily_allowance;
+  //   }, "คำนวณค่า total_allowance")
+  //   .required(),
 
-//   withdraw: Joi.when("location_1", {
-//     is: "ต่างประเทศ",
-//     then: Joi.required().messages({
-//       "any.required": "กรุณากรอกข้อมูล withdraw เมื่อเลือก 'ต่างประเทศ'",
-//     }),
-//     otherwise: Joi.forbidden(),
-//   }),
+    // all_money: Joi.number().required().message({
+    //   "any.required": "กรุณากรอกยอดรวมเงิน"
+    // }),
 
-//   country_conf: Joi.string()
-//     .valid("ณ ต่างประเทศ", "ภายในประเทศ")
-//     .required()
-//     .messages({
-//       "any.required": "กรุณาเลือกสถานที่ประชุม",
-//       "any.only": "ต้องเลือก 'ณ ต่างประเทศ' หรือ 'ภายในประเทศ'",
-//     }),
+    // score_type: Joi.string()
+    // .valid("SJR", "CIF", "CORE")
+    // .required()
+    // .messages({
+    //   "any.required": "กรุณาเลือกประเภทคะแนน (SJR, CIF, CORE)",
+    //   "any.only": "ต้องเลือก SJR, CIF หรือ CORE เท่านั้น",
+    // }),
 
-//   num_register_articles: Joi.number().precision(2).required().messages({
-//     "any.required": "กรุณากรอกจำนวนบทความที่ลงทะเบียน",
-//     "number.base": "ต้องเป็นตัวเลขทศนิยม",
-//   }),
+  // sjr_score: Joi.when("score_type", {
+  //   is: "SJR",
+  //   then: Joi.number().precision(2).required().messages({
+  //     "any.required": "กรุณากรอกค่า SJR Score",
+  //     "number.base": "SJR Score ต้องเป็นตัวเลขทศนิยม",
+  //   }),
+  //   otherwise: Joi.forbidden(),
+  // }),
 
-//   regist_amount_1_article: Joi.number().integer().required().messages({
-//     "any.required": "กรุณากรอกจำนวนเงินต่อบทความ",
-//     "number.base": "ต้องเป็นจำนวนเต็ม",
-//   }),
+  // sjr_year: Joi.when("score_type", {
+  //   is: "SJR",
+  //   then: Joi.number().integer().min(1900).max(new Date().getFullYear()).required().messages({
+  //     "any.required": "กรุณากรอกปีของ SJR Score",
+  //     "number.base": "ปีต้องเป็นจำนวนเต็ม",
+  //     "number.min": "ปีต้องไม่น้อยกว่า 1900",
+  //     "number.max": "ปีต้องไม่มากกว่าปีปัจจุบัน",
+  //   }),
+  //   otherwise: Joi.forbidden(),
+  // }),
 
-//   total_amount: Joi.number()
-//     .custom((value, helpers) => {
-//       const { num_register_articles, regist_amount_1_article } =
-//         helpers.state.ancestors[0];
-//       return num_register_articles * regist_amount_1_article;
-//     }, "คำนวณค่า total_amount")
-//     .required(),
+  // hindex_score: Joi.number().precision(2).required().messages({
+  //   "any.required": "กรุณากรอกค่า H-Index Score",
+  //   "number.base": "H-Index Score ต้องเป็นตัวเลขทศนิยม",
+  // }),
 
-//   domestic_expenses: Joi.number().precision(2).allow(null),
+  // hindex_year: Joi.number().integer().min(1900).max(new Date().getFullYear()).required().messages({
+  //   "any.required": "กรุณากรอกปีของ H-Index Score",
+  //   "number.base": "ปีต้องเป็นจำนวนเต็ม",
+  //   "number.min": "ปีต้องไม่น้อยกว่า 1900",
+  //   "number.max": "ปีต้องไม่มากกว่าปีปัจจุบัน",
+  // }),
 
-//   overseas_expenses: Joi.number().precision(2).allow(null),
+  // Citation: Joi.number().precision(2).required().messages({
+  //   "any.required": "กรุณากรอกค่า Citation",
+  //   "number.base": "Citation ต้องเป็นตัวเลขทศนิยม",
+  // }),
 
-//   travel_country: Joi.string().allow(null, ""),
+  // score_result: Joi.number().precision(2).required().messages({
+  //   "any.required": "กรุณากรอกค่า Score Result",
+  //   "number.base": "Score Result ต้องเป็นตัวเลขทศนิยม",
+  // }),
 
-//   inter_expenses: Joi.number().precision(2).allow(null),
-
-//   airplane_tax: Joi.number().precision(2).allow(null),
-
-//   num_days_room: Joi.number().integer().allow(null),
-
-//   room_cost_per_night: Joi.number().precision(2).allow(null),
-
-//   total_room: Joi.number()
-//     .custom((value, helpers) => {
-//       const { num_days_room, room_cost_per_night } = helpers.state.ancestors[0];
-//       return num_days_room * room_cost_per_night;
-//     }, "คำนวณค่า total_room")
-//     .allow(null),
-
-//   num_travel_days: Joi.number().integer().required().messages({
-//     "any.required": "กรุณากรอกจำนวนวันเดินทาง",
-//     "number.base": "ต้องเป็นจำนวนเต็ม",
-//   }),
-
-//   daily_allowance: Joi.number().precision(2).required().messages({
-//     "any.required": "กรุณากรอกเบี้ยเลี้ยงต่อวัน",
-//     "number.base": "ต้องเป็นตัวเลขทศนิยม",
-//   }),
-
-//   total_allowance: Joi.number()
-//     .custom((value, helpers) => {
-//       const { num_travel_days, daily_allowance } = helpers.state.ancestors[0];
-//       return num_travel_days * daily_allowance;
-//     }, "คำนวณค่า total_allowance")
-//     .required(),
-
-//     all_money: Joi.number().required().message({
-//       "any.required": "กรุณากรอกยอดรวมเงิน"
-//     }),
-
-//     score_type: Joi.string()
-//     .valid("SJR", "CIF", "CORE")
-//     .required()
-//     .messages({
-//       "any.required": "กรุณาเลือกประเภทคะแนน (SJR, CIF, CORE)",
-//       "any.only": "ต้องเลือก SJR, CIF หรือ CORE เท่านั้น",
-//     }),
-
-//   sjr_score: Joi.when("score_type", {
-//     is: "SJR",
-//     then: Joi.number().precision(2).required().messages({
-//       "any.required": "กรุณากรอกค่า SJR Score",
-//       "number.base": "SJR Score ต้องเป็นตัวเลขทศนิยม",
-//     }),
-//     otherwise: Joi.forbidden(),
-//   }),
-
-//   sjr_year: Joi.when("score_type", {
-//     is: "SJR",
-//     then: Joi.number().integer().min(1900).max(new Date().getFullYear()).required().messages({
-//       "any.required": "กรุณากรอกปีของ SJR Score",
-//       "number.base": "ปีต้องเป็นจำนวนเต็ม",
-//       "number.min": "ปีต้องไม่น้อยกว่า 1900",
-//       "number.max": "ปีต้องไม่มากกว่าปีปัจจุบัน",
-//     }),
-//     otherwise: Joi.forbidden(),
-//   }),
-
-//   hindex_score: Joi.number().precision(2).required().messages({
-//     "any.required": "กรุณากรอกค่า H-Index Score",
-//     "number.base": "H-Index Score ต้องเป็นตัวเลขทศนิยม",
-//   }),
-
-//   hindex_year: Joi.number().integer().min(1900).max(new Date().getFullYear()).required().messages({
-//     "any.required": "กรุณากรอกปีของ H-Index Score",
-//     "number.base": "ปีต้องเป็นจำนวนเต็ม",
-//     "number.min": "ปีต้องไม่น้อยกว่า 1900",
-//     "number.max": "ปีต้องไม่มากกว่าปีปัจจุบัน",
-//   }),
-
-//   Citation: Joi.number().precision(2).required().messages({
-//     "any.required": "กรุณากรอกค่า Citation",
-//     "number.base": "Citation ต้องเป็นตัวเลขทศนิยม",
-//   }),
-
-//   score_result: Joi.number().precision(2).required().messages({
-//     "any.required": "กรุณากรอกค่า Score Result",
-//     "number.base": "Score Result ต้องเป็นตัวเลขทศนิยม",
-//   }),
-
-//   core_rank: Joi.when("score_type", {
-//     is: "CORE",
-//     then: Joi.string().required().messages({
-//       "any.required": "กรุณากรอกค่า Core Rank เมื่อเลือก CORE",
-//     }),
-//     otherwise: Joi.forbidden(),
-//   }),
-// });
+  // core_rank: Joi.when("score_type", {
+  //   is: "CORE",
+  //   then: Joi.string().required().messages({
+  //     "any.required": "กรุณากรอกค่า Core Rank เมื่อเลือก CORE",
+  //   }),
+  //   otherwise: Joi.forbidden(),
+  // }),
+});
 
 //data แก้ date ของดาต้าเบส
 router.post(
@@ -375,16 +281,40 @@ router.post(
     { name: "fee_receipt" },
     { name: "fx_rate_document" },
     { name: "conf_proof" },
-    { name: "other_file" },
   ]),
   async (req, res) => {
     console.log("in post conference");
+    const requiredFiles = ["full_page", "call_for_paper", "fee_receipt", "fx_rate_document", "conf_proof"];
+    const missingFiles = requiredFiles.filter((field) => !req.files[field]);
+    
+    if (missingFiles.length > 0) {
+      console.log(`กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`);
+      return res.status(400).json({
+        error: `กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`,
+      });
+    }
+
     if (req.invalidFiles && req.invalidFiles.length > 0) {
       return res.status(400).json({ errors: req.invalidFiles });
     }
+
+    const { error } = ConferSchema.validate(req.body, {
+      abortEarly: false,
+    });
+
+    if (error) {
+      console.log(req.body);
+      console.log(error.details.map((err) => err.message));
+
+      return res.status(400).json({
+        error: error.details.map((err) => err.message)
+      })
+    }
+
     try {
       // Handle database insertion for Page_Charge
       const data = req.body;
+
       console.log("data", data);
       console.log("User ID:", data.user_id);
 
@@ -394,8 +324,8 @@ router.post(
       meeting_type, quality_meeting, presenter_type, time_of_leave, location_1, wos_2_leave, name_2_leave,
       withdraw, wd_100_quality, wd_name_100, country_conf, num_register_articles, regist_amount_1_article, total_amount,
       domestic_expenses, overseas_expenses, travel_country, inter_expenses, airplane_tax, num_days_room, room_cost_per_night, total_room,
-      num_travel_days, daily_allowance,total_allowance, all_money, doc_submit_date)
-      VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)`;
+      num_travel_days, daily_allowance,total_allowance, all_money)
+      VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)`;
       const [result] = await db.query(query, [
         data.user_id,
         data.conf_times,
@@ -434,11 +364,11 @@ router.post(
         data.num_travel_days || null,
         data.daily_allowance || null,
         data.total_allowance || null,
-        data.all_money,
-        data.doc_submit_date,
+        data.all_money
       ]);
 
       const confId = result.insertId;
+
       console.log("conferID: ", confId);
 
       const {
@@ -465,31 +395,27 @@ router.post(
       console.log("Score data to insert:", scoreData);
       await db.query("INSERT INTO Score SET ?", scoreData);
 
-      const { type, date_published_journals, other_name } = req.body;
       // Insert uploaded file data into the database
       const files = req.files;
       console.log("files", req.files);
       const fileData = {
-        type,
+        type: "Conference",
         conf_id: confId,
-        full_page: files?.full_page?.[0]?.filename || null,
-        date_published_journals,
+        full_page: files?.full_page?.[0]?.filename,
         published_journals: files?.published_journals?.[0]?.filename || null,
         q_proof: files?.q_proof?.[0]?.filename || null,
-        call_for_paper: files?.call_for_paper?.[0]?.filename || null,
+        call_for_paper: files?.call_for_paper?.[0]?.filename,
         accepted: files?.accepted?.[0]?.filename || null,
-        fee_receipt: files?.fee_receipt?.[0]?.filename || null,
-        fx_rate_document: files?.fx_rate_document?.[0]?.filename || null,
-        conf_proof: files?.conf_proof?.[0]?.filename || null,
-        other_name,
-        other_file: files?.other_file?.[0]?.filename || null,
+        fee_receipt: files?.fee_receipt?.[0]?.filename,
+        fx_rate_document: files?.fx_rate_document?.[0]?.filename,
+        conf_proof: files?.conf_proof?.[0]?.filename,
       };
       console.log("File data to insert:", fileData);
       await db.query("INSERT INTO File_pdf SET ?", fileData);
 
       //เพิ่มเข้าตาราง Form
       const formData = {
-        form_type: type,
+        form_type: "Conference",
         conf_id: confId,
         form_status: "ฝ่ายบริหารทรัพยากรบุคคล",
       };
