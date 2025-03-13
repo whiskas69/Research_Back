@@ -173,8 +173,23 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
       form_status: "ฝ่ายบริหารงานวิจัย",
       form_money: 0,
     };
-    await db.query("INSERT INTO Form SET ?", formData);
+    const [resultForm] = await db.query("INSERT INTO Form SET ?", formData);
+    console.log("form_id", resultForm.insertId) 
+    console.log("Inserted ID:", resultForm.insertId || "No ID returned");
 
+    const noti = {
+      user_id: data.user_id,
+      kris_id: krisID,
+      form_id: resultForm.insertId,
+      status_form: "ฝ่ายบริหารงานวิจัย",
+      name_form: data.name_research_th,
+    };console.log("noti", noti) 
+    try {
+      const [resultNoti] = await db.query("INSERT INTO Notification SET ?", noti);
+      console.log("Notification Insert Result:", resultNoti);
+    } catch (error) {
+      console.error("Error inserting into Notification:", error);
+    }
     res
       .status(201)
       .json({ message: "Research_KRIS created successfully!", id: krisID });

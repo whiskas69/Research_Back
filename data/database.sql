@@ -229,7 +229,21 @@ CREATE TABLE Budget (
 	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id),
 	FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id)
 );
-
+CREATE TABLE Notification (
+	noti_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    conf_id INTEGER UNIQUE,
+	pageC_id INTEGER UNIQUE,
+    kris_id INTEGER UNIQUE,
+    form_id INTEGER UNIQUE NOT NULL,
+	status_form VARCHAR(255) NOT NULL,
+    name_form VARCHAR(255) NOT NULL,
+	FOREIGN KEY (user_id) REFERENCES Users(user_id),
+	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id),
+	FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id),
+	FOREIGN KEY (kris_id) REFERENCES Research_KRIS(kris_id),
+    FOREIGN KEY (form_id) REFERENCES Form(form_id)
+);
 INSERT INTO Users (
     user_role, user_nameth, user_nameeng, user_email, user_signature,user_moneyPC,
     user_moneyCF, user_positionth, user_positioneng, user_startwork, user_year
