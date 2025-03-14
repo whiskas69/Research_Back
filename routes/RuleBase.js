@@ -4,7 +4,7 @@ const country = require("./Country.json");
 
 router = express.Router();
 
-const scoreStandard = (typeScore, total, standard) => {
+const scoreStandard = (typeScore, total, standard, core) => {
     console.log("scoreStandard")
     console.log("typeScore", typeScore)
     console.log("total", total)
@@ -40,8 +40,8 @@ const scoreStandard = (typeScore, total, standard) => {
             }
         } else if (typeScore == "CORE") {
             console.log("typeScore", typeScore);
-            if (total == "A" || total == "A*") {
-                console.log("ดีมากคับ ไม่คิดค่าลงทะเบียน: ", total);
+            if (core == "A" || core == "A*") {
+                console.log("ดีมากคับ ไม่คิดค่าลงทะเบียน: ", core);
                 result = "ดีมาก"
                 return result;
             } else {
@@ -139,8 +139,9 @@ router.get("/confer/calc/:id", async (req, res) => {
 
         const score_type = score[0][0].score_type;
         const total_score = score[0][0].score_result;
+        const core = score[0][0].core_rank;
         // if score
-        let result = scoreStandard(score_type, total_score, standard);
+        let result = scoreStandard(score_type, total_score, standard, core);
         //   console.log("ค่า score_type:", score_type);
         //   console.log("ค่า total_score:", total_score);
         console.log("ค่า result:", result);
