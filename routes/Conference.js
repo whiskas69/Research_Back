@@ -114,7 +114,11 @@ const ConferSchema = Joi.object({
     then: Joi.number().integer().max(today.year).required(),
     otherwise: Joi.any().allow(null, "")
   }),
-  hindex_score: Joi.number().precision(2).required(),
+  hindex_score: Joi.any().when("score_type", {
+    is: Joi.any().valid("SJR", "CIF"),
+    then: Joi.number().precision(2).required(),
+    otherwise: Joi.any().allow(null, "")
+  }),
   hindex_year: Joi.any().when("score_type", {
     is: "SJR",
     then: Joi.number().integer().valid(Joi.ref("sjr_year")).required(),
@@ -144,7 +148,7 @@ const ConferSchema = Joi.object({
   wos_2_leave: Joi.any().when(
     Joi.object({
       time_of_leave: Joi.valid("2"),
-      location: Joi.valid("ณ ต่างประเทศ"),
+      country_conf: Joi.valid("ณ ต่างประเทศ"),
     }),
     {
       then: Joi.any().valid("WoS-Q1", "WoS-Q2").required(),
@@ -154,14 +158,14 @@ const ConferSchema = Joi.object({
   name_2_leave: Joi.any().when(
     Joi.object({
       time_of_leave: Joi.valid("2"),
-      location: Joi.valid("ณ ต่างประเทศ"),
+      country_conf: Joi.valid("ณ ต่างประเทศ"),
     }),
     {
       then: Joi.string().required(),
       otherwise: Joi.any().allow(null, ""),
     }
   ),
-  withdraw: Joi.any().when("location", {
+  withdraw: Joi.any().when("country_conf", {
     is: "ณ ต่างประเทศ",
     then: Joi.any().valid("50%", "100%").required(),
     otherwise: Joi.any().allow(null, "")
