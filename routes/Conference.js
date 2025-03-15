@@ -5,10 +5,8 @@ const Joi = require("joi");
 const { DateTime } = require("luxon");
 const fs = require("fs");
 const path = require("path");
-const { totalmem } = require("os");
-const { all } = require("axios");
 
-router = express.Router();
+const router = express.Router();
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -59,20 +57,6 @@ const uploadDocuments = multer({
   },
 });
 
-// แปลง JSON String > Array
-const parseJsonArray = (value, helpers) => {
-  try {
-    const parsed = JSON.parse(value);
-    if (!Array.isArray(parsed)) {
-      throw new Error();
-    }
-    return parsed;
-  } catch (err) {
-    return helpers.error("any.invalid");
-  }
-};
-
-// const today = DateTime.now().toISODate();
 const today = DateTime.now()
 console.log("year", today.year)
 console.log("today", today.toISODate());
@@ -211,10 +195,6 @@ const ConferSchema = Joi.object({
   date_published_journals : Joi.number().integer().min(today.year-2).max(today.year).allow(null, "")
 });
 
-// const Year_fileSchema = Joi.object({
-//   date_published_journals : Joi.number().integer().min(today.year-2).max(today.year).required().allow(null, "")
-// })
-
 //data แก้ date ของดาต้าเบส
 router.post(
   "/conference",
@@ -252,21 +232,6 @@ router.post(
     if (req.invalidFiles && req.invalidFiles.length > 0) {
       return res.status(400).json({ errors: req.invalidFiles });
     }
-
-    // if (files?.q_proof?.[0]?.filename != null || files?.q_proof?.[0]?.filename != "") {
-    //   const { Year_file_error } = Year_fileSchema.validate(files, {
-    //     abortEarly: false,
-    //   });
-    // }
-
-    // if (Year_file_error) {
-    //   console.log(req.body);
-    //   console.log(error.details.map((err) => err.message));
-
-    //   return res.status(400).json({
-    //     error: error.details.map((err) => err.message),
-    //   });
-    // }
 
     const { error } = ConferSchema.validate(req.body, {
       abortEarly: false,
@@ -474,7 +439,7 @@ router.get("/form/confer/:id", async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "เกิดข้อผิดพลาดในเซิร์ฟเวอร์" });
+    return res.status(500).json({ error: "เกิดข้อผิดพลาดโปรดลองใหม่อีกครั้ง" });
   }
 });
 
