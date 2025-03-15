@@ -207,8 +207,13 @@ const ConferSchema = Joi.object({
   num_travel_days: Joi.number().invalid(0).integer(),
   daily_allowance: Joi.number().invalid(0).precision(2),
   total_allowance: Joi.number().invalid(0).precision(2),
-  all_money: Joi.number().invalid(0).precision(2)
+  all_money: Joi.number().invalid(0).precision(2),
+  date_published_journals : Joi.number().integer().min(today.year-2).max(today.year).allow(null, "")
 });
+
+// const Year_fileSchema = Joi.object({
+//   date_published_journals : Joi.number().integer().min(today.year-2).max(today.year).required().allow(null, "")
+// })
 
 //data แก้ date ของดาต้าเบส
 router.post(
@@ -224,6 +229,9 @@ router.post(
     { name: "conf_proof" },
   ]),
   async (req, res) => {
+    const files = req.files;
+    const data = req.body;
+
     console.log("in post conference");
     const requiredFiles = [
       "full_page",
@@ -245,6 +253,21 @@ router.post(
       return res.status(400).json({ errors: req.invalidFiles });
     }
 
+    // if (files?.q_proof?.[0]?.filename != null || files?.q_proof?.[0]?.filename != "") {
+    //   const { Year_file_error } = Year_fileSchema.validate(files, {
+    //     abortEarly: false,
+    //   });
+    // }
+
+    // if (Year_file_error) {
+    //   console.log(req.body);
+    //   console.log(error.details.map((err) => err.message));
+
+    //   return res.status(400).json({
+    //     error: error.details.map((err) => err.message),
+    //   });
+    // }
+
     const { error } = ConferSchema.validate(req.body, {
       abortEarly: false,
     });
@@ -259,9 +282,6 @@ router.post(
     }
 
     try {
-      // Handle database insertion for Page_Charge
-      const data = req.body;
-
       console.log("data", data);
       console.log("User ID:", data.user_id);
 
@@ -342,8 +362,6 @@ router.post(
       console.log("Score data to insert:", scoreData);
       await db.query("INSERT INTO Score SET ?", scoreData);
 
-      // Insert uploaded file data into the database
-      const files = req.files;
       console.log("files", req.files);
       const fileData = {
         type: "Conference",
