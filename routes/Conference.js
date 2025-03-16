@@ -8,58 +8,49 @@ const path = require("path");
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const dir = "uploads"; //สร้างโฟเดอร์ 'uploads'
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir);
-    }
-
-    cb(null, dir);
-  },
-  filename: function (req, file, cd) {
-    cd(null, Date.now() + path.extname(file.originalname));
-  },
-});
-
 const uploadDocuments = multer({
-  storage,
+  storage: multer.diskStorage({
+    destination: function (req, file, cb) {
+      const dir = "uploads";
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir);
+      }
+
+      cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+      cb(null, Date.now() + path.extname(file.originalname));
+    },
+  }),
   fileFilter: function (req, file, cb) {
-    const allowedFields = [
-      "full_page",
-      "published_journals",
-      "q_proof",
-      "call_for_paper",
-      "accepted",
-      "fee_receipt",
-      "fx_rate_document",
-      "conf_proof",
-      "other_file",
-    ];
-
-    // Check if field name is allowed
-    const isAllowedField = allowedFields.includes(file.fieldname);
-    // Check if file is a PDF
-    const isPDF = file.mimetype === "application/pdf";
-
-    if (isAllowedField && isPDF) {
-      cb(null, true);
-    } else {
-      const errorMsg = `Invalid file: ${file.fieldname} (${file.mimetype}). Only PDFs are allowed.`;
-      console.log(errorMsg);
-
-      // Collect invalid file errors
-      req.invalidFiles = req.invalidFiles || [];
-      req.invalidFiles.push(errorMsg);
-
-      cb(null, false); // Reject the file
+    let acceptFile = false
+    if (
+      file.fieldname == "full_page" ||
+      file.fieldname == "published_journals" ||
+      file.fieldname == "q_proof" ||
+      file.fieldname == "call_for_paper" ||
+      file.fieldname == "accepted" ||
+      file.fieldname == "fee_receipt" ||
+      file.fieldname == "fx_rate_document" ||
+      file.fieldname == "conf_proof"
+    ) {
+      if (file.mimetype === "application/pdf") {
+        acceptFile = true
+      } else {
+        acceptFile = false
+      }
     }
+
+    if (!acceptFile) {
+      const message = `Fields ${file.fieldname} wrong type (${file.mimetype})`
+      !req.invalidFiles ? req.invalidFiles = [message] : req.invalidFiles.push(message)
+    }
+
+    cb(null, acceptFile)
   },
 });
 
-const today = DateTime.now()
-console.log("year", today.year)
-console.log("today", today.toISODate());
+const today = DateTime.now();
 
 const ConferSchema = Joi.object({
   user_id: Joi.number().integer().required(),
@@ -72,27 +63,13 @@ const ConferSchema = Joi.object({
   conf_name: Joi.string().required(),
   country_conf: Joi.any().valid("ณ ต่างประเทศ", "ภายในประเทศ").required(),
   location: Joi.string().required(),
-  meeting_date: Joi.date()
-    .iso()
-    .min(Joi.ref("trav_dateStart"))
-    .max(Joi.ref("trav_dateEnd"))
-    .required(),
+  meeting_date: Joi.date().iso().min(Joi.ref("trav_dateStart")).max(Joi.ref("trav_dateEnd")).required(),
   meeting_venue: Joi.string().required(),
   date_submit_organizer: Joi.date().iso().max(today.toISODate()).required(), //กำหนดให้ส่งก่อนยื่น
-  last_day_register: Joi.date()
-    .iso()
-    .greater(Joi.ref("date_submit_organizer"))
-    .greater(today.toISODate())
-    .required(),
-  argument_date_review: Joi.date()
-    .iso()
-    .greater(Joi.ref("date_submit_organizer"))
-    .less(Joi.ref("last_day_register"))
-    .required(),
+  last_day_register: Joi.date().iso().greater(Joi.ref("date_submit_organizer")).greater(today.toISODate()).required(),
+  argument_date_review: Joi.date().iso().greater(Joi.ref("date_submit_organizer")).less(Joi.ref("last_day_register")).required(),
 
-  meeting_type: Joi.any()
-    .valid("คณะจัด ไม่อยู่scopus", "อยู่ในscopus")
-    .required(),
+  meeting_type: Joi.any().valid("คณะจัด ไม่อยู่scopus", "อยู่ในscopus").required(),
   quality_meeting: Joi.any().when("meeting_type", {
     is: "อยู่ในscopus",
     then: Joi.any().valid("มาตรฐาน", "ดีมาก").required(),
@@ -107,27 +84,27 @@ const ConferSchema = Joi.object({
   sjr_score: Joi.any().when("score_type", {
     is: "SJR",
     then: Joi.number().precision(2).required(),
-    otherwise: Joi.any().allow(null, "")
+    otherwise: Joi.any().allow(null, ""),
   }),
   sjr_year: Joi.any().when("score_type", {
     is: "SJR",
     then: Joi.number().integer().max(today.year).required(),
-    otherwise: Joi.any().allow(null, "")
+    otherwise: Joi.any().allow(null, ""),
   }),
   hindex_score: Joi.any().when("score_type", {
     is: Joi.any().valid("SJR", "CIF"),
     then: Joi.number().precision(2).required(),
-    otherwise: Joi.any().allow(null, "")
+    otherwise: Joi.any().allow(null, ""),
   }),
   hindex_year: Joi.any().when("score_type", {
     is: "SJR",
     then: Joi.number().integer().valid(Joi.ref("sjr_year")).required(),
-    otherwise: Joi.any().allow(null, "")
+    otherwise: Joi.any().allow(null, ""),
   }),
   Citation: Joi.any().when("score_type", {
     is: "CIF",
     then: Joi.number().precision(2).required(),
-    otherwise: Joi.any().allow(null, "")
+    otherwise: Joi.any().allow(null, ""),
   }),
   score_result: Joi.any().when("score_type", {
     is: Joi.any().valid("CIF", "SJR"),
@@ -137,12 +114,10 @@ const ConferSchema = Joi.object({
   core_rank: Joi.any().when("score_type", {
     is: "CORE",
     then: Joi.string().valid("A", "A*").required(),
-    otherwise: Joi.any().allow(null, "")
+    otherwise: Joi.any().allow(null, ""),
   }),
 
-  presenter_type: Joi.any()
-    .valid("First Author", "Corresponding Author")
-    .required(),
+  presenter_type: Joi.any().valid("First Author", "Corresponding Author").required(),
 
   time_of_leave: Joi.any().valid("1", "2").required(),
   wos_2_leave: Joi.any().when(
@@ -152,7 +127,7 @@ const ConferSchema = Joi.object({
     }),
     {
       then: Joi.any().valid("WoS-Q1", "WoS-Q2").required(),
-      otherwise: Joi.any().allow(null, "")
+      otherwise: Joi.any().allow(null, ""),
     }
   ),
   name_2_leave: Joi.any().when(
@@ -168,17 +143,19 @@ const ConferSchema = Joi.object({
   withdraw: Joi.any().when("country_conf", {
     is: "ณ ต่างประเทศ",
     then: Joi.any().valid("50%", "100%").required(),
-    otherwise: Joi.any().allow(null, "")
+    otherwise: Joi.any().allow(null, ""),
   }),
   wd_100_quality: Joi.any().when("withdraw", {
     is: "100%",
-    then: Joi.any().valid("WoS-Q1", "WoS-Q2", "WoS-Q3", "SJR-Q1", "SJR-Q2").required(),
-    otherwise: Joi.any().allow(null, "")
+    then: Joi.any()
+      .valid("WoS-Q1", "WoS-Q2", "WoS-Q3", "SJR-Q1", "SJR-Q2")
+      .required(),
+    otherwise: Joi.any().allow(null, ""),
   }),
   wd_name_100: Joi.any().when("withdraw", {
     is: "100%",
     then: Joi.string().required(),
-    otherwise: Joi.any().allow(null, "")
+    otherwise: Joi.any().allow(null, ""),
   }),
 
   num_register_articles: Joi.number().integer().invalid(0).required(),
@@ -196,13 +173,28 @@ const ConferSchema = Joi.object({
   daily_allowance: Joi.number().invalid(0).precision(2),
   total_allowance: Joi.number().invalid(0).precision(2),
   all_money: Joi.number().invalid(0).precision(2),
-  date_published_journals : Joi.number().integer().min(today.year-2).max(today.year).allow(null, "")
+  date_published_journals: Joi.number().integer().min(today.year - 2).max(today.year).allow(null, ""),
+
+  full_page: Joi.string().valid("application/pdf").required(),
+  published_journals: Joi.any().when("withdraw", {
+    is: "100%",
+    then: Joi.string().valid("application/pdf").required(),
+    otherwise: Joi.any().allow(null, ""),
+  }),
+  q_proof: Joi.any().when("withdraw", {
+    is: "100%",
+    then: Joi.string().valid("application/pdf").required(),
+    otherwise: Joi.any().allow(null, ""),
+  }),
+  call_for_paper: Joi.string().valid("application/pdf").required(),
+  accepted: Joi.string().valid("application/pdf").allow(null, ""),
+  fee_receipt: Joi.string().valid("application/pdf").required(),
+  fx_rate_document: Joi.string().valid("application/pdf").required(),
+  conf_proof: Joi.string().valid("application/pdf").required(),
 });
 
 //data แก้ date ของดาต้าเบส
-router.post(
-  "/conference",
-  uploadDocuments.fields([
+router.post("/conference", uploadDocuments.fields([
     { name: "full_page" },
     { name: "published_journals" },
     { name: "q_proof" },
@@ -211,42 +203,27 @@ router.post(
     { name: "fee_receipt" },
     { name: "fx_rate_document" },
     { name: "conf_proof" },
-  ]),
-  async (req, res) => {
+  ]), async (req, res) => {
     const files = req.files;
     const data = req.body;
 
-    console.log("in post conference");
-    const requiredFiles = [
-      "full_page",
-      "call_for_paper",
-      "fee_receipt",
-      "fx_rate_document",
-      "conf_proof",
-    ];
-    const missingFiles = requiredFiles.filter((field) => !req.files[field]);
-
-    if (missingFiles.length > 0) {
-      console.log(`กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`);
-      return res.status(400).json({
-        error: `กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`,
-      });
+    if (req.invalidFiles) {
+      return res.status(200).json({
+        message: "Some documents did not uploaded: " + req.invalidFiles.join(", ")
+      })
     }
 
-    if (req.invalidFiles && req.invalidFiles.length > 0) {
-      return res.status(400).json({ errors: req.invalidFiles });
-    }
-
-    const { error } = ConferSchema.validate(req.body, {
+    const { error: bodyError } = ConferSchema.validate(req.body, {
       abortEarly: false,
     });
 
-    if (error) {
+    if (bodyError || fileError) {
       console.log(req.body);
-      console.log(error.details.map((err) => err.message));
+      console.log(req.files);
+      console.log(bodyError.details.map((err) => err.message));
 
       return res.status(400).json({
-        error: error.details.map((err) => err.message),
+        error: bodyError.details.map((err) => err.message),
       });
     }
 
