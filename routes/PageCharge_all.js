@@ -369,8 +369,21 @@ router.post(
         form_money: 0,
       };
       console.log("formData data to insert:", formData);
-      await db.query("INSERT INTO Form SET ?", formData);
+      const [resultForm] = await db.query("INSERT INTO Form SET ?", formData);
 
+      const noti = {
+        user_id: data.user_id,
+        pageC_id: pageCId,
+        form_id: resultForm.insertId,
+        status_form: "ฝ่ายบริหารงานวิจัย",
+        name_form: data.article_title,
+      };console.log("noti", noti) 
+      try {
+        const [resultNoti] = await db.query("INSERT INTO Notification SET ?", noti);
+        console.log("Notification Insert Result:", resultNoti);
+      } catch (error) {
+        console.error("Error inserting into Notification:", error);
+      }
       res.status(201).json({
         message: "Page Charge and files uploaded successfully",
         pc_id: pageCId,

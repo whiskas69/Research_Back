@@ -135,7 +135,7 @@ router.get("/confer/calc/:id", async (req, res) => {
 
         //ต้องเรียกมาจากตาราง officers_opinion_conf
         const year_work = false; //check เป็นพนักงานสถาบันที่ปฏิบัติงานมาแล้วไม่เกิน 3 ปีนับตั้งแต่วันบรรจุและยังไม่เคยลาเข้าร่วมประชุมทางวิชาการ ณ ต่างประเทศ
-        const namePlace = "กรุงเทพ"; // เรียกชื่อประเทศที่จารจะไป ยังไม่ได้สร้างในดาต้าเบส
+        const namePlace = confer[0][0].location; // เรียกชื่อประเทศที่จารจะไป ยังไม่ได้สร้างในดาต้าเบส
 
         const score_type = score[0][0].score_type;
         const total_score = score[0][0].score_result;
