@@ -6,7 +6,7 @@ const { DateTime } = require("luxon");
 const fs = require("fs");
 const path = require("path");
 
-router = express.Router();
+const router = express.Router();
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {

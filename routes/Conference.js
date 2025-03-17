@@ -19,7 +19,7 @@ const uploadDocuments = multer({
       cb(null, dir);
     },
     filename: function (req, file, cb) {
-      cb(null, Date.now() + path.extname(file.originalname));
+      cb(null, DateTime.now() + path.extname(file.originalname));
     },
   }),
   fileFilter: function (req, file, cb) {
@@ -66,8 +66,8 @@ const ConferSchema = Joi.object({
   meeting_date: Joi.date().iso().min(Joi.ref("trav_dateStart")).max(Joi.ref("trav_dateEnd")).required(),
   meeting_venue: Joi.string().required(),
   date_submit_organizer: Joi.date().iso().max(today.toISODate()).required(), //กำหนดให้ส่งก่อนยื่น
-  last_day_register: Joi.date().iso().greater(Joi.ref("date_submit_organizer")).greater(today.toISODate()).required(),
-  argument_date_review: Joi.date().iso().greater(Joi.ref("date_submit_organizer")).less(Joi.ref("last_day_register")).required(),
+  argument_date_review: Joi.date().iso().greater(Joi.ref("date_submit_organizer")).required(),
+  last_day_register: Joi.date().iso().greater(Joi.ref("date_submit_organizer")).greater(Joi.ref("argument_date_review")).greater(today.toISODate()).required(),
 
   meeting_type: Joi.any().valid("คณะจัด ไม่อยู่scopus", "อยู่ในscopus").required(),
   quality_meeting: Joi.any().when("meeting_type", {
@@ -175,22 +175,60 @@ const ConferSchema = Joi.object({
   all_money: Joi.number().invalid(0).precision(2),
   date_published_journals: Joi.number().integer().min(today.year - 2).max(today.year).allow(null, ""),
 
-  full_page: Joi.string().valid("application/pdf").required(),
-  published_journals: Joi.any().when("withdraw", {
-    is: "100%",
-    then: Joi.string().valid("application/pdf").required(),
-    otherwise: Joi.any().allow(null, ""),
-  }),
-  q_proof: Joi.any().when("withdraw", {
-    is: "100%",
-    then: Joi.string().valid("application/pdf").required(),
-    otherwise: Joi.any().allow(null, ""),
-  }),
-  call_for_paper: Joi.string().valid("application/pdf").required(),
-  accepted: Joi.string().valid("application/pdf").allow(null, ""),
-  fee_receipt: Joi.string().valid("application/pdf").required(),
-  fx_rate_document: Joi.string().valid("application/pdf").required(),
-  conf_proof: Joi.string().valid("application/pdf").required(),
+  // full_page: Joi.array().items(
+  //   Joi.object({
+  //     mimetype: Joi.string().valid("application/pdf").required(),
+  //   })
+  // ).min(1).required(),
+
+  // published_journals: Joi.alternatives().conditional("withdraw", {
+  //   is: "100%",
+  //   then: Joi.array().items(
+  //     Joi.object({
+  //       mimetype: Joi.string().valid("application/pdf").required(),
+  //     })
+  //   ).min(1).required(),
+  //   otherwise: Joi.any().allow(null, ""),
+  // }),
+
+  // q_proof: Joi.alternatives().conditional("withdraw", {
+  //   is: "100%",
+  //   then: Joi.array().items(
+  //     Joi.object({
+  //       mimetype: Joi.string().valid("application/pdf").required(),
+  //     })
+  //   ).min(1).required(),
+  //   otherwise: Joi.any().allow(null, ""),
+  // }),
+
+  // call_for_paper: Joi.array().items(
+  //   Joi.object({
+  //     mimetype: Joi.string().valid("application/pdf").required(),
+  //   })
+  // ).min(1).required(),
+
+  // accepted: Joi.array().items(
+  //   Joi.object({
+  //     mimetype: Joi.string().valid("application/pdf").required(),
+  //   })
+  // ).min(1).allow(null, ""),
+
+  
+  // fee_receipt: Joi.array().items(
+  //   Joi.object({
+  //     mimetype: Joi.string().valid("application/pdf").required(),
+  //   })
+  // ).min(1).required(),
+  // fx_rate_document: Joi.array().items(
+  //   Joi.object({
+  //     mimetype: Joi.string().valid("application/pdf").required(),
+  //   })
+  // ).min(1).required(),
+  // conf_proof: Joi.array().items(
+  //   Joi.object({
+  //     mimetype: Joi.string().valid("application/pdf").required(),
+  //   })
+  // ).min(1).required(),
 });
 
 //data แก้ date ของดาต้าเบส
@@ -207,25 +245,48 @@ router.post("/conference", uploadDocuments.fields([
     const files = req.files;
     const data = req.body;
 
+    const requiredFiles = ["full_page", "call_for_paper", "fee_receipt", "fx_rate_document", "conf_proof"]
+    const missingFiles = requiredFiles.filter((fields) => !req.files[fields]);
+
+    if (missingFiles.length > 0) {
+      console.log(`กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`);
+      return res.status(400).json({
+        error: `กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`,
+      });
+    }
+
     if (req.invalidFiles) {
       return res.status(200).json({
         message: "Some documents did not uploaded: " + req.invalidFiles.join(", ")
       })
     }
 
-    const { error: bodyError } = ConferSchema.validate(req.body, {
+    const { error } = ConferSchema.validate(req.body, {
       abortEarly: false,
     });
 
-    if (bodyError || fileError) {
+    if (error) {
       console.log(req.body);
-      console.log(req.files);
-      console.log(bodyError.details.map((err) => err.message));
-
+      console.log(error.details.map((err) => err.message));
       return res.status(400).json({
-        error: bodyError.details.map((err) => err.message),
+        error: error.details.map((err) => err.message),
       });
     }
+
+    // const { error: bodyError } = ConferSchema.validate(
+    //   { ...req.body, ...req.files }, 
+    //   { abortEarly: false }
+    // );
+
+    // if (bodyError) {
+    //   console.log(req.body);
+    //   console.log(req.files);
+    //   console.log(bodyError.details.map((err) => err.message));
+    
+    //   return res.status(400).json({
+    //     error: bodyError.details.map((err) => err.message),
+    //   });
+    // }
 
     try {
       console.log("data", data);

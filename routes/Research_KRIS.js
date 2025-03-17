@@ -2,27 +2,27 @@ const express = require("express");
 const multer = require("multer");
 const db = require("../config.js");
 const Joi = require("joi");
+const { DateTime } = require("luxon");
 const fs = require("fs");
 const path = require("path");
 
-router = express.Router();
+const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const dir = "uploads"; //สร้างโฟเดอร์ 'uploads'
+const upload = multer({
+  storage:  multer.diskStorage({
+    destination: function (req, file, cb) {
+      const dir = "uploads";
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir);
+      }
 
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir);
+      cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+      cb(null, DateTime.now() + path.extname(file.originalname));
     }
-
-    cb(null, dir);
-  },
-  filename: function (req, file, cd) {
-    cd(null, Date.now() + path.extname(file.originalname));
-  },
-});
-
-const upload = multer({ storage });
+  })
+})
 
 const fileSchema = Joi.object({
   mimetype: Joi.string()
@@ -32,71 +32,30 @@ const fileSchema = Joi.object({
 });
 
 const researchSchema = Joi.object({
-  user_id: Joi.number().required().messages({ "any.required": "กรุณาระบุ user_id" }),
-
-  name_research_th: Joi.string().pattern(/^[ก-๙0-9\s!@#$%^&*()_+={}\[\]:;"'<>,.?/-]+$/)
-    .required().messages({"string.pattern.base": "ชื่อวิจัย (TH) ต้องเป็นภาษาไทย ตัวเลข หรืออักขระพิเศษเท่านั้น",
-      "any.required": "กรุณาระบุชื่อวิจัยภาษาไทย",}),
-
-  name_research_en: Joi.string().pattern(/^[A-Za-z0-9\s!@#$%^&*()_+={}\[\]:;"'<>,.?/-]+$/)
-    .required().messages({"string.pattern.base":"ชื่อวิจัย (EN) ต้องเป็นภาษาอังกฤษ ตัวเลข หรืออักขระพิเศษเท่านั้น",
-      "any.required": "กรุณาระบุชื่อวิจัยภาษาอังกฤษ",}),
-
-  research_cluster: Joi.alternatives()
-    .try(Joi.string().required(), Joi.array().items(Joi.string()).required())
-    .messages({ "any.required": "กรุณาเลือกกลุ่มวิจัย" }),
-
+  user_id: Joi.number().integer().required(),
+  name_research_th: Joi.string().pattern(/^[ก-๙0-9\s!@#$%^&*()_+={}\[\]:;"'<>,.?/-]+$/).required(),
+  name_research_en: Joi.string().pattern(/^[A-Za-z0-9\s!@#$%^&*()_+={}\[\]:;"'<>,.?/-]+$/).required(),
+  research_cluster: Joi.alternatives().try(Joi.string().required(), Joi.array().items(Joi.string()).required()),
   res_cluster_other: Joi.when("research_cluster", {
     is: Joi.alternatives().try("อื่นๆ", Joi.array().items(Joi.string().valid("อื่นๆ"))),
-    then: Joi.string().required().messages({ "any.required": "กรุณาระบุรายละเอียดสำหรับ 'อื่นๆ'" }),
+    then: Joi.string().required(),
     otherwise: Joi.optional(),
   }),
-
-  res_standard: Joi.alternatives()
-    .try(Joi.string().required(), Joi.array().items(Joi.string()).required())
-    .messages({ "any.required": "กรุณาเลือกมาตรฐานงานวิจัย" }),
-
+  res_standard: Joi.alternatives().try(Joi.string().required(), Joi.array().items(Joi.string()).required()),
   res_standard_trade: Joi.when("res_standard", {
     is: Joi.alternatives().try(
       "มีการใช้พันธุ์พืช",
       Joi.array().items(Joi.string().valid("มีการใช้พันธุ์พืช"))
     ),
-    then: Joi.string()
-      .required()
-      .messages({ "any.required": "กรุณาระบุรายละเอียดการใช้พันธุ์พืช" }),
+    then: Joi.string().required(),
     otherwise: Joi.optional(),
   }),
-
-  h_index: Joi.number()
-    .required()
-    .messages({ "any.required": "กรุณาระบุค่า H-index" }),
-
-  his_invention: Joi.string()
-    .required()
-    .messages({ "any.required": "กรุณาระบุประวัติสิ่งประดิษฐ์หรือการพัฒนา" }),
-
-  participation_percent: Joi.number().greater(0).max(100).required().messages({
-    "number.greater": "เปอร์เซ็นต์การมีส่วนร่วมต้องมากกว่า 0",
-    "number.max": "เปอร์เซ็นต์การมีส่วนร่วมต้องไม่เกิน 100",
-    "any.required": "กรุณาระบุเปอร์เซ็นต์การมีส่วนร่วม",
-  }),
-
-  year: Joi.number()
-    .integer()
-    .required()
-    .messages({ "any.required": "กรุณาระบุปี" }),
-
-  project_periodStart: Joi.date()
-    .required()
-    .messages({ "any.required": "กรุณาระบุวันที่เริ่มโครงการ" }),
-
-  project_periodEnd: Joi.date()
-    .greater(Joi.ref("project_periodStart"))
-    .required()
-    .messages({
-      "date.greater": "วันสิ้นสุดโครงการต้องมากกว่าวันเริ่มต้น",
-      "any.required": "กรุณาระบุวันสิ้นสุดโครงการ",
-    }),
+  h_index: Joi.number().integer().required(),
+  his_invention: Joi.string().required(),
+  participation_percent: Joi.number().greater(0).max(100).required(),
+  year: Joi.number().integer().required(),
+  project_periodStart: Joi.date().required(),
+  project_periodEnd: Joi.date().greater(Joi.ref("project_periodStart")).required()
 });
 
 //insert data to db
@@ -174,7 +133,7 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
       form_money: 0,
     };
     const [resultForm] = await db.query("INSERT INTO Form SET ?", formData);
-    console.log("form_id", resultForm.insertId) 
+    console.log("form_id", resultForm.insertId)
     console.log("Inserted ID:", resultForm.insertId || "No ID returned");
 
     const noti = {
@@ -183,7 +142,7 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
       form_id: resultForm.insertId,
       status_form: "ฝ่ายบริหารงานวิจัย",
       name_form: data.name_research_th,
-    };console.log("noti", noti) 
+    };console.log("noti", noti)
     try {
       const [resultNoti] = await db.query("INSERT INTO Notification SET ?", noti);
       console.log("Notification Insert Result:", resultNoti);
