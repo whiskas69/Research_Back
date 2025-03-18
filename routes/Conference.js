@@ -161,74 +161,19 @@ const ConferSchema = Joi.object({
   num_register_articles: Joi.number().integer().invalid(0).required(),
   regist_amount_1_article: Joi.number().precision(2).invalid(0).required(),
   total_amount: Joi.number().precision(2).invalid(0).required(),
-  domestic_expenses: Joi.number().precision(2),
-  overseas_expenses: Joi.number().precision(2),
+  domestic_expenses: Joi.number().precision(2).allow(null, ""),
+  overseas_expenses: Joi.number().precision(2).allow(null, ""),
   travel_country: Joi.string().allow(null, ""),
-  inter_expenses: Joi.number().precision(2),
-  airplane_tax: Joi.number().precision(2),
-  num_days_room: Joi.number().integer(),
-  room_cost_per_night: Joi.number().precision(2),
-  total_room: Joi.number().precision(2),
-  num_travel_days: Joi.number().invalid(0).integer(),
-  daily_allowance: Joi.number().invalid(0).precision(2),
-  total_allowance: Joi.number().invalid(0).precision(2),
-  all_money: Joi.number().invalid(0).precision(2),
+  inter_expenses: Joi.number().precision(2).allow(null, ""),
+  airplane_tax: Joi.number().precision(2).allow(null, ""),
+  num_days_room: Joi.number().integer().allow(null, ""),
+  room_cost_per_night: Joi.number().precision(2).allow(null, ""),
+  total_room: Joi.number().precision(2).allow(null, ""),
+  num_travel_days: Joi.number().invalid(0).integer().allow(null, ""),
+  daily_allowance: Joi.number().invalid(0).precision(2).allow(null, ""),
+  total_allowance: Joi.number().invalid(0).precision(2).allow(null, ""),
+  all_money: Joi.number().invalid(0).precision(2).allow(null, ""),
   date_published_journals: Joi.number().integer().min(today.year - 2).max(today.year).allow(null, ""),
-
-  // full_page: Joi.array().items(
-  //   Joi.object({
-  //     mimetype: Joi.string().valid("application/pdf").required(),
-  //   })
-  // ).min(1).required(),
-
-  // published_journals: Joi.alternatives().conditional("withdraw", {
-  //   is: "100%",
-  //   then: Joi.array().items(
-  //     Joi.object({
-  //       mimetype: Joi.string().valid("application/pdf").required(),
-  //     })
-  //   ).min(1).required(),
-  //   otherwise: Joi.any().allow(null, ""),
-  // }),
-
-  // q_proof: Joi.alternatives().conditional("withdraw", {
-  //   is: "100%",
-  //   then: Joi.array().items(
-  //     Joi.object({
-  //       mimetype: Joi.string().valid("application/pdf").required(),
-  //     })
-  //   ).min(1).required(),
-  //   otherwise: Joi.any().allow(null, ""),
-  // }),
-
-  // call_for_paper: Joi.array().items(
-  //   Joi.object({
-  //     mimetype: Joi.string().valid("application/pdf").required(),
-  //   })
-  // ).min(1).required(),
-
-  // accepted: Joi.array().items(
-  //   Joi.object({
-  //     mimetype: Joi.string().valid("application/pdf").required(),
-  //   })
-  // ).min(1).allow(null, ""),
-
-  
-  // fee_receipt: Joi.array().items(
-  //   Joi.object({
-  //     mimetype: Joi.string().valid("application/pdf").required(),
-  //   })
-  // ).min(1).required(),
-  // fx_rate_document: Joi.array().items(
-  //   Joi.object({
-  //     mimetype: Joi.string().valid("application/pdf").required(),
-  //   })
-  // ).min(1).required(),
-  // conf_proof: Joi.array().items(
-  //   Joi.object({
-  //     mimetype: Joi.string().valid("application/pdf").required(),
-  //   })
-  // ).min(1).required(),
 });
 
 //data แก้ date ของดาต้าเบส
@@ -272,21 +217,6 @@ router.post("/conference", uploadDocuments.fields([
         error: error.details.map((err) => err.message),
       });
     }
-
-    // const { error: bodyError } = ConferSchema.validate(
-    //   { ...req.body, ...req.files }, 
-    //   { abortEarly: false }
-    // );
-
-    // if (bodyError) {
-    //   console.log(req.body);
-    //   console.log(req.files);
-    //   console.log(bodyError.details.map((err) => err.message));
-    
-    //   return res.status(400).json({
-    //     error: bodyError.details.map((err) => err.message),
-    //   });
-    // }
 
     try {
       console.log("data", data);

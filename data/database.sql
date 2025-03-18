@@ -12,7 +12,7 @@ CREATE TABLE Users (
     user_positioneng VARCHAR(255) NOT NULL,
     user_startwork date NOT NULL,
     user_year int NOT NULL,
-    user_confer boolean NOT NULL,
+    user_confer boolean NOT NULL
 );
 
 -- ตารางเอกสารขออนุมัติค่าเดินทาง (Conference)
@@ -186,7 +186,7 @@ CREATE TABLE officers_opinion_pc (
     p_acknowledge ENUM('รับทราบ', 'ไม่อนุมัติ'),
 	p_approve_result ENUM('รับทราบ','อนุมัติ', 'ไม่อนุมัติ', 'อื่นๆ'),
     p_reason_dean_approve VARCHAR(255),
-    descriptionOther VARCHAR(255)
+    descriptionOther VARCHAR(255),
     research_doc_submit_date DATE DEFAULT (CURRENT_DATE),
     associate_doc_submit_date DATE DEFAULT (CURRENT_DATE),
     dean_doc_submit_date DATE DEFAULT (CURRENT_DATE),
@@ -247,9 +247,10 @@ CREATE TABLE Notification (
 	FOREIGN KEY (kris_id) REFERENCES Research_KRIS(kris_id),
     FOREIGN KEY (form_id) REFERENCES Form(form_id)
 );
+    
 INSERT INTO Users (
     user_role, user_nameth, user_nameeng, user_email, user_signature,user_moneyPC,
-    user_moneyCF, user_positionth, user_positioneng, user_startwork, user_year
+    user_moneyCF, user_positionth, user_positioneng, user_startwork, user_year, user_confer
 ) VALUES
 ('professor', 'โอฬาร วงศ์วิรัตน์', 'Olarn Wongwirat', 'olarn@it.kmitl.ac.th', NULL, 0, 80000, 'ผศ.ดร.', 'Asst. Prof. Dr.', '1998-09-06', TIMESTAMPDIFF(YEAR, '1998-09-06', CURRENT_DATE), true),
 ('professor', 'นพพร โชติกกำธร', 'Nopporn Chotikakamthorn', 'nopporn@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '1996-03-19', TIMESTAMPDIFF(YEAR, '1996-03-19', CURRENT_DATE), true),

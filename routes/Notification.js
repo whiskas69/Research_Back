@@ -1,10 +1,13 @@
 const express = require("express");
 const db = require("../config.js");
 
-router = express.Router();
+const router = express.Router();
 
-router.get("/notiAll", async (req, res) => {
-    console.log("in post notiAll");
+router.get("/notification", async (req, res) => {
+    const userData = req.body
+
+    console.log("userData", userData);
+    
     try {
         let data = [];
         const [notis] = await db.query(
