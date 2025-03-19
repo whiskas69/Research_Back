@@ -30,4 +30,20 @@ router.post('/opinionKris', async (req, res) => {
     console.log(err.message);
   }
 });
+router.get("/opinionkris/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [opinionkris] = await db.query(
+      "SELECT * FROM officers_opinion_kris WHERE kris_id = ?",
+      [id]
+    );
+    if (opinionkris.length === 0) {
+      return res.status(404).json({ message: "opinionkris not found" });
+    }
+    console.log("Get opinionkris: ", opinionkris[0]);
+    res.status(200).json(opinionkris[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 exports.router = router;
