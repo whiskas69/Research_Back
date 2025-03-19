@@ -1,3 +1,23 @@
+-- ปิดการตรวจสอบ Foreign Key ก่อน
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- ลบตารางตามลำดับที่เหมาะสม
+DROP TABLE IF EXISTS Notification;
+DROP TABLE IF EXISTS Budget;
+DROP TABLE IF EXISTS officers_opinion_kris;
+DROP TABLE IF EXISTS officers_opinion_conf;
+DROP TABLE IF EXISTS officers_opinion_pc;
+DROP TABLE IF EXISTS File_pdf;
+DROP TABLE IF EXISTS Form;
+DROP TABLE IF EXISTS Research_KRIS;
+DROP TABLE IF EXISTS Page_Charge;
+DROP TABLE IF EXISTS Score;
+DROP TABLE IF EXISTS Conference;
+DROP TABLE IF EXISTS Users;
+
+-- เปิดการตรวจสอบ Foreign Key กลับมา
+SET FOREIGN_KEY_CHECKS = 1;
+
 -- สร้างตาราง Users
 CREATE TABLE Users (
 	user_id Integer PRIMARY KEY UNIQUE  AUTO_INCREMENT,
@@ -236,10 +256,12 @@ CREATE TABLE Notification (
     user_id INTEGER NOT NULL,
     form_id INTEGER UNIQUE NOT NULL,
     name_form VARCHAR(255) NOT NULL,
+    is_read boolean NOT NULL,
     date_update DATE DEFAULT (CURRENT_DATE),
 	FOREIGN KEY (user_id) REFERENCES Users(user_id),
     FOREIGN KEY (form_id) REFERENCES Form(form_id)
 );
+
 INSERT INTO Users (
     user_role, user_nameth, user_nameeng, user_email, user_signature,user_moneyPC,
     user_moneyCF, user_positionth, user_positioneng, user_startwork, user_year, user_confer

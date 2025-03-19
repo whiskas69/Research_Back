@@ -1,44 +1,66 @@
 const express = require("express");
 const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+
 const db = require("../config.js");
+
 const Joi = require("joi");
 const { DateTime } = require("luxon");
-const fs = require("fs");
-const path = require("path");
 
 const router = express.Router();
 
-const upload = multer({
-  storage:  multer.diskStorage({
-    destination: function (req, file, cb) {
-      const dir = "uploads";
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir);
-      }
-
-      cb(null, dir);
-    },
-    filename: function (req, file, cb) {
-      cb(null, DateTime.now() + path.extname(file.originalname));
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const dir = "uploads";
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir);
     }
-  })
-})
 
-const fileSchema = Joi.object({
-  mimetype: Joi.string().valid("application/pdf").required()
+    cb(null, dir);
+  },
+  filename: function (req, file, cb) {
+    const sanitizedFilename = file.originalname.replace(
+      /[^a-zA-Z0-9ก-๙_.-]/g,
+      "_"
+    ); // กำจัดอักขระพิเศษที่ไม่ปลอดภัย
+    cb(null, sanitizedFilename);
+  },
 });
+const fileFilter = function (req, file, cb) {
+  if (file.mimetype === "application/pdf") {
+    cb(null, true);
+  } else {
+    req.fileValidationError = "กรุณาแนบไฟล์ PDF";
+    cb(null, false);
+  }
+};
+const upload = multer({ storage, fileFilter });
 
 const researchSchema = Joi.object({
   user_id: Joi.number().integer().required(),
-  name_research_th: Joi.string().pattern(/^[ก-๙0-9\s!@#$%^&*()_+={}\[\]:;"'<>,.?/-]+$/).required(),
-  name_research_en: Joi.string().pattern(/^[A-Za-z0-9\s!@#$%^&*()_+={}\[\]:;"'<>,.?/-]+$/).required(),
-  research_cluster: Joi.alternatives().try(Joi.string().required(), Joi.array().items(Joi.string()).required()),
+  name_research_th: Joi.string()
+    .pattern(/^[ก-๙0-9\s!@#$%^&*()_+={}\[\]:;"'<>,.?/-]+$/)
+    .required(),
+  name_research_en: Joi.string()
+    .pattern(/^[A-Za-z0-9\s!@#$%^&*()_+={}\[\]:;"'<>,.?/-]+$/)
+    .required(),
+  research_cluster: Joi.alternatives().try(
+    Joi.string().required(),
+    Joi.array().items(Joi.string()).required()
+  ),
   res_cluster_other: Joi.when("research_cluster", {
-    is: Joi.alternatives().try("อื่นๆ", Joi.array().items(Joi.string().valid("อื่นๆ"))),
+    is: Joi.alternatives().try(
+      "อื่นๆ",
+      Joi.array().items(Joi.string().valid("อื่นๆ"))
+    ),
     then: Joi.string().required(),
     otherwise: Joi.optional(),
   }),
-  res_standard: Joi.alternatives().try(Joi.string().required(), Joi.array().items(Joi.string()).required()),
+  res_standard: Joi.alternatives().try(
+    Joi.string().required(),
+    Joi.array().items(Joi.string()).required()
+  ),
   res_standard_trade: Joi.when("res_standard", {
     is: Joi.alternatives().try(
       "มีการใช้พันธุ์พืช",
@@ -52,120 +74,117 @@ const researchSchema = Joi.object({
   participation_percent: Joi.number().greater(0).max(100).required(),
   year: Joi.number().integer().required(),
   project_periodStart: Joi.date().required(),
-  project_periodEnd: Joi.date().greater(Joi.ref("project_periodStart")).required()
+  project_periodEnd: Joi.date()
+    .greater(Joi.ref("project_periodStart"))
+    .required(),
 });
 
 //insert data to db
 router.post("/kris", upload.single("kris_file"), async (req, res) => {
+  console.log("Route /kris hit");
+
+  // check fileError and dataError
   try {
+    if (req.fileValidationError) {
+      return res.status(400).json({ message: req.fileValidationError });
+    }
+
     if (!req.file) {
-      return res.status(400).json({ error: "กรุณาแนบไฟล์ PDF" });
+      return res.status(400).json({ message: "กรุณาแนบไฟล์ PDF" });
     }
 
-    const { error: fileError } = fileSchema.validate({ mimetype: req.file.mimetype });
+    await researchSchema.validateAsync(req.body, { abortEarly: false });
+    console.log("After validation");
+  } catch (error) {
+    console.log("error", error);
+    return res.status(400).json({ error: error.details.map((err) => err.message) });
+  }
 
-    if (fileError) {
-      return res.status(400).json({ error: error.details[0].message });
-    }
+  const kris_data = req.body;
 
-    const { error: dataError } = researchSchema.validate(req.body, { abortEarly: false });
-    if (dataError) {
-      return res.status(400).json({
-        error: dataError.details.map((err) => err.message)
-      })
-    }
+  const database = await db.getConnection();
+  await database.beginTransaction(); //start transaction
 
-    const data = req.body;
-    const query = `INSERT INTO Research_KRIS (
-      user_id,
-      name_research_th,
-      name_research_en,
-      research_cluster,
-      res_cluster_other,
-      res_standard,
-      res_standard_trade,
-      h_index,
-      his_invention,
-      participation_percent,
-      year,
-      project_periodStart,
-      project_periodEnd
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  try {
+    //insert data to Research_KRIS
+    const [kris_result] = await database.query(
+      `INSERT INTO Research_KRIS (
+      user_id, name_research_th, name_research_en, research_cluster, res_cluster_other, res_standard, res_standard_trade, h_index, his_invention, participation_percent, year, project_periodStart, project_periodEnd)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        kris_data.user_id,
+        kris_data.name_research_th,
+        kris_data.name_research_en,
+        JSON.stringify(kris_data.research_cluster),
+        kris_data.res_cluster_other || null,
+        JSON.stringify(kris_data.res_standard),
+        kris_data.res_standard_trade || null,
+        kris_data.h_index,
+        kris_data.his_invention,
+        kris_data.participation_percent || null,
+        kris_data.year,
+        kris_data.project_periodStart,
+        kris_data.project_periodEnd,
+      ]
+    );
+    console.log("kris_result", kris_result);
 
-    const values = [
-      data.user_id,
-      data.name_research_th,
-      data.name_research_en,
-      Array.isArray(data.research_cluster)
-        ? JSON.stringify(data.research_cluster)
-        : data.research_cluster,
-      data.res_cluster_other || null,
-      Array.isArray(data.res_standard)
-        ? JSON.stringify(data.res_standard)
-        : data.res_standard,
-      data.res_standard_trade || null,
-      data.h_index,
-      data.his_invention,
-      data.participation_percent || null,
-      data.year,
-      data.project_periodStart,
-      data.project_periodEnd,
-    ];
+    const krisID = kris_result.insertId;
 
-    const [result] = await db.query(query, values);
-
-    const krisID = result.insertId;
-
+    //data for file_pdf
     const fileData = {
       type: "Research_KRIS",
       kris_id: krisID,
       kris_file: req.file ? req.file.filename : null,
     };
-    await db.query("INSERT INTO File_pdf SET ?", fileData);
 
+    //insert data to File_pdf
+    const [file_result] = await database.query(
+      "INSERT INTO File_pdf SET ?",
+      fileData
+    );
+    console.log("file_result", file_result);
+
+    //data for Form
     const formData = {
       form_type: "Research_KRIS",
       kris_id: krisID,
       form_status: "ฝ่ายบริหารงานวิจัย",
       form_money: 0,
     };
-    const [resultForm] = await db.query("INSERT INTO Form SET ?", formData);
-    console.log("form_id", resultForm.insertId)
-    console.log("Inserted ID:", resultForm.insertId || "No ID returned");
 
-    const data_notification = {
-      user_id: data.user_id,
-      form_id: resultForm.insertId,
-      name_form: data.name_research_th,
-      date_update: DateTime.now().toISODate()
-    };
+    //insert data to Form
+    const [form_result] = await database.query(
+      "INSERT INTO Form SET ?",
+      formData
+    );
+    console.log("form_result", form_result);
 
-    const [resultNotofication] = await db.query("INSERT INTO Notification SET ?", data_notification);
+    //insert data to Notification
+    const [notification_result] = await database.query(
+      `INSERT INTO Notification (
+      user_id, form_id, name_form, is_read)
+      VALUES (?, ?, ?, ?)`,
+      [
+        kris_data.user_id,
+        form_result.insertId,
+        kris_data.name_research_th,
+        false,
+      ]
+    );
+    console.log("notification_result", notification_result);
 
-    console.log("Notifi", resultNotofication)
-
-    // const data_notification = {
-    //   user_id: data.user_id,
-    //   form_id: resultForm.insertId,
-    //   // status_form: "ฝ่ายบริหารงานวิจัย",
-    //   name_form: data.name_research_th,
-    //   date_update: DateTime.now().toISODate()
-    // };
-
-    // console.log("hi, ", data_notification)
-
-    // try {
-    //   console.log("hi, ", data_notification)
-    //   const [resultNotofication] = await db.query("INSERT INTO Notification SET ?", data_notification);
-      
-    //   console.log("Notification Insert Result:", resultNotofication);
-    // } catch (error) {
-    //   console.error("Error inserting into Notification:", error);
-    // }
-
-    res.status(201).json({ message: "Research_KRIS created successfully!", id: krisID });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    await database.commit(); //commit transaction
+    res.status(200).json({
+      success: true,
+      message: "Operation successful",
+    });
+  } catch (error) {
+    database.rollback(); //rollback transaction
+    console.error("Error inserting into database:", error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    database.release(); //release connection
   }
 });
 
