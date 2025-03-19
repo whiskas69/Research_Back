@@ -29,6 +29,7 @@ const PCall = require('./routes/PageCharge_all');
 const google = require('./routes/google');
 const ruleBase = require('./routes/RuleBase');
 const noti = require('./routes/Notification');
+const file = require('./routes/File_pdf')
 
 
 app.use(users.router)
@@ -44,6 +45,7 @@ app.use(PCall.router)
 app.use(google.router)
 app.use(ruleBase.router)
 app.use(noti.router)
+app.use(file.router)
 
 // Middleware
 app.use(express.json());
