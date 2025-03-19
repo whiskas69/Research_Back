@@ -116,6 +116,8 @@ router.get("/allpdf", async (req, res) => {
 });
 
 router.get("/pdf/:id", async (req, res) => {
+  console.log("------------------------------------------")
+  console.log("get pdf pc id")
   const { id } = req.params;
   try {
     const [pdf] = await db.query('SELECT * FROM File_pdf WHERE pageC_id = ?', [id]);
