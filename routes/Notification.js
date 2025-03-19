@@ -3,35 +3,32 @@ const db = require("../config.js");
 
 const router = express.Router();
 
-router.get("/notification", async (req, res) => {
-    const userData = req.body
-
-    console.log("userData", userData);
-    
+router.get("/all_notification", async (req, res) => {
     try {
-        let data = [];
-        const [notis] = await db.query(
-            "SELECT * FROM Notification"
-        )
-        if (notis.length > 0) {
-            for (let i = 0; i < notis.length; i++) {
-                const [userName] = await db.query(
-                    "SELECT user_id, user_nameth FROM Users WHERE user_id = ?",
-                    [notis[i].user_id]
-                )
-                if (userName.length > 0) {
-                    data.push({
-                        ...notis[i],
-                        user_nameth: userName[0].user_nameth,
-                    });
-                }
-            }
-        }
-        console.log("Final data:", data);
-        return res.status(200).json({ data });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+        const [Notification] = await db.query("SELECT * FROM Notification");
+        res.status(200).json(Notification);
+    } catch (error) {
+        res.status(500).json({ error : error.message });
     }
 })
 
-exports.router = router; 
+router.get("/notification/:id", async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const [mynotification] = await db.query(`
+            SELECT n.noti_id, n.user_id, n.form_id, n.name_form, n.date_update, f.form_type, f.form_status, u.user_nameth
+            FROM notification n
+            LEFT JOIN form f ON n.form_id = f.form_id
+            LEFT JOIN users u ON n.user_id = u.user_id
+            WHERE n.user_id = ?
+            ORDER BY n.date_update DESC;`, [id]);
+
+        console.log('mynotification ', mynotification);
+        res.status(200).json(mynotification);
+    } catch (error) {
+        res.status(500).json({ error : error.message });
+    }
+})
+
+exports.router = router;

@@ -341,7 +341,6 @@ router.post("/conference", uploadDocuments.fields([
 );
 
 router.get("/conferences", async (req, res) => {
-  console.log("in get conference");
   try {
     const [conferences] = await db.query("SELECT * FROM Conference");
     res.status(200).json(conferences);
