@@ -1,10 +1,12 @@
 const express = require("express");
 const multer = require("multer");
-const db = require("../config.js");
-const Joi = require("joi");
-const { DateTime } = require("luxon");
 const fs = require("fs");
 const path = require("path");
+
+const db = require("../config.js");
+
+const Joi = require("joi");
+const { DateTime } = require("luxon");
 
 const router = express.Router();
 
@@ -19,11 +21,16 @@ const uploadDocuments = multer({
       cb(null, dir);
     },
     filename: function (req, file, cb) {
-      cb(null, DateTime.now() + path.extname(file.originalname));
+      // cb(null, DateTime.now() + path.extname(file.originalname));
+      const sanitizedFilename = file.originalname.replace(
+        /[^a-zA-Z0-9ก-๙_.-]/g,
+        "_"
+      );
+      cb(null, sanitizedFilename);
     },
   }),
   fileFilter: function (req, file, cb) {
-    let acceptFile = false
+    let acceptFile = false;
     if (
       file.fieldname == "full_page" ||
       file.fieldname == "published_journals" ||
@@ -35,23 +42,26 @@ const uploadDocuments = multer({
       file.fieldname == "conf_proof"
     ) {
       if (file.mimetype === "application/pdf") {
-        acceptFile = true
+        acceptFile = true;
       } else {
-        acceptFile = false
+        acceptFile = false;
       }
     }
 
     if (!acceptFile) {
-      const message = `Fields ${file.fieldname} wrong type (${file.mimetype})`
-      !req.invalidFiles ? req.invalidFiles = [message] : req.invalidFiles.push(message)
+      const message = `Fields ${file.fieldname} wrong type (${file.mimetype})`;
+      !req.invalidFiles
+        ? (req.invalidFiles = [message])
+        : req.invalidFiles.push(message);
     }
 
-    cb(null, acceptFile)
+    cb(null, acceptFile);
   },
 });
 
 const today = DateTime.now();
 
+//validation
 const ConferSchema = Joi.object({
   user_id: Joi.number().integer().required(),
   conf_times: Joi.number().integer().greater(0).required(),
@@ -63,13 +73,27 @@ const ConferSchema = Joi.object({
   conf_name: Joi.string().required(),
   country_conf: Joi.any().valid("ณ ต่างประเทศ", "ภายในประเทศ").required(),
   location: Joi.string().required(),
-  meeting_date: Joi.date().iso().min(Joi.ref("trav_dateStart")).max(Joi.ref("trav_dateEnd")).required(),
+  meeting_date: Joi.date()
+    .iso()
+    .min(Joi.ref("trav_dateStart"))
+    .max(Joi.ref("trav_dateEnd"))
+    .required(),
   meeting_venue: Joi.string().required(),
   date_submit_organizer: Joi.date().iso().max(today.toISODate()).required(), //กำหนดให้ส่งก่อนยื่น
-  argument_date_review: Joi.date().iso().greater(Joi.ref("date_submit_organizer")).required(),
-  last_day_register: Joi.date().iso().greater(Joi.ref("date_submit_organizer")).greater(Joi.ref("argument_date_review")).greater(today.toISODate()).required(),
+  argument_date_review: Joi.date()
+    .iso()
+    .greater(Joi.ref("date_submit_organizer"))
+    .required(),
+  last_day_register: Joi.date()
+    .iso()
+    .greater(Joi.ref("date_submit_organizer"))
+    .greater(Joi.ref("argument_date_review"))
+    .greater(today.toISODate())
+    .required(),
 
-  meeting_type: Joi.any().valid("คณะจัด ไม่อยู่scopus", "อยู่ในscopus").required(),
+  meeting_type: Joi.any()
+    .valid("คณะจัด ไม่อยู่scopus", "อยู่ในscopus")
+    .required(),
   quality_meeting: Joi.any().when("meeting_type", {
     is: "อยู่ในscopus",
     then: Joi.any().valid("มาตรฐาน", "ดีมาก").required(),
@@ -117,7 +141,9 @@ const ConferSchema = Joi.object({
     otherwise: Joi.any().allow(null, ""),
   }),
 
-  presenter_type: Joi.any().valid("First Author", "Corresponding Author").required(),
+  presenter_type: Joi.any()
+    .valid("First Author", "Corresponding Author")
+    .required(),
 
   time_of_leave: Joi.any().valid("1", "2").required(),
   wos_2_leave: Joi.any().when(
@@ -173,10 +199,42 @@ const ConferSchema = Joi.object({
   daily_allowance: Joi.number().invalid(0).precision(2).allow(null, ""),
   total_allowance: Joi.number().invalid(0).precision(2).allow(null, ""),
   all_money: Joi.number().invalid(0).precision(2).allow(null, ""),
-  date_published_journals: Joi.number().integer().min(today.year - 2).max(today.year).allow(null, ""),
+  date_published_journals: Joi.number()
+    .integer()
+    .min(today.year - 2)
+    .max(today.year)
+    .allow(null, ""),
 });
 
-//data แก้ date ของดาต้าเบส
+//insert data to db
+// router.post(
+//   "/conference",
+//   uploadDocuments.fields([
+//     { name: "full_page" },
+//     { name: "published_journals" },
+//     { name: "q_proof" },
+//     { name: "call_for_paper" },
+//     { name: "accepted" },
+//     { name: "fee_receipt" },
+//     { name: "fx_rate_document" },
+//     { name: "conf_proof" },
+//   ]),
+//   async (req, res) => {
+//     const conferenceData = req.body;
+//     const conferencefiles = req.files;
+
+//     //required files data
+//     const requiredFiles = [ "full_page", "call_for_paper", "fee_receipt", "fx_rate_document", "conf_proof",];
+//     const missingFiles = requiredFiles.filter((fields) => !req.files[fields]);
+//     //check missing files and dataError
+//     try {
+//       if (missingFiles.length > 0) {
+//         return res.status(400).json({ message: `กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}` });
+//       }
+//     } catch (error) {}
+//   }
+// );
+
 router.post("/conference", uploadDocuments.fields([
     { name: "full_page" },
     { name: "published_journals" },
@@ -186,14 +244,20 @@ router.post("/conference", uploadDocuments.fields([
     { name: "fee_receipt" },
     { name: "fx_rate_document" },
     { name: "conf_proof" },
-  ]), async (req, res) => {
+  ]),async (req, res) => {
     const files = req.files;
     const data = req.body;
 
-    console.log('req', data);
-    console.log('file', files)
+    console.log("req", data);
+    console.log("file", files);
 
-    const requiredFiles = ["full_page", "call_for_paper", "fee_receipt", "fx_rate_document", "conf_proof"]
+    const requiredFiles = [
+      "full_page",
+      "call_for_paper",
+      "fee_receipt",
+      "fx_rate_document",
+      "conf_proof",
+    ];
     const missingFiles = requiredFiles.filter((fields) => !req.files[fields]);
 
     if (missingFiles.length > 0) {
@@ -205,8 +269,9 @@ router.post("/conference", uploadDocuments.fields([
 
     if (req.invalidFiles) {
       return res.status(200).json({
-        message: "Some documents did not uploaded: " + req.invalidFiles.join(", ")
-      })
+        message:
+          "Some documents did not uploaded: " + req.invalidFiles.join(", "),
+      });
     }
 
     const { error } = ConferSchema.validate(req.body, {
@@ -222,7 +287,6 @@ router.post("/conference", uploadDocuments.fields([
     }
 
     try {
-
       const query = `INSERT INTO Conference (
       user_id, conf_times, conf_days, trav_dateStart, trav_dateEnd, conf_research, conf_name,
       meeting_date, meeting_venue, date_submit_organizer, argument_date_review, last_day_register,

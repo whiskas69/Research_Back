@@ -1,12 +1,10 @@
 const express = require("express");
 const multer = require("multer");
-const path = require("path");
 const fs = require("fs");
 
 const db = require("../config.js");
 
 const Joi = require("joi");
-const { DateTime } = require("luxon");
 
 const router = express.Router();
 
@@ -20,13 +18,11 @@ const storage = multer.diskStorage({
     cb(null, dir);
   },
   filename: function (req, file, cb) {
-    const sanitizedFilename = file.originalname.replace(
-      /[^a-zA-Z0-9ก-๙_.-]/g,
-      "_"
-    ); // กำจัดอักขระพิเศษที่ไม่ปลอดภัย
+    const sanitizedFilename = file.originalname.replace(/[^a-zA-Z0-9ก-๙_.-]/g,"_");
     cb(null, sanitizedFilename);
   },
 });
+//file filter
 const fileFilter = function (req, file, cb) {
   if (file.mimetype === "application/pdf") {
     cb(null, true);
@@ -37,14 +33,11 @@ const fileFilter = function (req, file, cb) {
 };
 const upload = multer({ storage, fileFilter });
 
+//validation
 const researchSchema = Joi.object({
   user_id: Joi.number().integer().required(),
-  name_research_th: Joi.string()
-    .pattern(/^[ก-๙0-9\s!@#$%^&*()_+={}\[\]:;"'<>,.?/-]+$/)
-    .required(),
-  name_research_en: Joi.string()
-    .pattern(/^[A-Za-z0-9\s!@#$%^&*()_+={}\[\]:;"'<>,.?/-]+$/)
-    .required(),
+  name_research_th: Joi.string().pattern(/^[ก-๙0-9\s!@#$%^&*()_+={}\[\]:;"'<>,.?/-]+$/).required(),
+  name_research_en: Joi.string().pattern(/^[A-Za-z0-9\s!@#$%^&*()_+={}\[\]:;"'<>,.?/-]+$/).required(),
   research_cluster: Joi.alternatives().try(
     Joi.string().required(),
     Joi.array().items(Joi.string()).required()
@@ -81,9 +74,7 @@ const researchSchema = Joi.object({
 
 //insert data to db
 router.post("/kris", upload.single("kris_file"), async (req, res) => {
-  console.log("Route /kris hit");
-
-  // check fileError and dataError
+  // check dataError and file
   try {
     if (req.fileValidationError) {
       return res.status(400).json({ message: req.fileValidationError });
@@ -140,8 +131,7 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
 
     //insert data to File_pdf
     const [file_result] = await database.query(
-      "INSERT INTO File_pdf SET ?",
-      fileData
+      "INSERT INTO File_pdf SET ?",fileData
     );
     console.log("file_result", file_result);
 
@@ -155,8 +145,7 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
 
     //insert data to Form
     const [form_result] = await database.query(
-      "INSERT INTO Form SET ?",
-      formData
+      "INSERT INTO Form SET ?",formData
     );
     console.log("form_result", form_result);
 
@@ -175,10 +164,7 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     console.log("notification_result", notification_result);
 
     await database.commit(); //commit transaction
-    res.status(200).json({
-      success: true,
-      message: "Operation successful",
-    });
+    res.status(200).json({ success: true, message: "Success",});
   } catch (error) {
     database.rollback(); //rollback transaction
     console.error("Error inserting into database:", error);
@@ -188,6 +174,7 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
   }
 });
 
+//get all data from database kris
 router.get("/allkris", async (req, res) => {
   try {
     const [allkris] = await db.query("SELECT * FROM Research_KRIS");
@@ -197,13 +184,13 @@ router.get("/allkris", async (req, res) => {
   }
 });
 
+//get data by id
 router.get("/kris/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
     const [kris] = await db.query(
-      "SELECT * FROM Research_KRIS WHERE kris_id = ?",
-      [id]
+      "SELECT * FROM Research_KRIS WHERE kris_id = ?",[id]
     );
 
     if (kris.length === 0) {
@@ -226,10 +213,7 @@ router.get("/form/kris/:id", async (req, res) => {
 
   try {
     const [form] = await db.query("SELECT * FROM Form WHERE kris_id = ?", [id]);
-    const [name] = await db.query(
-      "SELECT name_research_th FROM research_kris WHERE kris_id = ?",
-      [id]
-    );
+    const [name] = await db.query("SELECT name_research_th FROM research_kris WHERE kris_id = ?", [id]);
 
     if (!form.length && !name.length) {
       return res.status(404).json({ error: "ไม่พบข้อมูลฟอร์ม" });
