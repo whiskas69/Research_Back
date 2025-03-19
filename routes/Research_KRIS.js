@@ -25,10 +25,7 @@ const upload = multer({
 })
 
 const fileSchema = Joi.object({
-  mimetype: Joi.string()
-    .valid("application/pdf")
-    .required()
-    .messages({ "any.only": "อัปโหลดได้เฉพาะไฟล์ PDF เท่านั้น" }),
+  mimetype: Joi.string().valid("application/pdf").required()
 });
 
 const researchSchema = Joi.object({
@@ -136,22 +133,37 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     console.log("form_id", resultForm.insertId)
     console.log("Inserted ID:", resultForm.insertId || "No ID returned");
 
-    const noti = {
+    const data_notification = {
       user_id: data.user_id,
-      kris_id: krisID,
       form_id: resultForm.insertId,
-      status_form: "ฝ่ายบริหารงานวิจัย",
       name_form: data.name_research_th,
-    };console.log("noti", noti)
-    try {
-      const [resultNoti] = await db.query("INSERT INTO Notification SET ?", noti);
-      console.log("Notification Insert Result:", resultNoti);
-    } catch (error) {
-      console.error("Error inserting into Notification:", error);
-    }
-    res
-      .status(201)
-      .json({ message: "Research_KRIS created successfully!", id: krisID });
+      date_update: DateTime.now().toISODate()
+    };
+
+    const [resultNotofication] = await db.query("INSERT INTO Notification SET ?", data_notification);
+
+    console.log("Notifi", resultNotofication)
+
+    // const data_notification = {
+    //   user_id: data.user_id,
+    //   form_id: resultForm.insertId,
+    //   // status_form: "ฝ่ายบริหารงานวิจัย",
+    //   name_form: data.name_research_th,
+    //   date_update: DateTime.now().toISODate()
+    // };
+
+    // console.log("hi, ", data_notification)
+
+    // try {
+    //   console.log("hi, ", data_notification)
+    //   const [resultNotofication] = await db.query("INSERT INTO Notification SET ?", data_notification);
+      
+    //   console.log("Notification Insert Result:", resultNotofication);
+    // } catch (error) {
+    //   console.error("Error inserting into Notification:", error);
+    // }
+
+    res.status(201).json({ message: "Research_KRIS created successfully!", id: krisID });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

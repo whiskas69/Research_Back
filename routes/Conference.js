@@ -190,6 +190,9 @@ router.post("/conference", uploadDocuments.fields([
     const files = req.files;
     const data = req.body;
 
+    console.log('req', data);
+    console.log('file', files)
+
     const requiredFiles = ["full_page", "call_for_paper", "fee_receipt", "fx_rate_document", "conf_proof"]
     const missingFiles = requiredFiles.filter((fields) => !req.files[fields]);
 
@@ -219,8 +222,6 @@ router.post("/conference", uploadDocuments.fields([
     }
 
     try {
-      console.log("data", data);
-      console.log("User ID:", data.user_id);
 
       const query = `INSERT INTO Conference (
       user_id, conf_times, conf_days, trav_dateStart, trav_dateEnd, conf_research, conf_name,
@@ -285,6 +286,7 @@ router.post("/conference", uploadDocuments.fields([
         score_result,
         core_rank,
       } = req.body;
+
       const scoreData = {
         conf_id: confId,
         score_type: score_type || null,
@@ -296,10 +298,12 @@ router.post("/conference", uploadDocuments.fields([
         score_result: score_result || null,
         core_rank: core_rank || null,
       };
+
       console.log("Score data to insert:", scoreData);
       await db.query("INSERT INTO Score SET ?", scoreData);
 
       console.log("files", req.files);
+
       const fileData = {
         type: "Conference",
         conf_id: confId,
@@ -312,6 +316,7 @@ router.post("/conference", uploadDocuments.fields([
         fx_rate_document: files?.fx_rate_document?.[0]?.filename,
         conf_proof: files?.conf_proof?.[0]?.filename,
       };
+
       console.log("File data to insert:", fileData);
       await db.query("INSERT INTO File_pdf SET ?", fileData);
 

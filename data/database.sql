@@ -41,7 +41,6 @@ CREATE TABLE Conference (
     wd_100_quality ENUM('WoS-Q1', 'WoS-Q2', 'WoS-Q3', 'SJR-Q1', 'SJR-Q2'),
     wd_name_100 VARCHAR(255),
     country_conf ENUM('ณ ต่างประเทศ', 'ภายในประเทศ') NOT NULL,
-    
     num_register_articles DECIMAL(10,2) NOT NULL,
 	regist_amount_1_article DECIMAL(10,2) NOT NULL,
     total_amount DECIMAL(10,2) NOT NULL,
@@ -198,7 +197,7 @@ CREATE TABLE officers_opinion_conf (
 	conf_id INTEGER NOT NULL UNIQUE,
 	c_research_hr ENUM('ถูกต้อง', 'ไม่ถูกต้อง', 'อื่น ๆ'),
 	c_reason VARCHAR(255),
-	c_meet_quality ENUM('มาตรฐาน', 'ดีมาก'),
+	c_meet_quality ENUM('', 'มาตรฐาน', 'ดีมาก'),
 	c_good_reason VARCHAR(255),
 	c_deputy_dean VARCHAR(255),
 	c_approve_result ENUM('รับทราบ', 'ไม่อนุมัติ'),
@@ -235,19 +234,12 @@ CREATE TABLE Budget (
 CREATE TABLE Notification (
 	noti_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INTEGER NOT NULL,
-    conf_id INTEGER UNIQUE,
-	pageC_id INTEGER UNIQUE,
-    kris_id INTEGER UNIQUE,
     form_id INTEGER UNIQUE NOT NULL,
-	status_form VARCHAR(255) NOT NULL,
     name_form VARCHAR(255) NOT NULL,
+    date_update DATE DEFAULT (CURRENT_DATE),
 	FOREIGN KEY (user_id) REFERENCES Users(user_id),
-	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id),
-	FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id),
-	FOREIGN KEY (kris_id) REFERENCES Research_KRIS(kris_id),
     FOREIGN KEY (form_id) REFERENCES Form(form_id)
 );
-    
 INSERT INTO Users (
     user_role, user_nameth, user_nameeng, user_email, user_signature,user_moneyPC,
     user_moneyCF, user_positionth, user_positioneng, user_startwork, user_year, user_confer
