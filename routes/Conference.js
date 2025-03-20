@@ -10,27 +10,26 @@ const { DateTime } = require("luxon");
 
 const router = express.Router();
 
-const uploadDocuments = multer({
-  storage: multer.diskStorage({
-    destination: function (req, file, cb) {
-      const dir = "uploads";
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir);
-      }
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const dir = "uploads"; //สร้างโฟเดอร์ 'uploads'
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir);
+    }
 
-      cb(null, dir);
-    },
-    filename: function (req, file, cb) {
-      cb(null, DateTime.now() + path.extname(file.originalname));
-      // const sanitizedFilename = file.originalname.replace(
-      //   /[^a-zA-Z0-9ก-๙_.-]/g,
-      //   "_"
-      // );
-      // cb(null, sanitizedFilename);
-    },
-  }),
+    cb(null, dir);
+  },
+  filename: function (req, file, cd) {
+    cd(null, Date.now() + path.extname(file.originalname));
+  },
+});
+
+
+
+const uploadDocuments = multer({
+  storage,
   fileFilter: function (req, file, cb) {
-    let acceptFile = false;
+    let acceptedFile = false;
     if (
       file.fieldname == "full_page" ||
       file.fieldname == "published_journals" ||
@@ -42,20 +41,20 @@ const uploadDocuments = multer({
       file.fieldname == "conf_proof"
     ) {
       if (file.mimetype === "application/pdf") {
-        acceptFile = true;
+        acceptedFile = true;
       } else {
-        acceptFile = false;
+        acceptedFile = false;
       }
     }
 
-    if (!acceptFile) {
+    if (!acceptedFile) {
       const message = `Fields ${file.fieldname} wrong type (${file.mimetype})`;
       !req.invalidFiles
         ? (req.invalidFiles = [message])
         : req.invalidFiles.push(message);
     }
 
-    cb(null, acceptFile);
+    cb(null, acceptedFile);
   },
 });
 
@@ -208,7 +207,7 @@ const ConferSchema = Joi.object({
 
 //insert data to db
 router.post(
-  "/test",
+  "/conference",
   uploadDocuments.fields([
     { name: "full_page" },
     { name: "published_journals" },
@@ -244,9 +243,7 @@ router.post(
       await ConferSchema.validate(req.body, { abortEarly: false });
     } catch (error) {
       console.log("error", error);
-      return res
-        .status(400)
-        .json({ error: error.details.map((err) => err.message) });
+      return res.status(400).json({ error: error.details.map((err) => err.message) });
     }
 
     const conferenceFile = req.files;
@@ -322,176 +319,42 @@ router.post(
       ]);
       console.log("file_result", file_result);
 
-
-    } catch (error) {}
-  }
-);
-
-router.post(
-  "/conference",
-  uploadDocuments.fields([
-    { name: "full_page" },
-    { name: "published_journals" },
-    { name: "q_proof" },
-    { name: "call_for_paper" },
-    { name: "accepted" },
-    { name: "fee_receipt" },
-    { name: "fx_rate_document" },
-    { name: "conf_proof" },
-  ]),
-  async (req, res) => {
-    const files = req.files;
-    const data = req.body;
-
-    console.log("req", data);
-    console.log("file", files);
-
-    const requiredFiles = [
-      "full_page",
-      "call_for_paper",
-      "fee_receipt",
-      "fx_rate_document",
-      "conf_proof",
-    ];
-    const missingFiles = requiredFiles.filter((fields) => !req.files[fields]);
-
-    if (missingFiles.length > 0) {
-      console.log(`กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`);
-      return res.status(400).json({
-        error: `กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`,
-      });
-    }
-
-    const { error } = ConferSchema.validate(req.body, {
-      abortEarly: false,
-    });
-
-    if (error) {
-      console.log(req.body);
-      console.log(error.details.map((err) => err.message));
-      return res.status(400).json({
-        error: error.details.map((err) => err.message),
-      });
-    }
-
-    try {
-      const query = `INSERT INTO Conference (
-      user_id, conf_times, conf_days, trav_dateStart, trav_dateEnd, conf_research, conf_name,
-      meeting_date, meeting_venue, date_submit_organizer, argument_date_review, last_day_register,
-      meeting_type, quality_meeting, presenter_type, time_of_leave, location, wos_2_leave, name_2_leave,
-      withdraw, wd_100_quality, wd_name_100, country_conf, num_register_articles, regist_amount_1_article, total_amount,
-      domestic_expenses, overseas_expenses, travel_country, inter_expenses, airplane_tax, num_days_room, room_cost_per_night, total_room,
-      num_travel_days, daily_allowance,total_allowance, all_money)
-      VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)`;
-      const [result] = await db.query(query, [
-        data.user_id,
-        data.conf_times,
-        data.conf_days,
-        data.trav_dateStart,
-        data.trav_dateEnd,
-        data.conf_research,
-        data.conf_name,
-        data.meeting_date,
-        data.meeting_venue,
-        data.date_submit_organizer,
-        data.argument_date_review,
-        data.last_day_register,
-        data.meeting_type,
-        data.quality_meeting,
-        data.presenter_type,
-        data.time_of_leave,
-        data.location || null,
-        data.wos_2_leave || null,
-        data.name_2_leave || null,
-        data.withdraw || null,
-        data.wd_100_quality || null,
-        data.wd_name_100 || null,
-        data.country_conf,
-        data.num_register_articles,
-        data.regist_amount_1_article,
-        data.total_amount,
-        data.domestic_expenses || null,
-        data.overseas_expenses || null,
-        data.travel_country || null,
-        data.inter_expenses || null,
-        data.airplane_tax || null,
-        data.num_days_room || null,
-        data.room_cost_per_night || null,
-        data.total_room || null,
-        data.num_travel_days || null,
-        data.daily_allowance || null,
-        data.total_allowance || null,
-        data.all_money,
-      ]);
-
-      const confId = result.insertId;
-
-      console.log("conferID: ", confId);
-
-      const {
-        score_type,
-        sjr_score,
-        sjr_year,
-        hindex_score,
-        hindex_year,
-        Citation,
-        score_result,
-        core_rank,
-      } = req.body;
-
-      const scoreData = {
-        conf_id: confId,
-        score_type: score_type || null,
-        sjr_score: sjr_score || null,
-        sjr_year: sjr_year || null,
-        hindex_score: hindex_score || null,
-        hindex_year: hindex_year || null,
-        Citation: Citation || null,
-        score_result: score_result || null,
-        core_rank: core_rank || null,
-      };
-
-      console.log("Score data to insert:", scoreData);
-      await db.query("INSERT INTO Score SET ?", scoreData);
-
-      console.log("files", req.files);
-
-      const fileData = {
-        type: "Conference",
-        conf_id: confId,
-        full_page: files?.full_page?.[0]?.filename,
-        published_journals: files?.published_journals?.[0]?.filename || null,
-        q_proof: files?.q_proof?.[0]?.filename || null,
-        call_for_paper: files?.call_for_paper?.[0]?.filename,
-        accepted: files?.accepted?.[0]?.filename || null,
-        fee_receipt: files?.fee_receipt?.[0]?.filename,
-        fx_rate_document: files?.fx_rate_document?.[0]?.filename,
-        conf_proof: files?.conf_proof?.[0]?.filename,
-      };
-
-      console.log("File data to insert:", fileData);
-      await db.query("INSERT INTO File_pdf SET ?", fileData);
-
-      //เพิ่มเข้าตาราง Form
+      //data for Form
       const formData = {
         form_type: "Conference",
         conf_id: confId,
         form_status: "ฝ่ายบริหารทรัพยากรบุคคล",
-      };
-      console.log("formData data to insert:", formData);
-      await db.query("INSERT INTO Form SET ?", formData);
+      }
 
-      res.status(201).json({
-        message: "Conference entry created",
-        conf_id: result.insertId,
-      });
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-      console.log(err.message);
+      //insert data to Form
+      const [form_result] = await database.query("INSERT INTO Form SET ?", [
+        formData,
+      ]);
+      console.log("form_result", form_result);
+
+      //insert data to Notification
+      const [notification_result] = await database.query(
+        `INSERT INTO Notification (
+        user_id, form_id, name_form, is_read)
+        VALUES (?, ?, ?, ?)`,
+        [conferenceData.user_id, form_result.insertId, conferenceData.conf_research, false]
+      );
+
+      console.log("notification_result", notification_result);
+
+      await database.commit(); //commit transaction
+      res.status(200).json({ success: true, message: "Success",});
+    } catch (error) {
+      database.rollback(); //rollback transaction
+      console.error("Error inserting into database:", error);
+      res.status(500).json({ error: error.message });
+    } finally {
+      database.release(); //release connection
     }
   }
 );
 
+//get all data from database conference
 router.get("/conferences", async (req, res) => {
   try {
     const [conferences] = await db.query("SELECT * FROM Conference");
@@ -501,16 +364,19 @@ router.get("/conferences", async (req, res) => {
   }
 });
 
+//get data by id
 router.get("/conference/:id", async (req, res) => {
   const { id } = req.params;
+
   try {
     const [conference] = await db.query(
-      "SELECT * FROM Conference WHERE conf_id = ?",
-      [id]
+      "SELECT * FROM Conference WHERE conf_id = ?", [id]
     );
+
     if (conference.length === 0) {
       return res.status(404).json({ message: "conference not found" });
     }
+
     console.log("Get conference: ", conference[0]);
     res.status(200).json(conference[0]);
   } catch (err) {
@@ -518,11 +384,11 @@ router.get("/conference/:id", async (req, res) => {
   }
 });
 
+//update data to db by id Office
 router.put("/conference/:id", async (req, res) => {
-  console.log("in Update conference");
-
   const { id } = req.params;
   const updates = req.body;
+
   try {
     const fields = Object.keys(updates)
       .map((key) => `${key} = ?`)
@@ -571,7 +437,7 @@ router.get("/form/confer/:id", async (req, res) => {
   }
 });
 
-//update
+//update file to db
 router.put(
   "/updateFileConf",
   uploadDocuments.fields([

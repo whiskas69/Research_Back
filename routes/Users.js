@@ -1,8 +1,13 @@
 const express = require("express");
 const multer = require("multer");
-const db = require("../config.js");
 const fs = require("fs");
 const path = require("path");
+
+const { DateTime } = require("luxon");
+
+const db = require("../config.js");
+
+const router = express.Router();
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -15,7 +20,7 @@ const storage = multer.diskStorage({
     cb(null, dir);
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
+    cb(null, DateTime.now() + path.extname(file.originalname));
   },
 });
 
@@ -29,8 +34,6 @@ const fileFilter = function (req, file, cb) {
 };
 
 const upload = multer({ storage, fileFilter });
-
-router = express.Router();
 
 router.put("/uploadSignature", upload.single("user_signature"), async (req, res) => {
   if (req.errorMessage) {
@@ -49,10 +52,7 @@ router.put("/uploadSignature", upload.single("user_signature"), async (req, res)
 
   if (check[0].user_signature == "" || check[0].user_signature == null) {
     try {
-      const data = await db.query(
-        "UPDATE Users SET user_signature = ? WHERE user_id = ?",
-        [signatureFile.filename, user_id]
-      );
+      await db.query("UPDATE Users SET user_signature = ? WHERE user_id = ?", [signatureFile.filename, user_id]);
 
       return res.status(200).json({ message: "Upload Success" });
     } catch (error) {

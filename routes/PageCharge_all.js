@@ -1,10 +1,13 @@
 const express = require("express");
 const multer = require("multer");
-const db = require("../config.js");
-const Joi = require("joi");
-const { DateTime } = require("luxon");
 const fs = require("fs");
 const path = require("path");
+
+const db = require("../config.js");
+
+const Joi = require("joi");
+const { DateTime } = require("luxon");
+const { ifError } = require("assert");
 
 const router = express.Router();
 
@@ -25,35 +28,35 @@ const storage = multer.diskStorage({
 const uploadDocuments = multer({
   storage,
   fileFilter: function (req, file, cb) {
-    const allowedFields = [
-      "pc_proof",
-      "q_pc_proof",
-      "invoice_public",
-      "accepted",
-      "copy_article",
-    ];
-
-    // Check if field name is allowed
-    const isAllowedField = allowedFields.includes(file.fieldname);
-    // Check if file is a PDF
-    const isPDF = file.mimetype === "application/pdf";
-
-    if (isAllowedField && isPDF) {
-      cb(null, true);
-    } else {
-      const errorMsg = `Invalid file: ${file.fieldname} (${file.mimetype}). Only PDFs are allowed.`;
-      console.log(errorMsg);
-
-      // Collect invalid file errors
-      req.invalidFiles = req.invalidFiles || [];
-      req.invalidFiles.push(errorMsg);
-
-      cb(null, false); // Reject the file
+    let acceptedFile = false;
+    if (
+      file.fieldname === "pc_proof" ||
+      file.fieldname === "q_pc_proof" ||
+      file.fieldname === "invoice_public" ||
+      file.fieldname === "accepted" ||
+      file.fieldname === "copy_article"
+    ) {
+      if (file.mimetype === "application/pdf") {
+        acceptedFile = true;
+      } else {
+        acceptedFile = false;
+      }
     }
+
+    if (!acceptedFile) {
+      const message = `Field ${file.fieldname} wrong file type. Only PDFs are allowed.`;
+
+      !req.invalidFiles
+        ? (req.invalidFiles = [message])
+        : req.invalidFiles.push(message);
+    }
+
+    cb(null, acceptedFile);
   },
 });
 
-const today = DateTime.now().toISODate(); // ได้รูปแบบ YYYY-MM-DD
+const today = DateTime.now();
+// const today = DateTime.now().toISODate(); // ได้รูปแบบ YYYY-MM-DD
 
 // แปลง JSON String > Array
 const parseJsonArray = (value, helpers) => {
@@ -69,131 +72,81 @@ const parseJsonArray = (value, helpers) => {
 };
 
 const pageChargeSchema = Joi.object({
-  user_id: Joi.number().required()
-    .messages({ "any.required": "กรุณาระบุ user_id" }),
+  user_id: Joi.number().integer().required(),
+  pageC_times: Joi.number().integer().greater(0).required(),
+  conf_days: Joi.date().iso().max(today.toISODate()).required(),
 
-  pageC_times: Joi.number().greater(0).required().messages({
-    "any.required": "กรุณาระบุจำนวนครั้ง",
-    "number.greater": "ต้องมากกว่า 0",
-  }),
-
-  pageC_days: Joi.date().max(today).required().messages({
-    "any.required": "กรุณาระบุวันที่",
-    "date.max": "วันที่ต้องไม่มากกว่าวันนี้",
-  }),
-
-  journal_name: Joi.string().required()
-    .messages({ "any.required": "กรุณาระบุชื่อวารสาร" }),
-
-  quality_journal: Joi.alternatives().try(
+  journal_name: Joi.string().required(),
+  quality_journal: Joi.alternatives()
+    .try(
       Joi.string().custom(parseJsonArray),
       Joi.array().items(Joi.string().valid("ISI", "SJR", "Scopus", "nature"))
-    ).required()
-    .messages({
-      "any.invalid":
-        "ข้อมูลไม่ถูกต้อง ต้องเป็น JSON Array ของ ISI, SJR, Scopus, หรือ Nature",
-      "any.required": "กรุณาเลือกคุณภาพของวารสาร",
-    }),
+    )
+    .required(),
 
   pc_isi_year: Joi.alternatives().conditional("quality_journal", {
     is: Joi.array().has("ISI"),
-    then: Joi.number().integer().max(new Date().getFullYear()).required()
-    .messages({
-      "any.required": "กรุณากรอกปี ISI",
-      "number.base": "ปี ISI ต้องเป็นจำนวนเต็ม",
-    }),
+    then: Joi.number().integer().max(new Date().getFullYear()).required(),
     otherwise: Joi.forbidden(),
   }),
 
   pc_sjr_year: Joi.alternatives().conditional("quality_journal", {
     is: Joi.array().has("SJR"),
-    then: Joi.number().integer().max(new Date().getFullYear()).required()
-    .messages({
-      "any.required": "กรุณากรอกปี SJR",
-      "number.base": "ปี SJR ต้องเป็นจำนวนเต็ม",
-    }),
+    then: Joi.number().integer().max(new Date().getFullYear()).required(),
     otherwise: Joi.forbidden(),
   }),
 
   pc_scopus_year: Joi.alternatives().conditional("quality_journal", {
     is: Joi.array().has("Scopus"),
-    then: Joi.number().integer().max(new Date().getFullYear()).required()
-    .messages({
-      "any.required": "กรุณากรอกปี Scopus",
-      "number.base": "ปี Scopus ต้องเป็นจำนวนเต็ม",
-    }),
+    then: Joi.number().integer().max(new Date().getFullYear()).required(),
     otherwise: Joi.forbidden(),
   }),
 
   impact_factor: Joi.alternatives().conditional("quality_journal", {
     is: Joi.array().has("ISI"),
-    then: Joi.number().greater(0).required().messages({
-      "number.base": "Impact Factor ต้องเป็นตัวเลข",
-      "number.greater": "Impact Factor ต้องมากกว่า 0",
-      "any.required": "กรุณากรอก Impact Factor เนื่องจากเลือก ISI",
-    }),
+    then: Joi.number().greater(0).required(),
     otherwise: Joi.forbidden(),
   }),
 
   sjr_score: Joi.alternatives().conditional("quality_journal", {
     is: Joi.array().has("SJR"),
-    then: Joi.number().greater(0).required().messages({
-      "number.base": "SJR Score ต้องเป็นตัวเลข",
-      "number.greater": "SJR Score ต้องมากกว่า 0",
-      "any.required": "กรุณากรอก SJR Score เนื่องจากเลือก SJR",
-    }),
+    then: Joi.number().greater(0).required(),
     otherwise: Joi.forbidden(),
   }),
 
   cite_score: Joi.alternatives().conditional("quality_journal", {
     is: Joi.array().has("Scopus"),
-    then: Joi.number().greater(0).required().messages({
-      "number.base": "Cite Score ต้องเป็นตัวเลข",
-      "number.greater": "Cite Score ต้องมากกว่า 0",
-      "any.required": "กรุณากรอก Cite Score เนื่องจากเลือก Scopus",
-    }),
+    then: Joi.number().greater(0).required(),
     otherwise: Joi.forbidden(),
   }),
 
   qt_isi: Joi.alternatives().conditional("quality_journal", {
     is: Joi.array().has("ISI"),
-    then: Joi.number().valid(1, 2, 3, 4).required().messages({
-      "any.only": "ลำดับ Quartile ต้องเป็น 1, 2, 3 หรือ 4 เท่านั้น",
-      "any.required": "กรุณากรอก Quartile เนื่องจากเลือก ISI",
-    }),
+    then: Joi.number().valid(1, 2, 3, 4).required(),
     otherwise: Joi.forbidden(),
   }),
 
   qt_sjr: Joi.when("quality_journal", {
     is: Joi.array().has("SJR"),
-    then: Joi.number().valid(1, 2, 3, 4).required().messages({
-      "any.only": "ลำดับ Quartile ต้องเป็น 1, 2, 3 หรือ 4 เท่านั้น",
-      "any.required": "กรุณากรอก Quartile เนื่องจากเลือก SJR",
-    }),
+    then: Joi.number().valid(1, 2, 3, 4).required(),
     otherwise: Joi.forbidden(),
   }),
 
   qt_scopus: Joi.when("quality_journal", {
     is: Joi.array().has("Scopus"),
-    then: Joi.number().valid(1, 2, 3, 4).required().messages({
-      "any.only": "ลำดับ Quartile ต้องเป็น 1, 2, 3 หรือ 4 เท่านั้น",
-      "any.required": "กรุณากรอก Quartile เนื่องจากเลือก Scopus",
-    }),
+    then: Joi.number().valid(1, 2, 3, 4).required(),
     otherwise: Joi.forbidden(),
   }),
 
-  support_limit: Joi.number().valid(10000, 20000, 30000, 40000, 60000, 70000).required()
-    .messages({
-      "any.required": "กรุณาระบุวงเงินสนับสนุน",
-      "any.only":
-        "วงเงินต้องเป็น 10000, 20000, 30000, 40000, 60000 หรือ 70000 เท่านั้น",
-    }),
+  support_limit: Joi.number()
+    .valid(10000, 20000, 30000, 40000, 60000, 70000)
+    .required(),
 
-  article_title: Joi.string().required().messages({ "any.required": "กรุณาระบุชื่อบทความ" }),
+  article_title: Joi.string().required(),
 
-  vol_journal: Joi.number().integer().min(new Date().getFullYear()).required().messages({ "any.required": "กรุณาระบุปีที่ตีพิมพ์ (Vol.)" }),
+  vol_journal: Joi.number().integer().min(new Date().getFullYear()).required(),
 
-  issue_journal: Joi.number().integer().required().messages({ "any.required": "กรุณาระบุฉบับวารสาร (Issue)" }),
+  issue_journal: Joi.number().integer().required(),
 
   month: Joi.string()
     .valid(
@@ -210,57 +163,202 @@ const pageChargeSchema = Joi.object({
       "พฤศจิกายน",
       "ธันวาคม"
     )
-    .required().messages({ "any.required": "กรุณาระบุเดือนที่ตีพิมพ์" }),
+    .required(),
 
-  year: Joi.number().integer().required().min(new Date().getFullYear()).messages({ "any.required": "กรุณาระบุปีที่ตีพิมพ์" }),
+  year: Joi.number().integer().required().min(new Date().getFullYear()),
 
-  ISSN_ISBN: Joi.string().required().messages({ "any.required": "กรุณาระบุ ISSN/ISBN" }),
+  ISSN_ISBN: Joi.string().required(),
 
-  submission_date: Joi.date().max(today).required().messages({
-    "any.required": "กรุณาระบุวันที่ส่งบทความ",
-    "date.max": "วันที่ส่งบทความต้องไม่มากกว่าวันนี้",
-  }),
+  submission_date: Joi.date().max(today).required(),
 
-  date_review_announce: Joi.date().min(Joi.ref("submission_date")).required()
-    .messages({
-      "any.required": "กรุณาระบุวันที่ประกาศผล",
-      "date.min": "วันที่ประกาศผลต้องไม่เร็วกว่าวันที่ส่งบทความ",
-    }),
+  date_review_announce: Joi.date().min(Joi.ref("submission_date")).required(),
 
-  final_date: Joi.date().min(today).required().messages({
-    "any.required": "กรุณาระบุวันสิ้นสุด",
-    "date.min": "วันสิ้นสุดต้องไม่น้อยกว่าวันนี้",
-  }),
+  final_date: Joi.date().min(today).required(),
 
   article_research_ject: Joi.string().allow(null),
 
-  research_type: Joi.string().valid("วิจัยพื้นฐาน", "วิจัยประยุกต์", "วิจัยและพัฒนา", "อื่นๆ").when("article_research_ject", { is: Joi.exist(), then: Joi.required() })
-    .messages({ "any.required": "กรุณาระบุประเภทของการวิจัย" }),
+  research_type: Joi.string()
+    .valid("วิจัยพื้นฐาน", "วิจัยประยุกต์", "วิจัยและพัฒนา", "อื่นๆ")
+    .when("article_research_ject", { is: Joi.exist(), then: Joi.required() }),
 
-  research_type2: Joi.string().when("research_type", { is: "อื่นๆ", then: Joi.required() })
-    .messages({
-      "any.required": "กรุณาระบุรายละเอียดเพิ่มเติมสำหรับ 'วิจัยอื่นๆ'",
-    }),
+  research_type2: Joi.string().when("research_type", {
+    is: "อื่นๆ",
+    then: Joi.required(),
+  }),
 
-  name_funding_source: Joi.string().when("article_research_ject", { is: Joi.exist(), then: Joi.required() }).messages({ "any.required": "กรุณาระบุแหล่งทุน" }),
+  name_funding_source: Joi.string().when("article_research_ject", {
+    is: Joi.exist(),
+    then: Joi.required(),
+  }),
 
-  budget_limit: Joi.number().when("article_research_ject", { is: Joi.exist(), then: Joi.required() }).messages({ "any.required": "กรุณาระบุวงเงิน" }),
+  budget_limit: Joi.number().when("article_research_ject", {
+    is: Joi.exist(),
+    then: Joi.required(),
+  }),
 
-  annual: Joi.number().integer().max(new Date().getFullYear()).when("article_research_ject", { is: Joi.exist(), then: Joi.required() }).messages({ "any.required": "กรุณาระบุปี" }),
+  annual: Joi.number()
+    .integer()
+    .max(new Date().getFullYear())
+    .when("article_research_ject", { is: Joi.exist(), then: Joi.required() }),
 
-  presenter_type: Joi.string().valid("First Author", "Corresponding Author").required()
-    .messages({
-      "any.required": "กรุณาระบุประเภทผู้นำเสนอ",
-      "any.only":
-        "ประเภทต้องเป็น First Author หรือ Corresponding Author เท่านั้น",
-    }),
+  presenter_type: Joi.string()
+    .valid("First Author", "Corresponding Author")
+    .required(),
 
-  request_support: Joi.number().required().messages({"any.required": "กรุณาระบุคำร้องขอการสนับสนุนค่าใช้จ่ายในการลงตีพิมพ์",}),
+  request_support: Joi.number().required(),
 });
+
+//inset to database
+router.post(
+  "/page_charge",
+  uploadDocuments.fields([
+    { name: "pc_proof" },
+    { name: "q_pc_proof" },
+    { name: "invoice_public" },
+    { name: "accepted" },
+    { name: "copy_article" },
+  ]),
+  async (req, res) => {
+    const requiredFiles = ["pc_proof", "q_pc_proof", "copy_article"];
+    const missingFiles = requiredFiles.filter((field) => !req.files[field]);
+
+    //check dataError and missingFiles
+    try {
+      //check missingFiles
+      if (missingFiles.length > 0) {
+        console.log(`กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`);
+        return res.status(400).json({
+          error: `กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`,
+        });
+      }
+
+      await pageChargeSchema.validate(req.body, { abortEarly: false });
+    } catch (error) {
+      console.log("error", error);
+      return res
+        .status(400)
+        .json({ error: error.details.map((err) => err.message) });
+    }
+
+    const pageChargeData = req.body;
+    const pageChargeFiles = req.files;
+
+    const database = await db.getConnection();
+    await database.beginTransaction(); //start transaction
+
+    try {
+      //query insert to Page_Charge
+      const query = `INSERT INTO Page_Charge (
+        user_id, pageC_times, pageC_days, journal_name, quality_journal,
+        pc_isi_year, pc_sjr_year, pc_scopus_year, impact_factor, sjr_score,
+        cite_score, qt_isi, qt_sjr, qt_scopus, support_limit, article_title,
+        vol_journal, issue_journal, month, year, ISSN_ISBN, submission_date,
+        date_review_announce, final_date, article_research_ject, research_type,
+        research_type2, name_funding_source, budget_limit, annual, presenter_type,
+        request_support)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+      //insert to Page_Charge
+      const [pagec_result] = await database.query(query, [
+        pageChargeData.user_id,
+        pageChargeData.pageC_times,
+        pageChargeData.pageC_days,
+        pageChargeData.journal_name,
+        JSON.stringify(pageChargeData.quality_journal),
+        pageChargeData.pc_isi_year || null,
+        pageChargeData.pc_sjr_year || null,
+        pageChargeData.pc_scopus_year || null,
+        pageChargeData.impact_factor || null,
+        pageChargeData.sjr_score || null,
+        pageChargeData.cite_score || null,
+        pageChargeData.qt_isi || null,
+        pageChargeData.qt_sjr || null,
+        pageChargeData.qt_scopus || null,
+        pageChargeData.support_limit,
+        pageChargeData.article_title,
+        pageChargeData.vol_journal,
+        pageChargeData.issue_journal,
+        pageChargeData.month,
+        pageChargeData.year,
+        pageChargeData.ISSN_ISBN,
+        pageChargeData.submission_date,
+        pageChargeData.date_review_announce,
+        pageChargeData.final_date,
+        pageChargeData.article_research_ject || null,
+        pageChargeData.research_type || null,
+        pageChargeData.research_type2 || null,
+        pageChargeData.name_funding_source || null,
+        pageChargeData.budget_limit || null,
+        pageChargeData.annual || null,
+        pageChargeData.presenter_type,
+        pageChargeData.request_support,
+      ]);
+
+      const pageCId = pagec_result.insertId;
+
+      //data for File_pdf
+      const fileData = {
+        type: "Page_Charge",
+        pageC_id: pageCId,
+        pc_proof: pageChargeFiles.pc_proof?.[0]?.filename,
+        q_pc_proof: pageChargeFiles.q_pc_proof?.[0]?.filename,
+        invoice_public: pageChargeFiles.invoice_public?.[0]?.filename,
+        accepted: pageChargeFiles.accepted?.[0]?.filename || null,
+        copy_article: pageChargeFiles.copy_article?.[0]?.filename,
+      };
+
+      //insert to File_pdf
+      const [file_result] = await database.query(
+        "INSERT INTO File_pdf SET ?",
+        fileData
+      );
+      console.log("file_result", file_result);
+
+      //data for Form
+      const formData = {
+        form_type: "Page_Charge",
+        pageC_id: pageCId,
+        form_status: "ฝ่ายบริหารงานวิจัย",
+        form_money: 0,
+      };
+
+      //insert to Form
+      const [form_result] = await database.query(
+        "INSERT INTO Form SET ?",
+        formData
+      );
+      console.log("form_result", form_result);
+
+      //insert data to Notification
+      const [notification_result] = await database.query(
+        `INSERT INTO Notification (
+          user_id, form_id, name_form, is_read)
+          VALUES (?, ?, ?, ?)`,
+        [
+          pageChargeData.user_id,
+          form_result.insertId,
+          pageChargeData.article_title,
+          false,
+        ]
+      );
+
+      console.log("notification_result", notification_result);
+
+      await database.commit(); //commit transaction
+      res.status(200).json({ success: true, message: "Success" });
+    } catch (error) {
+      database.rollback(); //rollback transaction
+      console.error("Error inserting into database:", error);
+      res.status(500).json({ error: error.message });
+    } finally {
+      database.release(); //release connection
+    }
+  }
+);
 
 //insert to database
 router.post(
-  "/page_charge",
+  "/page",
   uploadDocuments.fields([
     { name: "pc_proof" },
     { name: "q_pc_proof" },
@@ -298,7 +396,7 @@ router.post(
     try {
       const data = req.body;
 
-      console.log(data)
+      console.log(data);
 
       const query = `INSERT INTO Page_Charge (
         user_id, pageC_times, pageC_days, journal_name, quality_journal,
@@ -377,9 +475,13 @@ router.post(
         form_id: resultForm.insertId,
         status_form: "ฝ่ายบริหารงานวิจัย",
         name_form: data.article_title,
-      };console.log("noti", noti) 
+      };
+      console.log("noti", noti);
       try {
-        const [resultNoti] = await db.query("INSERT INTO Notification SET ?", noti);
+        const [resultNoti] = await db.query(
+          "INSERT INTO Notification SET ?",
+          noti
+        );
         console.log("Notification Insert Result:", resultNoti);
       } catch (error) {
         console.error("Error inserting into Notification:", error);

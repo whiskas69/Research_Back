@@ -39,6 +39,8 @@ router.get("/notification/:id", async (req, res) => {
 router.get("/status_notification/:status", async (req, res) => {
   const { status } = req.params; //ฝ่ายบริหารงานวิจัย, ฝ่ายวิจัย, ฝ่ายวิชาการ, ฝ่ายบริหาร
 
+  console.log("status ", status);
+
   try {
     const [mynotification] = await db.query(
       `
@@ -47,11 +49,12 @@ router.get("/status_notification/:status", async (req, res) => {
         LEFT JOIN form f ON n.form_id = f.form_id
         LEFT JOIN users u ON n.user_id = u.user_id
         WHERE f.form_status = ?
+        AND n.date_update >= DATE_SUB(NOW(), INTERVAL 3 DAY)
         ORDER BY n.date_update DESC;`,
       [status]
     );
 
-    console.log("mynotification ", mynotification);
+    console.log("status_notification ", mynotification);
     res.status(200).json(mynotification);
   } catch (error) {
     res.status(500).json({ error: error.message });
