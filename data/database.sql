@@ -245,7 +245,7 @@ CREATE TABLE Budget (
 	num_expenses_approved DECIMAL(10,2) NOT NULL,
 	total_amount_approved DECIMAL(10,2) NOT NULL,
 	remaining_credit_limit DECIMAL(10,2) NOT NULL,
-	money_confer DECIMAL(10,2) NOT NULL,
+	amount_approval DECIMAL(10,2) NOT NULL,
 	total_remaining_credit_limit DECIMAL(10,2) NOT NULL,
     doc_submit_date DATE DEFAULT (CURRENT_DATE),
 	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id),
