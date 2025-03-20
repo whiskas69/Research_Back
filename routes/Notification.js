@@ -23,7 +23,9 @@ router.get("/notification/:id", async (req, res) => {
         LEFT JOIN form f ON n.form_id = f.form_id
         LEFT JOIN users u ON n.user_id = u.user_id
         WHERE n.user_id = ?
+        AND n.date_update >= DATE_SUB(NOW(), INTERVAL 3 DAY)
         ORDER BY n.date_update DESC;`,
+
       [id]
     );
 
@@ -56,21 +58,28 @@ router.get("/status_notification/:status", async (req, res) => {
   }
 });
 
-//update is_read by id
-router.put("/update_is_read/:id", async (req, res) => {
-  const { id } = req.params;
-
+//update is_read Professors
+router.put("/notifications/update_read", async (req, res) => {
   try {
-    const [update_is_read] = await db.query(
-      "UPDATE Notification SET is_read = true WHERE user_id = ?",
-      [id]
+    const { notiIds } = req.body;
+    console.log("notiIds ", notiIds);
+
+    if (!notiIds || notiIds.length === 0) {
+      return res
+        .status(400)
+        .json({ error: "ไม่มี Notification ที่ต้องอัปเดต" });
+    }
+
+    // อัปเดตสถานะ `is_read = 1` ในฐานข้อมูล
+    const [result] = await db.query(
+      `UPDATE notification SET is_read = 1 WHERE noti_id IN (?)`,
+      [notiIds]
     );
 
-    console.log("update_is_read", update_is_read);
-    res.status(200).json(update_is_read);
+    res.json({ message: `อัปเดตสำเร็จ ${result.affectedRows} รายการ` });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error updating notifications:", error);
+    res.status(500).json({ error: "เกิดข้อผิดพลาดในการอัปเดต" });
   }
 });
-
 exports.router = router;
