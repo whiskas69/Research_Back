@@ -18,8 +18,9 @@ const storage = multer.diskStorage({
     cb(null, dir);
   },
   filename: function (req, file, cb) {
-    const sanitizedFilename = file.originalname.replace(/[^a-zA-Z0-9ก-๙_.-]/g,"_");
-    cb(null, sanitizedFilename);
+    cb(null, DateTime.now() + path.extname(file.originalname));
+    // const sanitizedFilename = file.originalname.replace(/[^a-zA-Z0-9ก-๙_.-]/g,"_");
+    // cb(null, sanitizedFilename);
   },
 });
 //file filter
@@ -85,7 +86,6 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     }
 
     await researchSchema.validateAsync(req.body, { abortEarly: false });
-    console.log("After validation");
   } catch (error) {
     console.log("error", error);
     return res.status(400).json({ error: error.details.map((err) => err.message) });

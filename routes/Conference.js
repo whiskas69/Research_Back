@@ -21,12 +21,12 @@ const uploadDocuments = multer({
       cb(null, dir);
     },
     filename: function (req, file, cb) {
-      // cb(null, DateTime.now() + path.extname(file.originalname));
-      const sanitizedFilename = file.originalname.replace(
-        /[^a-zA-Z0-9ก-๙_.-]/g,
-        "_"
-      );
-      cb(null, sanitizedFilename);
+      cb(null, DateTime.now() + path.extname(file.originalname));
+      // const sanitizedFilename = file.originalname.replace(
+      //   /[^a-zA-Z0-9ก-๙_.-]/g,
+      //   "_"
+      // );
+      // cb(null, sanitizedFilename);
     },
   }),
   fileFilter: function (req, file, cb) {
@@ -207,35 +207,9 @@ const ConferSchema = Joi.object({
 });
 
 //insert data to db
-// router.post(
-//   "/conference",
-//   uploadDocuments.fields([
-//     { name: "full_page" },
-//     { name: "published_journals" },
-//     { name: "q_proof" },
-//     { name: "call_for_paper" },
-//     { name: "accepted" },
-//     { name: "fee_receipt" },
-//     { name: "fx_rate_document" },
-//     { name: "conf_proof" },
-//   ]),
-//   async (req, res) => {
-//     const conferenceData = req.body;
-//     const conferencefiles = req.files;
-
-//     //required files data
-//     const requiredFiles = [ "full_page", "call_for_paper", "fee_receipt", "fx_rate_document", "conf_proof",];
-//     const missingFiles = requiredFiles.filter((fields) => !req.files[fields]);
-//     //check missing files and dataError
-//     try {
-//       if (missingFiles.length > 0) {
-//         return res.status(400).json({ message: `กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}` });
-//       }
-//     } catch (error) {}
-//   }
-// );
-
-router.post("/conference", uploadDocuments.fields([
+router.post(
+  "/test",
+  uploadDocuments.fields([
     { name: "full_page" },
     { name: "published_journals" },
     { name: "q_proof" },
@@ -244,7 +218,128 @@ router.post("/conference", uploadDocuments.fields([
     { name: "fee_receipt" },
     { name: "fx_rate_document" },
     { name: "conf_proof" },
-  ]),async (req, res) => {
+  ]),
+  async (req, res) => {
+    const requiredFiles = [
+      "full_page",
+      "call_for_paper",
+      "fee_receipt",
+      "fx_rate_document",
+      "conf_proof",
+    ];
+
+    const missingFiles = requiredFiles.filter((fields) => !req.files[fields]);
+
+    //check dataError and missingFiles
+    try {
+      //check missing files
+      if (missingFiles.length > 0) {
+        console.log(`กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`);
+        return res.status(400).json({
+          error: `กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`,
+        });
+      }
+
+      //check ConferSchema
+      await ConferSchema.validate(req.body, { abortEarly: false });
+    } catch (error) {
+      console.log("error", error);
+      return res
+        .status(400)
+        .json({ error: error.details.map((err) => err.message) });
+    }
+
+    const conferenceFile = req.files;
+    const conferenceData = req.body;
+
+    const database = await db.getConnection();
+    await database.beginTransaction(); //start transaction
+
+    try {
+      //query insert data to Conference
+      const query = `INSERT INTO Conference (
+        user_id, conf_times, conf_days, trav_dateStart, trav_dateEnd, conf_research, conf_name,
+        meeting_date, meeting_venue, date_submit_organizer, argument_date_review, last_day_register,
+        meeting_type, quality_meeting, presenter_type, time_of_leave, location, wos_2_leave, name_2_leave,
+        withdraw, wd_100_quality, wd_name_100, country_conf, num_register_articles, regist_amount_1_article, total_amount,
+        domestic_expenses, overseas_expenses, travel_country, inter_expenses, airplane_tax, num_days_room, room_cost_per_night, total_room,
+        num_travel_days, daily_allowance,total_allowance, all_money)
+        VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)`;
+
+        //insert data to Conference
+      const [conference_result] = await database.query(query, [
+        conferenceData.user_id, conferenceData.conf_times, conferenceData.conf_days, conferenceData.trav_dateStart, conferenceData.trav_dateEnd, conferenceData.conf_research,
+        conferenceData.conf_name, conferenceData.meeting_date, conferenceData.meeting_venue, conferenceData.date_submit_organizer, conferenceData.argument_date_review,
+        conferenceData.last_day_register, conferenceData.meeting_type, conferenceData.quality_meeting, conferenceData.presenter_type, conferenceData.time_of_leave,
+        conferenceData.location || null, conferenceData.wos_2_leave || null, conferenceData.name_2_leave || null, conferenceData.withdraw || null,
+        conferenceData.wd_100_quality || null, conferenceData.wd_name_100 || null, conferenceData.country_conf, conferenceData.num_register_articles,
+        conferenceData.regist_amount_1_article, conferenceData.total_amount, conferenceData.domestic_expenses || null, conferenceData.overseas_expenses || null,
+        conferenceData.travel_country || null, conferenceData.inter_expenses || null, conferenceData.airplane_tax || null, conferenceData.num_days_room || null,
+        conferenceData.room_cost_per_night || null, conferenceData.total_room || null, conferenceData.num_travel_days || null, conferenceData.daily_allowance || null,
+        conferenceData.total_allowance || null, conferenceData.all_money
+      ]);
+
+      const confId = conference_result.insertId;
+
+      // data for score
+      const scoreData = {
+        conf_id: confId,
+        score_type: conferenceData.score_type,
+        sjr_score: conferenceData.sjr_score || null,
+        sjr_year: conferenceData.sjr_year || null,
+        hindex_score: conferenceData.hindex_score || null,
+        hindex_year: conferenceData.hindex_year || null,
+        Citation: conferenceData.Citation || null,
+        score_result: conferenceData.score_result || null,
+        core_rank: conferenceData.core_rank || null,
+      };
+
+      //insert data to Score
+      const [score_result] = await database.query("INSERT INTO Score SET ?", [
+        scoreData,
+      ]);
+
+      console.log("score_result", score_result);
+
+      //data for File_pdf
+      const fileData = {
+        type: "Conference",
+        conf_id: confId,
+        full_page: conferenceFile.full_page[0].filename,
+        date_published_journals: conferenceData.date_published_journals || null,
+        published_journals: conferenceFile.published_journals[0].filename || null,
+        q_proof: conferenceFile.q_proof[0].filename || null,
+        call_for_paper: conferenceFile.call_for_paper[0].filename,
+        accepted: conferenceFile.accepted[0].filename || null,
+        fee_receipt: conferenceFile.fee_receipt[0].filename,
+        fx_rate_document: conferenceFile.fx_rate_document[0].filename,
+        conf_proof: conferenceFile.conf_proof[0].filename
+      };
+
+      //insert data to File_pdf
+      const [file_result] = await database.query("INSERT INTO File_pdf SET ?", [
+        fileData,
+      ]);
+      console.log("file_result", file_result);
+
+
+    } catch (error) {}
+  }
+);
+
+router.post(
+  "/conference",
+  uploadDocuments.fields([
+    { name: "full_page" },
+    { name: "published_journals" },
+    { name: "q_proof" },
+    { name: "call_for_paper" },
+    { name: "accepted" },
+    { name: "fee_receipt" },
+    { name: "fx_rate_document" },
+    { name: "conf_proof" },
+  ]),
+  async (req, res) => {
     const files = req.files;
     const data = req.body;
 
@@ -264,13 +359,6 @@ router.post("/conference", uploadDocuments.fields([
       console.log(`กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`);
       return res.status(400).json({
         error: `กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`,
-      });
-    }
-
-    if (req.invalidFiles) {
-      return res.status(200).json({
-        message:
-          "Some documents did not uploaded: " + req.invalidFiles.join(", "),
       });
     }
 
