@@ -27,7 +27,10 @@ router.post('/budget', async (req, res) => {
 
 router.get("/budgets", async (req, res) => {
   try {
-    const [budgets] = await db.query("SELECT * FROM Budget");
+
+    const [budgets] = await db.query(
+      `SELECT * FROM Budget`);
+
     res.status(200).json(budgets);
   } catch (err) {
     res.status(500).json({ error: err.message });
