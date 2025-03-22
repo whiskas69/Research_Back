@@ -290,29 +290,27 @@ router.post(
         score_result: conferenceData.score_result || null,
         core_rank: conferenceData.core_rank || null,
       };
-
       //insert data to Score
       const [score_result] = await database.query("INSERT INTO Score SET ?", [
         scoreData,
       ]);
 
       console.log("score_result", score_result);
-
       //data for File_pdf
       const fileData = {
         type: "Conference",
         conf_id: confId,
         full_page: conferenceFile.full_page[0].filename,
         date_published_journals: conferenceData.date_published_journals || null,
-        published_journals: conferenceFile.published_journals[0].filename || null,
-        q_proof: conferenceFile.q_proof[0].filename || null,
+        published_journals: conferenceFile.published_journals?.[0]?.filename ?? null,
+        q_proof: conferenceFile.q_proof?.[0]?.filename ?? null,
         call_for_paper: conferenceFile.call_for_paper[0].filename,
         accepted: conferenceFile.accepted[0].filename || null,
         fee_receipt: conferenceFile.fee_receipt[0].filename,
         fx_rate_document: conferenceFile.fx_rate_document[0].filename,
         conf_proof: conferenceFile.conf_proof[0].filename
       };
-
+      console.log("fileData", fileData);
       //insert data to File_pdf
       const [file_result] = await database.query("INSERT INTO File_pdf SET ?", [
         fileData,
@@ -324,6 +322,7 @@ router.post(
         form_type: "Conference",
         conf_id: confId,
         form_status: "ฝ่ายบริหารทรัพยากรบุคคล",
+        form_money: 0,
       }
 
       //insert data to Form
