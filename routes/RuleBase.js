@@ -60,7 +60,7 @@ const checkWithdraw = (half_full, withdraw_100, wd_name_100, file_full_100) => {
     let withdraw = ""
     if (half_full == "50%") {
         withdraw = "50%";
-        console.log("withdraw", withdraw);
+        console.log("withdraw checkWithdraw", withdraw);
         return withdraw;
     } else if (half_full == "100%") {
         if (
@@ -89,8 +89,9 @@ const checkWithdraw = (half_full, withdraw_100, wd_name_100, file_full_100) => {
 
 const getMaxExpense = (place, In_Out_Country) => {
     let result = { maxExpense: 0, inThai: "" };
-
-    if (In_Out_Country == "ต่างประเทศ") {
+console.log("getMaxExpense")
+    if (In_Out_Country == "ณ ต่างประเทศ") {
+        console.log("getMaxExpense ต่างประเทศ")
         for (const category in country) {
             const data = country[category];
             if (Array.isArray(data.countries) && data.countries.includes(place)) {
@@ -111,22 +112,18 @@ const getMaxExpense = (place, In_Out_Country) => {
 router.get("/confer/calc/:id", async (req, res) => {
     const { id } = req.params;
     console.log("confer id", id);
-    // console.log("country", country.Asia_20000.countries)
-    // console.log("country", country)
     try {
         const confer = await db.query(
             `SELECT * FROM conference WHERE conf_id = ?`,
             [id]
         );
-        // console.log("confer", confer[0][0])
         const score = await db.query(`SELECT * FROM score WHERE conf_id = ?`, [id]);
-        // console.log("score", score)
         const file = await db.query(`SELECT * FROM file_pdf WHERE conf_id = ?`, [
             id,
         ]);
 
         const Author = confer[0][0].presenter_type;
-        const In_Out_Country = confer[0][0].location_1;
+        const In_Out_Country = confer[0][0].country_conf;
         const In_Out_Scopus = confer[0][0].meeting_type;
         const Leave = confer[0][0].time_of_leave;
         const Sec_Leave = confer[0][0].wos_2_leave;
@@ -142,8 +139,6 @@ router.get("/confer/calc/:id", async (req, res) => {
         const core = score[0][0].core_rank;
         // if score
         let result = scoreStandard(score_type, total_score, standard, core);
-        //   console.log("ค่า score_type:", score_type);
-        //   console.log("ค่า total_score:", total_score);
         console.log("ค่า result:", result);
 
         const half_full = confer[0][0].withdraw
@@ -157,6 +152,7 @@ router.get("/confer/calc/:id", async (req, res) => {
         let { maxExpense, inThai } = getMaxExpense(namePlace, In_Out_Country);
 
         console.log("ค่า max_expense:", maxExpense);
+        console.log("ค่า In_Out_Country in func:", In_Out_Country);
         console.log("ค่า inThai:", inThai);
 
         console.log("all");
@@ -215,7 +211,7 @@ router.get("/confer/calc/:id", async (req, res) => {
             }
 
             //ส่วนต่างประเทศ
-            else if (In_Out_Country == "ต่างประเทศ") {
+            else if (In_Out_Country == "ณ ต่างประเทศ") {
                 console.log("In_Out_Country", In_Out_Country);
 
                 //ได้รับการสนับสนุนจากคณะ
@@ -254,7 +250,6 @@ router.get("/confer/calc/:id", async (req, res) => {
                 //ทำตามเกณฑ์ปกติ
                 else if (In_Out_Scopus == "อยู่ในscopus") {
                     console.log("In_Out_Scopus", In_Out_Scopus);
-
                     //ลาตามเกณฑ์ปกติ
                     if (Leave == 1) {
                         console.log("Leave", Leave);

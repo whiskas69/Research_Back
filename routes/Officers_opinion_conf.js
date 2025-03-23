@@ -91,9 +91,19 @@ router.get("/opinionConf/:id", async (req, res) => {
   const { id } = req.params;
   try {
     const [opinionConf] = await db.query(
-      "SELECT * FROM officers_opinion_conf WHERE conf_id = ?",
+      `SELECT ooc.c_office_id, ooc.conf_id, ooc.c_research_hr, ooc.c_reason, 
+      ooc.c_meet_quality,ooc.c_good_reason, ooc.c_deputy_dean, 
+      ooc.c_approve_result, ooc.hr_doc_submit_date, 
+      ooc.research_doc_submit_date, ooc.associate_doc_submit_date, 
+      ooc.dean_doc_submit_date, u.user_confer
+      FROM officers_opinion_conf ooc
+      LEFT JOIN Conference c ON ooc.conf_id = c.conf_id
+      LEFT JOIN Users u ON c.user_id = u.user_id
+      WHERE ooc.conf_id = ?
+      `,
       [id]
     );
+    console.log("opinionConf", opinionConf[0])
     if (opinionConf.length === 0) {
       return res.status(404).json({ message: "opinionConf not found" });
     }
