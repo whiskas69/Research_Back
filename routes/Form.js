@@ -128,11 +128,6 @@ router.get("/form/:id", async (req, res) => {
       ORDER BY f.form_id DESC`,
       [id]
     );
-
-    // if (form.length === 0) {
-    //   return res.status(200).json({ message: "ไม่มีการส่งข้อมูล" });
-    // }
-
     console.log("get, ", form);
     console.log("get, ", form[0]);
 
@@ -173,6 +168,36 @@ router.get("/allForms", async (req, res) => {
   }
 });
 
+router.get("/formPC/:id", async (req,res) => {
+  console.log("get id pc in form")
+  const { id } = req.params;
+  console.log("form id: ", id);
+  try{
+    const [form] = await db.query("SELECT * FROM Form WHERE pageC_id = ?", [
+      id,
+    ]);
+    console.log("get id pc: ", form[0]);
+    res.status(200).json(form[0]);
+  }catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+})
+
+router.get("/formConfer/:id", async (req,res) => {
+  console.log("get id confer in form")
+  const { id } = req.params;
+  console.log("form id: ", id);
+  try{
+    const [form] = await db.query("SELECT * FROM Form WHERE conf_id = ?", [
+      id,
+    ]);
+    console.log("get id confer: ", form[0]);
+    res.status(200).json(form[0]);
+  }catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+})
+
 router.put("/form/:id", async (req, res) => {
   console.log("in Update form");
   const { id } = req.params;
@@ -183,8 +208,7 @@ router.put("/form/:id", async (req, res) => {
     const [form] = await db.query(
       `UPDATE Form SET
     form_type = ?, conf_id = ?, pageC_id = ?, kris_id = ?,
-    form_status = ?, form_money = ?
-  WHERE form_id = ?`,
+    form_status = ?, form_money = ? WHERE form_id = ?`,
       [
         updates.form_type, updates.conf_id || null, updates.pageC_id || null,
         updates.kris_id || null, updates.form_status, updates.form_money,

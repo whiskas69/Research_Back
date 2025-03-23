@@ -236,9 +236,7 @@ CREATE TABLE officers_opinion_kris (
 -- Table: Budget CHECK
 CREATE TABLE Budget (
 	budget_id INT AUTO_INCREMENT PRIMARY KEY,
-	type ENUM ('Conference', 'Page_Charge') NOT NULL,
-	conf_id INTEGER UNIQUE,
-	pageC_id INTEGER UNIQUE,
+	form_id INT NOT NULL UNIQUE,
 	budget_year INT NOT NULL,
 	total_amount DECIMAL(10,2) NOT NULL,
 	num_expenses_approved Integer NOT NULL,
@@ -247,8 +245,7 @@ CREATE TABLE Budget (
 	amount_approval DECIMAL(10,2) NOT NULL,
 	total_remaining_credit_limit DECIMAL(10,2) NOT NULL,
     doc_submit_date DATE DEFAULT (CURRENT_DATE),
-	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id),
-	FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id)
+	FOREIGN KEY (form_id) REFERENCES Form(form_id)
 );
 CREATE TABLE Notification (
 	noti_id INT AUTO_INCREMENT PRIMARY KEY,

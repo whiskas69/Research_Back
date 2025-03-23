@@ -8,13 +8,14 @@ router.post('/budget', async (req, res) => {
   const data = req.body;
   try {
     const [result] = await db.query(
-      "INSERT INTO Budget (type, conf_id, pageC_id, budget_year, total_amount, num_expenses_approved, total_amount_approved, remaining_credit_limit, amount_approval, total_remaining_credit_limit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [data.type, data.conf_id || null, data.pageC_id || null, data.budget_year, data.total_amount, data.num_expenses_approved,
+      `INSERT INTO Budget (form_id, budget_year, total_amount, num_expenses_approved, total_amount_approved, remaining_credit_limit, amount_approval, total_remaining_credit_limit) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [data.form_id, data.budget_year, data.total_amount, data.num_expenses_approved,
       data.total_amount_approved, data.remaining_credit_limit, data.amount_approval, data.total_remaining_credit_limit]
     );
     const [updateForm] = await db.query(
-      `UPDATE Form SET form_type = ?, pageC_id = ?, form_status = ? WHERE pageC_id = ?`,
-      [data.type, data.pageC_id, data.form_status, data.pageC_id]
+      `UPDATE Form SET form_status = ? WHERE form_id = ?`,
+      [data.form_status, data.form_id]
     );
     console.log("update: ", updateForm);
     console.log(data)
@@ -25,11 +26,11 @@ router.post('/budget', async (req, res) => {
   }
 });
 
-router.get("/budgets", async (req, res) => {
+router.get("/sumConfer/budgetsYear", async (req, res) => {
   try {
-
     const [budgets] = await db.query(
       `SELECT * FROM Budget`);
+    console.log("budgets", budgets)
 
     res.status(200).json(budgets);
   } catch (err) {
