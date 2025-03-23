@@ -281,7 +281,7 @@ router.post(
       // data for score
       const scoreData = {
         conf_id: confId,
-        score_type: conferenceData.score_type,
+        score_type: conferenceData.score_type || null,
         sjr_score: conferenceData.sjr_score || null,
         sjr_year: conferenceData.sjr_year || null,
         hindex_score: conferenceData.hindex_score || null,
