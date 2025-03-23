@@ -85,4 +85,63 @@ router.get("/all_summary_kris", async (req, res) => {
   }
 });
 
+router.get("/remainingConference", async (req, res) => {
+  try {
+    const [Summary] = await db.query(
+      `SELECT
+      b.budget_id,
+      f.form_id,
+      b.Conference_amount,
+      b.total_remaining_credit_limit,
+      f.form_type
+      FROM budget b
+      JOIN form f ON b.form_id = f.form_id
+      WHERE f.form_status = "อนุมัติ"
+      AND f.form_type = "Conference"
+      ORDER BY b.budget_id DESC
+      LIMIT 1;`
+    );
+    res.status(200).json(Summary);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get("/remainingPc", async (req, res) => {
+  try {
+    const [Summary] = await db.query(
+      `SELECT
+      b.budget_id,
+      f.form_id,
+      b.Page_Charge_amount,
+      b.total_remaining_credit_limit,
+      f.form_type
+      FROM budget b
+      JOIN form f ON b.form_id = f.form_id
+      WHERE f.form_status = "อนุมัติ"
+      AND f.form_type = "Page_Charge"
+      ORDER BY b.budget_id DESC
+      LIMIT 1;`
+    );
+    res.status(200).json(Summary);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get("/count", async (req, res) => {
+  try {
+    const [Summary] = await db.query(
+      `SELECT form_type, COUNT(*) AS total_count
+      FROM form
+      WHERE form_status = 'อนุมัติ'
+      AND form_type IN ('Conference', 'Page_Charge', 'Research_KRIS')
+      GROUP BY form_type;`
+    );
+    res.status(200).json(Summary);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 exports.router = router;
