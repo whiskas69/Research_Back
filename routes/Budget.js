@@ -39,12 +39,22 @@ router.get("/sumConfer/budgetsYear", async (req, res) => {
 });
 
 router.get("/budget/pageCharge/:id", async (req, res) => {
-  console.log("Fetching pageCharge data...");
   const { id } = req.params;
+  console.log("budget/pageCharge/id",id)
   try {
-    const [pageC] = await db.query(
-      `SELECT b.*, COALESCE(f.form_money, 0) AS form_money FROM Budget AS b LEFT JOIN Form AS f ON b.pageC_id = f.pageC_id WHERE b.pageC_id = ?`,
+    const [find_id] = await db.query(
+      "SELECT form_id FROM Form WHERE pageC_id = ?",
       [id]
+    );
+    console.log("Get find_id budget pc: ", find_id[0]);
+    // const [pageC] = await db.query(
+    //   `SELECT b.*, COALESCE(f.form_money, 0) AS form_money FROM Budget AS b 
+    //   LEFT JOIN Form AS f ON b.pageC_id = f.pageC_id WHERE b.pageC_id = ?`,
+    //   [find_id[0]]
+    // );
+    const [pageC] = await db.query(
+      "SELECT * FROM Budget WHERE form_id = ?",
+      [find_id[0].form_id]
     );
     console.log("Query result:", pageC);
 
@@ -60,15 +70,22 @@ router.get("/budget/pageCharge/:id", async (req, res) => {
 
 router.get("/budget/conference/:id", async (req, res) => {
   const { id } = req.params;
+  console.log("budget/conference/id",id)
   try {
-    const [conf] = await db.query(
-      "SELECT * FROM Budget WHERE conf_id = ?",
+    const [find_id] = await db.query(
+      "SELECT form_id FROM Form WHERE conf_id = ?",
       [id]
     );
+    console.log("Get find_id budget: ", find_id[0]);
+    const [conf] = await db.query(
+      "SELECT * FROM Budget WHERE form_id = ?",
+      [find_id[0]]
+    );
+    console.log("Get conf budget: ", conf[0]);
     if (conf.length === 0) {
       return res.status(404).json({ message: "conf_id not found" });
     }
-    console.log("Get conf: ", conf[0]);
+    console.log("Get conf kub: ", conf[0]);
     res.status(200).json(conf[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
