@@ -30,6 +30,7 @@ const google = require('./routes/google');
 const ruleBase = require('./routes/RuleBase');
 const noti = require('./routes/Notification');
 const file = require('./routes/File_pdf')
+const Summary = require('./routes/summary');
 
 
 app.use(users.router)
@@ -46,6 +47,7 @@ app.use(google.router)
 app.use(ruleBase.router)
 app.use(noti.router)
 app.use(file.router)
+app.use(Summary.router)
 
 // Middleware
 app.use(express.json());

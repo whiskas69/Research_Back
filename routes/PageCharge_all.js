@@ -7,7 +7,6 @@ const db = require("../config.js");
 
 const Joi = require("joi");
 const { DateTime } = require("luxon");
-const { ifError } = require("assert");
 
 const router = express.Router();
 
