@@ -162,7 +162,6 @@ CREATE TABLE Form (
 	pageC_id INTEGER UNIQUE,
 	kris_id INTEGER UNIQUE,
 	form_status ENUM('ฝ่ายบริหารทรัพยากรบุคคล','ฝ่ายบริหารงานวิจัย',  'ฝ่ายบริหารการเงิน', 'รองคณบดี', 'คณบดี','รออนุมัติ', 'อนุมัติ', 'ไม่อนุมัติ', 'เข้าที่ประชุม') NOT NULL,
-	form_money DECIMAL(10,2),
 	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id),
 	FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id),
 	FOREIGN KEY (kris_id) REFERENCES Research_KRIS(kris_id)
@@ -238,8 +237,8 @@ CREATE TABLE Budget (
 	budget_id INT AUTO_INCREMENT PRIMARY KEY,
 	form_id INT NOT NULL UNIQUE,
 	budget_year INT NOT NULL,
-	Page_Charge_amount DECIMAL(10,2) NOT NULL,
-    Conference_amount DECIMAL(10,2) NOT NULL,
+	Page_Charge_amount DECIMAL(10,2),
+    Conference_amount DECIMAL(10,2),
 	num_expenses_approved Integer NOT NULL,
 	total_amount_approved DECIMAL(10,2) NOT NULL,
 	remaining_credit_limit DECIMAL(10,2) NOT NULL,
