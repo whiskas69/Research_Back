@@ -53,7 +53,75 @@ router.get("/all_summary_page_charge", async (req, res) => {
         LEFT JOIN form f ON p.pageC_id = f.pageC_id
         WHERE f.form_status = "อนุมัติ";`
     );
-    res.status(200).json(Summary);
+
+    const [count] = await db.query(
+      `SELECT 
+    b.budget_year,
+
+    COUNT(CASE 
+        WHEN p.quality_journal LIKE '%Nature%' THEN 1 
+    END) AS count_nature,
+    SUM(CASE 
+        WHEN p.quality_journal LIKE '%Nature%' THEN b.amount_approval 
+        ELSE 0 
+    END) AS money_nature,
+
+    COUNT(CASE 
+        WHEN p.quality_journal NOT LIKE '%Nature%' 
+        AND (p.qt_isi = 1 OR p.qt_sjr = 1 OR p.qt_scopus = 1) THEN 1 
+    END) AS count_qt_1,
+    SUM(CASE 
+        WHEN p.quality_journal NOT LIKE '%Nature%' 
+        AND (p.qt_isi = 1 OR p.qt_sjr = 1 OR p.qt_scopus = 1) THEN b.amount_approval 
+        ELSE 0 
+    END) AS money_qt_1,
+
+    COUNT(CASE 
+        WHEN p.quality_journal NOT LIKE '%Nature%' 
+        AND (p.qt_isi = 2 OR p.qt_sjr = 2 OR p.qt_scopus = 2) 
+        AND NOT (p.qt_isi = 1 OR p.qt_sjr = 1 OR p.qt_scopus = 1) THEN 1 
+    END) AS count_qt_2,
+    SUM(CASE 
+        WHEN p.quality_journal NOT LIKE '%Nature%' 
+        AND (p.qt_isi = 2 OR p.qt_sjr = 2 OR p.qt_scopus = 2) 
+        AND NOT (p.qt_isi = 1 OR p.qt_sjr = 1 OR p.qt_scopus = 1) THEN b.amount_approval 
+        ELSE 0 
+    END) AS money_qt_2,
+
+    COUNT(CASE 
+        WHEN p.quality_journal NOT LIKE '%Nature%' 
+        AND (p.qt_isi = 3 OR p.qt_sjr = 3 OR p.qt_scopus = 3) 
+        AND NOT (p.qt_isi IN (1,2) OR p.qt_sjr IN (1,2) OR p.qt_scopus IN (1,2)) THEN 1 
+    END) AS count_qt_3,
+    SUM(CASE 
+        WHEN p.quality_journal NOT LIKE '%Nature%' 
+        AND (p.qt_isi = 3 OR p.qt_sjr = 3 OR p.qt_scopus = 3) 
+        AND NOT (p.qt_isi IN (1,2) OR p.qt_sjr IN (1,2) OR p.qt_scopus IN (1,2)) THEN b.amount_approval 
+        ELSE 0 
+    END) AS money_qt_3,
+
+    COUNT(CASE 
+        WHEN p.quality_journal NOT LIKE '%Nature%' 
+        AND (p.qt_isi = 4 OR p.qt_sjr = 4 OR p.qt_scopus = 4) 
+        AND NOT (p.qt_isi IN (1,2,3) OR p.qt_sjr IN (1,2,3) OR p.qt_scopus IN (1,2,3)) THEN 1 
+    END) AS count_qt_4,
+    SUM(CASE 
+        WHEN p.quality_journal NOT LIKE '%Nature%' 
+        AND (p.qt_isi = 4 OR p.qt_sjr = 4 OR p.qt_scopus = 4) 
+        AND NOT (p.qt_isi IN (1,2,3) OR p.qt_sjr IN (1,2,3) OR p.qt_scopus IN (1,2,3)) THEN b.amount_approval 
+        ELSE 0 
+    END) AS money_qt_4
+    
+    FROM Page_Charge p
+    JOIN Form f ON p.pageC_id = f.pageC_id
+    JOIN budget b ON f.form_id = b.form_id
+    WHERE f.form_status = 'อนุมัติ'
+    GROUP BY b.budget_year
+    ORDER BY b.budget_year DESC;`
+    );
+
+    console.log(count)
+    res.status(200).json([Summary, count]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
