@@ -8,7 +8,9 @@ router.post('/budget', async (req, res) => {
   const data = req.body;
   try {
     const [result] = await db.query(
-      `INSERT INTO Budget (form_id, budget_year, Page_Charge_amount, Conference_amount, num_expenses_approved, total_amount_approved, remaining_credit_limit, amount_approval, total_remaining_credit_limit) 
+      `INSERT INTO Budget (form_id, budget_year, Page_Charge_amount, Conference_amount, 
+      num_expenses_approved, total_amount_approved, remaining_credit_limit, amount_approval, 
+      total_remaining_credit_limit) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [data.form_id, data.budget_year, data.Page_Charge_amount || null, data.Conference_amount || null, data.num_expenses_approved,
       data.total_amount_approved, data.remaining_credit_limit, data.amount_approval, data.total_remaining_credit_limit]
@@ -47,11 +49,6 @@ router.get("/budget/pageCharge/:id", async (req, res) => {
       [id]
     );
     console.log("Get find_id budget pc: ", find_id[0]);
-    // const [pageC] = await db.query(
-    //   `SELECT b.*, COALESCE(f.form_money, 0) AS form_money FROM Budget AS b 
-    //   LEFT JOIN Form AS f ON b.pageC_id = f.pageC_id WHERE b.pageC_id = ?`,
-    //   [find_id[0]]
-    // );
     const [pageC] = await db.query(
       "SELECT * FROM Budget WHERE form_id = ?",
       [find_id[0].form_id]

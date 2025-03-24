@@ -317,8 +317,7 @@ router.post(
       const formData = {
         form_type: "Page_Charge",
         pageC_id: pageCId,
-        form_status: "ฝ่ายบริหารงานวิจัย",
-        form_money: 0,
+        form_status: "ฝ่ายบริหารงานวิจัย"
       };
 
       //insert to Form

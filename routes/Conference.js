@@ -322,7 +322,6 @@ router.post(
         form_type: "Conference",
         conf_id: confId,
         form_status: "ฝ่ายบริหารทรัพยากรบุคคล",
-        form_money: 0,
       }
 
       //insert data to Form
