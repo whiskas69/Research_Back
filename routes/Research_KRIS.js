@@ -141,8 +141,7 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     const formData = {
       form_type: "Research_KRIS",
       kris_id: krisID,
-      form_status: "ฝ่ายบริหารงานวิจัย",
-      form_money: 0,
+      form_status: "ฝ่ายบริหารงานวิจัย"
     };
 
     //insert data to Form

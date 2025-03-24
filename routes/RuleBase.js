@@ -482,10 +482,10 @@ router.get("/page_charge/calc/:id", async (req, res) => {
                 }
             }
         }
-
         console.log("Final withdrawn:", withdrawn);
         res.status(200).json({ ...page_charge[0], withdrawn });
     } catch (err) {
+        console.log(err.message)
         res.status(500).json({ error: err.message });
     }
 });
