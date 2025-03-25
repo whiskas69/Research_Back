@@ -28,13 +28,34 @@ router.post('/budget', async (req, res) => {
   }
 });
 
-router.get("/sumConfer/budgetsYear", async (req, res) => {
+router.get("/budgetsPC", async (req, res) => {
   try {
     const [budgets] = await db.query(
-      `SELECT * FROM Budget`);
-    console.log("budgets", budgets)
+      `SELECT 
+      COUNT(*) AS total_budgets,
+      COUNT(CASE 
+        WHEN f.form_status LIKE '%รองคณบดี%' 
+          OR f.form_status LIKE '%คณบดี%'  
+          OR f.form_status LIKE '%รออนุมัติ%' 
+          OR f.form_status LIKE '%อนุมัติ%' 
+        AND f.form_type LIKE '%Page_Charge%' 
+        THEN 1 
+    END) AS numapproved,
 
-    res.status(200).json(budgets);
+      SUM(CASE 
+        WHEN f.form_status LIKE '%รองคณบดี%'  
+          OR f.form_status LIKE '%คณบดี%'  
+          OR f.form_status LIKE '%รออนุมัติ%' 
+          OR f.form_status LIKE '%อนุมัติ%' 
+        AND f.form_type LIKE '%Page_Charge%' 
+        THEN b.amount_approval
+    END) AS totalapproved
+      FROM Budget b
+      JOIN Form f ON f.form_id = b.form_id
+      `
+    );
+    console.log("budgets", budgets)
+    res.status(200).json(budgets[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -42,7 +63,7 @@ router.get("/sumConfer/budgetsYear", async (req, res) => {
 
 router.get("/budget/pageCharge/:id", async (req, res) => {
   const { id } = req.params;
-  console.log("budget/pageCharge/id",id)
+  console.log("budget/pageCharge/id", id)
   try {
     const [find_id] = await db.query(
       "SELECT form_id FROM Form WHERE pageC_id = ?",
@@ -67,7 +88,7 @@ router.get("/budget/pageCharge/:id", async (req, res) => {
 
 router.get("/budget/conference/:id", async (req, res) => {
   const { id } = req.params;
-  console.log("budget/conference/id",id)
+  console.log("budget/conference/id", id)
   try {
     const [find_id] = await db.query(
       "SELECT form_id FROM Form WHERE conf_id = ?",
