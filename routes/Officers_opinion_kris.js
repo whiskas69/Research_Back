@@ -3,33 +3,42 @@ const db = require("../config.js");
 
 router = express.Router();
 
-router.post('/opinionKris', async (req, res) => {
-  console.log("in post officers_opinion_kris")
+//create first opinion and update form
+router.post("/opinionKris", async (req, res) => {
   const data = req.body;
+
+  const database = await db.getConnection();
+  await database.beginTransaction(); //start transaction
+
   try {
-    const [result] = await db.query(
+    //insert research opinion
+    const [createOpi_result] = await database.query(
       `INSERT INTO officers_opinion_kris
           (kris_id, research_admin, doc_submit_date)
           VALUES (?, ?, ?)`,
       [data.kris_id, data.research_admin, data.doc_submit_date]
     );
-    console.log("result:", result)
-    // const krisId = data.kris_id;
-    console.log("data: ", data)
-    // console.log("krisId : ", krisId);
 
-    const [update] = await db.query(
-      `UPDATE Form SET form_type = ?, kris_id = ?, form_status = ? WHERE kris_id = ?`,
-      [ "Research_KRIS", data.kris_id, data.form_status, data.kris_id]
+    console.log("createOpi_result :", createOpi_result);
+
+    //update status form
+    const [updateForm_result] = await database.query(
+      "UPDATE Form SET form_status = ? WHERE kris_id = ?",
+      [data.form_status, data.kris_id]
     );
-    console.log("update : ", update);
+    console.log("updateForm_result :", updateForm_result);
 
-    res.status(201).json({ message: "officers_opinion_kris created successfully!", id: result.insertId });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-    console.log(err.message);
+    await database.commit(); //commit transaction
+    res.status(200).json({ success: true, message: "Success" });
+  } catch (error) {
+    database.rollback(); //rollback transaction
+    console.error("Error inserting into database:", error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    database.release(); //release connection
   }
 });
+
 router.get("/opinionkris/:id", async (req, res) => {
   const { id } = req.params;
   try {

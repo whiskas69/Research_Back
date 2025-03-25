@@ -3,31 +3,6 @@ const db = require("../config.js");
 
 router = express.Router();
 
-router.post("/form", async (req, res) => {
-  console.log("in post forms");
-  const data = req.body;
-  try {
-    const [result] = await db.query(
-      "INSERT INTO Form (form_type, conf_id, pageC_id, kris_id, form_status, form_money) VALUES (?, ?, ?, ?, ?, ?)",
-      [
-        data.form_type,
-        data.conf_id || null,
-        data.pageC_id || null,
-        data.kris_id || null,
-        data.form_status,
-        data.form_money,
-      ]
-    );
-    console.log(data);
-    res
-      .status(201)
-      .json({ message: "Form created successfully!", id: result.insertId });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-    console.log(err.message);
-  }
-});
-
 router.get("/formsOffice", async (req, res) => {
   try {
     const [forms] = await db.query(
