@@ -7,6 +7,7 @@ router.post('/opinionPC', async (req, res) => {
     console.log("in post officers_opinion_pc")
     const { id } = req.params; // Extracting ID from URL params
     const data = req.body;
+    console.log("officers_opinion_pc data", data)
     try {
         const [result] = await db.query(
           `INSERT INTO officers_opinion_pc
@@ -20,14 +21,12 @@ router.post('/opinionPC', async (req, res) => {
             data.research_doc_submit_date || null, data.associate_doc_submit_date || null,
             data.dean_doc_submit_date || null]
         );
-        console.log("Research Date: ", data.research_doc_submit_date);
-        console.log("Research Date: ", data.associate_doc_submit_date);
-        console.log("data: ", data)
+        console.log("data: ", data.form_status)
         const [updateForm] = await db.query(
           `UPDATE Form SET form_type = ?, pageC_id = ?, form_status = ? WHERE pageC_id = ?`,
           ["Page_Charge", data.pageC_id, data.form_status, id]
         );
-        console.log("update: ", updateForm);
+        console.log("updateForm: ", updateForm[0]);
         console.log(data)
         res.status(201).json({ message: "officers_opinion_pc created successfully!", id: result.insertId });
       } catch (err) {
