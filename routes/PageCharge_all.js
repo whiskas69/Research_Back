@@ -462,7 +462,6 @@ router.post(
         form_type: "Page_Charge",
         pageC_id: pageCId,
         form_status: "ฝ่ายบริหารงานวิจัย",
-        form_money: 0,
       };
       console.log("formData data to insert:", formData);
       const [resultForm] = await db.query("INSERT INTO Form SET ?", formData);

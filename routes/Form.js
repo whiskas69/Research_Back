@@ -118,7 +118,7 @@ router.get("/allForms", async (req, res) => {
     console.log("ki ");
 
     const [form] = await db.query(
-      `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, f.kris_id, f.form_status, f.form_money
+      `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, f.kris_id, f.form_status
       ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
       ,COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title
       ,COALESCE(c.conf_name, p.journal_name) AS article_name
@@ -183,10 +183,10 @@ router.put("/form/:id", async (req, res) => {
     const [form] = await db.query(
       `UPDATE Form SET
     form_type = ?, conf_id = ?, pageC_id = ?, kris_id = ?,
-    form_status = ?, form_money = ? WHERE form_id = ?`,
+    form_status = ? WHERE form_id = ?`,
       [
         updates.form_type, updates.conf_id || null, updates.pageC_id || null,
-        updates.kris_id || null, updates.form_status, updates.form_money,
+        updates.kris_id || null, updates.form_status,
         id
       ]
     );
