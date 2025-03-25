@@ -54,7 +54,28 @@ router.get("/budgetsPC", async (req, res) => {
       JOIN Form f ON f.form_id = b.form_id
       `
     );
-    console.log("budgets", budgets)
+    console.log("budgets PC", budgets)
+    res.status(200).json(budgets[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/budgetsConfer", async (req, res) => {
+  try {
+    const [budgets] = await db.query(
+      `SELECT 
+    COUNT(b.budget_id) AS total_budgets, 
+    COUNT(CASE WHEN f.form_type = 'Conference' THEN 1 END) AS numapproved,
+    SUM(CASE WHEN f.form_type = 'Conference' 
+             AND f.form_status IN ('รองคณบดี', 'คณบดี', 'รออนุมัติ', 'อนุมัติ') 
+             THEN b.amount_approval 
+        END) AS totalapproved
+    FROM budget b
+    JOIN form f ON b.form_id = f.form_id;
+      `
+    );
+    console.log("budgets CONFER", budgets)
     res.status(200).json(budgets[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
