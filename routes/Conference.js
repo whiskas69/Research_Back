@@ -419,7 +419,7 @@ router.get("/form/confer/:id", async (req, res) => {
     ]);
 
     const [infoConf] = await db.query(
-      "select conf_research, conf_name FROM conference WHERE conf_id = ?",
+      "select conf_research, conf_name, withdraw FROM conference WHERE conf_id = ?",
       [id]
     );
 
@@ -428,6 +428,7 @@ router.get("/form/confer/:id", async (req, res) => {
       conf: conf[0],
       confer_name: infoConf[0].conf_name,
       name: infoConf[0].conf_research,
+      withdraw: infoConf[0].withdraw,
     });
   } catch (error) {
     console.error(error);
