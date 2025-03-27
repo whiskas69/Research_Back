@@ -115,12 +115,27 @@ router.get("/allpdf", async (req, res) => {
   }
 });
 
-router.get("/pdf/:id", async (req, res) => {
+router.get("/pdfPC/:id", async (req, res) => {
   console.log("------------------------------------------")
   console.log("get pdf pc id")
   const { id } = req.params;
   try {
     const [pdf] = await db.query('SELECT * FROM File_pdf WHERE pageC_id = ?', [id]);
+    if (pdf.length === 0) {
+      return res.status(404).json({ message: 'File_pdf not found' });
+    }
+    console.log('Get File_pdf: ' ,pdf[0])
+    res.status(200).json(pdf[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+router.get("/pdfConfer/:id", async (req, res) => {
+  console.log("------------------------------------------")
+  console.log("get pdf confer id")
+  const { id } = req.params;
+  try {
+    const [pdf] = await db.query('SELECT * FROM File_pdf WHERE conf_id = ?', [id]);
     if (pdf.length === 0) {
       return res.status(404).json({ message: 'File_pdf not found' });
     }
