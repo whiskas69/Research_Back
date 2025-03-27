@@ -118,7 +118,7 @@ router.get("/budget/conference/:id", async (req, res) => {
     console.log("Get find_id budget: ", find_id[0]);
     const [conf] = await db.query(
       "SELECT * FROM Budget WHERE form_id = ?",
-      [find_id[0]]
+      [find_id[0].form_id]
     );
     console.log("Get conf budget: ", conf[0]);
     if (conf.length === 0) {
