@@ -91,7 +91,7 @@ router.get("/form/:id", async (req, res) => {
 
   try {
     const [form] = await db.query(
-      `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, f.kris_id, f.form_status
+      `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, f.kris_id, f.form_status,b.amount_approval
       ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
       ,COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title
       ,COALESCE(c.conf_name, p.journal_name) AS article_name
@@ -99,6 +99,7 @@ router.get("/form/:id", async (req, res) => {
       LEFT JOIN research_kris k ON f.kris_id = k.kris_id
       LEFT JOIN conference c ON f.conf_id = c.conf_id
       LEFT JOIN page_charge p ON f.pageC_id = p.pageC_id
+      LEFT JOIN Budget b ON f.form_id = b.form_id
       WHERE COALESCE(k.user_id, c.user_id, p.user_id) = ?
       ORDER BY f.form_id DESC`,
       [id]
@@ -118,7 +119,7 @@ router.get("/allForms", async (req, res) => {
     console.log("ki ");
 
     const [form] = await db.query(
-      `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, f.kris_id, f.form_status
+      `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, f.kris_id, f.form_status, b.amount_approval
       ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
       ,COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title
       ,COALESCE(c.conf_name, p.journal_name) AS article_name
@@ -127,7 +128,9 @@ router.get("/allForms", async (req, res) => {
       LEFT JOIN research_kris k ON f.kris_id = k.kris_id
       LEFT JOIN conference c ON f.conf_id = c.conf_id
       LEFT JOIN page_charge p ON f.pageC_id = p.pageC_id
-      LEFT JOIN Users u ON u.user_id = COALESCE(k.user_id, c.user_id, p.user_id)`
+      LEFT JOIN Users u ON u.user_id = COALESCE(k.user_id, c.user_id, p.user_id)
+      LEFT JOIN Budget b ON f.form_id = b.form_id
+      `
     );
 
     if (form.length === 0) {
