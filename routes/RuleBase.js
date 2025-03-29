@@ -14,7 +14,6 @@ const scoreStandard = (typeScore, total, standard, core) => {
     } else {
         if (typeScore == "SJR") {
             console.log("typeScore", typeScore);
-
             if (total >= 4) {
                 console.log("ดีมากคับ ไม่คิดค่าลงทะเบียน: ", total);
                 result = "ดีมาก"
@@ -40,7 +39,7 @@ const scoreStandard = (typeScore, total, standard, core) => {
             }
         } else if (typeScore == "CORE") {
             console.log("typeScore", typeScore);
-            if (core == "A" || core == "A*") {
+            if (core == "A" || core == "A*" || core == "A+") {
                 console.log("ดีมากคับ ไม่คิดค่าลงทะเบียน: ", core);
                 result = "ดีมาก"
                 return result;
@@ -63,13 +62,7 @@ const checkWithdraw = (half_full, withdraw_100, wd_name_100, file_full_100) => {
         console.log("withdraw checkWithdraw", withdraw);
         return withdraw;
     } else if (half_full == "100%") {
-        if (
-            withdraw_100 == "WoS-Q1" ||
-            withdraw_100 == "WoS-Q2" ||
-            withdraw_100 == "WoS-Q3" ||
-            withdraw_100 == "SJR-Q1" ||
-            withdraw_100 == "SJR-Q2"
-        ) {
+        if (["WoS-Q1", "WoS-Q2", "WoS-Q3", "SJR-Q1", "SJR-Q2"].includes(withdraw_100)) {
             if (wd_name_100 != null || wd_name_100 != "") {
                 console.log("wd_name_100", wd_name_100);
                 console.log("withdraw", withdraw);
@@ -78,9 +71,9 @@ const checkWithdraw = (half_full, withdraw_100, wd_name_100, file_full_100) => {
                     return withdraw;
                 }
             } else {
-                console.log("ไม่ตรงเงื่อนไขการขอรับการสนับสนุน");
+                console.log("ไม่ตรงเงื่อนไขการขอรับการสนับสนุน การขอรับสนับสนุน 100%");
 
-                withdraw = "ไม่ตรงเงื่อนไขการขอรับการสนับสนุน"
+                withdraw = "ไม่ตรงเงื่อนไขการขอรับการสนับสนุน การขอรับสนับสนุน 100%"
                 return withdraw;
             }
         }
@@ -88,22 +81,26 @@ const checkWithdraw = (half_full, withdraw_100, wd_name_100, file_full_100) => {
 }
 
 const getMaxExpense = (place, In_Out_Country) => {
-    let result = { maxExpense: 0, inThai: "" };
-console.log("getMaxExpense")
+    let result = { maxExpense: 0, inThai: "", locat: "" };
+    console.log("getMaxExpense")
     if (In_Out_Country == "ณ ต่างประเทศ") {
-        console.log("getMaxExpense ต่างประเทศ")
+        console.log("getMaxExpense ต่างประเทศ : ", place)
         for (const category in country) {
             const data = country[category];
             if (Array.isArray(data.countries) && data.countries.includes(place)) {
                 result.maxExpense = data.max_expense;
+                result.locat = 'Out_Country'
                 break;
             }
         }
     } else if (In_Out_Country == "ในประเทศ") {
+        console.log("getMaxExpense ในประเทศ : ", place)
         if (["กรุงเทพ", "นนทบุรี", "สมุทรปราการ", "ปทุมธานี", "ฉะเชิงเทรา"].includes(place)) {
             result.inThai = "ไม่สามารถเบิกค่าเบี้ยเลี้ยงเดินทางได้";
+            result.locat = 'In_Country'
         } else {
             result.inThai = "ค่าเบี้ยเลี้ยงเดินทาง <= 300 บาท/คน/วัน";
+            result.locat = 'In_Country'
         }
     }
     return result;
@@ -121,6 +118,7 @@ router.get("/confer/calc/:id", async (req, res) => {
         const file = await db.query(`SELECT * FROM file_pdf WHERE conf_id = ?`, [
             id,
         ]);
+        const user_work = await db.query(`SELECT user_confer FROM Users WHERE user_id = ?`, [confer[0][0].user_id])
 
         const Author = confer[0][0].presenter_type;
         const In_Out_Country = confer[0][0].country_conf;
@@ -131,8 +129,8 @@ router.get("/confer/calc/:id", async (req, res) => {
         const standard = confer[0][0].quality_meeting;
 
         //ต้องเรียกมาจากตาราง officers_opinion_conf
-        const year_work = false; //check เป็นพนักงานสถาบันที่ปฏิบัติงานมาแล้วไม่เกิน 3 ปีนับตั้งแต่วันบรรจุและยังไม่เคยลาเข้าร่วมประชุมทางวิชาการ ณ ต่างประเทศ
-        const namePlace = confer[0][0].location; // เรียกชื่อประเทศที่จารจะไป ยังไม่ได้สร้างในดาต้าเบส
+        const year_work = user_work[0][0].user_confer; //1= >=3 //check เป็นพนักงานสถาบันที่ปฏิบัติงานมาแล้วไม่เกิน 3 ปีนับตั้งแต่วันบรรจุและยังไม่เคยลาเข้าร่วมประชุมทางวิชาการ ณ ต่างประเทศ
+        const namePlace = confer[0][0].location; // เรียกชื่อประเทศที่จารจะไป
 
         const score_type = score[0][0].score_type;
         const total_score = score[0][0].score_result;
@@ -149,11 +147,8 @@ router.get("/confer/calc/:id", async (req, res) => {
         let withdraw = checkWithdraw(half_full, withdraw_100, wd_name_100, file_full_100);
         console.log("ค่า withdraw:", withdraw);
 
-        let { maxExpense, inThai } = getMaxExpense(namePlace, In_Out_Country);
-
-        console.log("ค่า max_expense:", maxExpense);
-        console.log("ค่า In_Out_Country in func:", In_Out_Country);
-        console.log("ค่า inThai:", inThai);
+        let finalSum = getMaxExpense(namePlace, In_Out_Country);
+        console.log("ค่า max_expense:", finalSum);
 
         console.log("all");
         // if all
@@ -169,11 +164,10 @@ router.get("/confer/calc/:id", async (req, res) => {
                 if (In_Out_Scopus == "คณะจัด ไม่อยู่scopus") {
                     console.log("In_Out_Scopus", In_Out_Scopus);
                     //คิดจังหวัด
-                    if (inThai == "ไม่สามารถเบิกค่าเบี้ยเลี้ยงเดินทางได้") {
-                        return res.status(200).json({ message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", inThai: inThai })
-                    } else if (inThai == "ค่าเบี้ยเลี้ยงเดินทาง <= 300 บาท/คน/วัน") {
-                        return res.status(200).json({ message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", inThai: inThai })
-                    }
+                    return res.status(200).json({message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", 
+                        inthai: finalSum.inThai == 'ไม่สามารถเบิกค่าเบี้ยเลี้ยงเดินทางได้' ?  'ไม่สามารถเบิกค่าเบี้ยเลี้ยงเดินทางได้' : 'ค่าเบี้ยเลี้ยงเดินทาง <= 300 บาท/คน/วัน',
+                        inOutC: finalSum.locat
+                    })
                     //ทำตามเกณฑ์ปกติ
                 } else if (In_Out_Scopus == "อยู่ในscopus") {
                     console.log("In_Out_Scopus", In_Out_Scopus);
@@ -182,21 +176,11 @@ router.get("/confer/calc/:id", async (req, res) => {
                     if (Leave < 3 && Leave != 0) {
                         console.log("Leave", Leave);
                         console.log("สมมติว่ามีเรื่องตีพิม ตีพิมพ์เรื่องเต็มใน Proceeding");
-                        if (standard == "มาตรฐาน") {
-                            console.log("standard", standard);
-                            if (inThai == "ไม่สามารถเบิกค่าเบี้ยเลี้ยงเดินทางได้") {
-                                return res.status(200).json({ message: "ระดับมาตรฐาน คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", inThai: inThai })
-                            } else if (inThai == "ค่าเบี้ยเลี้ยงเดินทาง <= 300 บาท/คน/วัน") {
-                                return res.status(200).json({ message: "ระดับมาตรฐาน คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", inThai: inThai })
-                            }
-                        } else if (standard == "ดีมาก") {
-                            console.log("standard", standard);
-                            if (inThai == "ไม่สามารถเบิกค่าเบี้ยเลี้ยงเดินทางได้") {
-                                return res.status(200).json({ message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", inThai: inThai })
-                            } else if (inThai == "ค่าเบี้ยเลี้ยงเดินทาง <= 300 บาท/คน/วัน") {
-                                return res.status(200).json({ message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", inThai: inThai })
-                            }
-                        }
+                        return res.status(200).json({message: 
+                            result == "ดีมาก" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน" : "ระดับมาตรฐาน คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", 
+                            inthai: finalSum.inThai == 'ไม่สามารถเบิกค่าเบี้ยเลี้ยงเดินทางได้' ?  'ไม่สามารถเบิกค่าเบี้ยเลี้ยงเดินทางได้' : 'ค่าเบี้ยเลี้ยงเดินทาง <= 300 บาท/คน/วัน',
+                            inOutC: finalSum.locat
+                        })
 
                     } else {
                         console.log("can't go confer");
@@ -220,31 +204,24 @@ router.get("/confer/calc/:id", async (req, res) => {
                     //เข้า loop ดูว่าเบิกได้เท่าไหร่
                     //ถ้าเช้ค 50 100 befor year_work 
                     //check เวลาการทำงานและเคยไปประชุมไหม
-                    if (year_work == true) {
+                    if (year_work == 0) {
                         console.log("year_work", year_work);
                         //ไม่เคยไป และทำงานไม่ถึง 3 ปี
                         //เบิก 50 ทันที
-                        if (withdraw == "50%") {
-                            console.log("withdraw", withdraw);
-                            return res.status(200).json({ message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", money: maxExpense / 2 })
-                        }
-                        // ต้องเช็ค 100มั้ย
-                        else if (withdraw == "1000%") {
-                            console.log("withdraw", withdraw);
-                            return res.status(200).json({ message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", money: maxExpense })
-                        }
+                        return res.status(200).json({ 
+                            message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", 
+                            money: withdraw == "50%" ? finalSum.maxExpense / 2 : finalSum.maxExpense,
+                            inOutC: finalSum.locat
+                        })
                     } else {
                         console.log("year_work", year_work);
                         //เคยไป หรือ ทำงานเกิน 3 ปี
                         //ต้องพิจารณาอีกทีว่า 50/ 100
-                        if (withdraw == "50%") {
-                            console.log("withdraw", withdraw);
-                            return res.status(200).json({ message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", money: maxExpense / 2 })
-                        }
-                        else if (withdraw == "1000%") {
-                            console.log("withdraw", withdraw);
-                            return res.status(200).json({ message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", money: maxExpense })
-                        }
+                        return res.status(200).json({ 
+                            message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", 
+                            money: withdraw == "50%" ? finalSum.maxExpense / 2 : finalSum.maxExpense,
+                            inOutC: finalSum.locat
+                        })
                     }
                 }
                 //ทำตามเกณฑ์ปกติ
@@ -255,52 +232,25 @@ router.get("/confer/calc/:id", async (req, res) => {
                         console.log("Leave", Leave);
                         //เข้า loop ดูว่าเบิกได้เท่าไหร่
                         //check เวลาการทำงานและเคยไปประชุมไหม
-                        if (year_work == true) {
-                            console.log("year_work", year_work);
+                        if (year_work == 0) {
+                            console.log("year_work = 0", year_work);
                             //ไม่เคยไป และทำงานไม่ถึง 3 ปี
                             //เบิก 50 ทันที
-                            if (withdraw == "50%") {
                                 console.log("withdraw", withdraw);
-                                if (result == "มาตรฐาน") {
-                                    return res.status(200).json({ message: "ระดับมาตรฐาน คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", money: maxExpense / 2 })
-                                }
-                                else if (result == "ดีมาก") {
-                                    return res.status(200).json({ message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", money: maxExpense / 2 })
-                                }
-                            }
-                            // ต้องเช็ค 100มั้ย
-                            else if (withdraw == "1000%") {
-                                console.log("withdraw", withdraw);
-                                if (result == "มาตรฐาน") {
-                                    return res.status(200).json({ message: "ระดับมาตรฐาน คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", money: maxExpense })
-                                }
-                                else if (result == "ดีมาก") {
-                                    return res.status(200).json({ message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", money: maxExpense })
-                                }
-                            }
+                                return res.status(200).json({ message: 
+                                    result == "ดีมาก" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน" : "ระดับมาตรฐาน คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", 
+                                    money: withdraw == "50%" ? finalSum.maxExpense / 2 : finalSum.maxExpense, 
+                                    inOutC: finalSum.locat 
+                                })
                         } else {
                             console.log("year_work", year_work);
                             //เคยไป หรือ ทำงานเกิน 3 ปี
                             //ต้องพิจารณาอีกทีว่า 50/ 100
-                            if (withdraw == "50%") {
-                                console.log("withdraw", withdraw);
-                                if (result == "มาตรฐาน") {
-                                    return res.status(200).json({ message: "ระดับมาตรฐาน คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", money: maxExpense / 2 })
-                                }
-                                // ต้องเช็ค 100มั้ย
-                                else if (result == "ดีมาก") {
-                                    return res.status(200).json({ message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", money: maxExpense / 2 })
-                                }
-                            }
-                            else if (withdraw == "1000%") {
-                                console.log("withdraw", withdraw);
-                                if (result == "มาตรฐาน") {
-                                    return res.status(200).json({ message: "ระดับมาตรฐาน คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", money: maxExpense })
-                                }
-                                else if (result == "ดีมาก") {
-                                    return res.status(200).json({ message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", money: maxExpense })
-                                }
-                            }
+                            return res.status(200).json({ message: 
+                                result == "ดีมาก" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน" : "ระดับมาตรฐาน คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", 
+                                money: withdraw == "50%" ? finalSum.maxExpense / 2 : finalSum.maxExpense, 
+                                inOutC: finalSum.locat 
+                            })
                         }
                     }
                     //ลาเกินเกณฑ์
@@ -317,52 +267,24 @@ router.get("/confer/calc/:id", async (req, res) => {
 
                                 //เข้า loop ดูว่าเบิกได้เท่าไหร่
                                 //check เวลาการทำงานและเคยไปประชุมไหม
-                                if (year_work == true) {
+                                if (year_work == 0) {
                                     console.log("year_work", year_work);
                                     //ไม่เคยไป และทำงานไม่ถึง 3 ปี
                                     //เบิก 50 ทันที
-                                    if (withdraw == "50%") {
-                                        console.log("withdraw", withdraw);
-                                        if (result == "มาตรฐาน") {
-                                            return res.status(200).json({ message: "ระดับมาตรฐาน คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", money: maxExpense / 2 })
-                                        }
-                                        // ต้องเช็ค 100มั้ย
-                                        else if (result == "ดีมาก") {
-                                            return res.status(200).json({ message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", money: maxExpense / 2 })
-                                        }
-                                    }
-                                    else if (withdraw == "1000%") {
-                                        console.log("withdraw", withdraw);
-                                        if (result == "มาตรฐาน") {
-                                            return res.status(200).json({ message: "ระดับมาตรฐาน คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", money: maxExpense })
-                                        }
-                                        else if (result == "ดีมาก") {
-                                            return res.status(200).json({ message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", money: maxExpense })
-                                        }
-                                    }
+                                    return res.status(200).json({ message: 
+                                        result == "ดีมาก" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน" : "ระดับมาตรฐาน คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", 
+                                        money: withdraw == "50%" ? finalSum.maxExpense / 2 : finalSum.maxExpense, 
+                                        inOutC: finalSum.locat 
+                                    })
                                 } else {
                                     console.log("year_work", year_work);
                                     //เคยไป หรือ ทำงานเกิน 3 ปี
                                     //ต้องพิจารณาอีกทีว่า 50/ 100
-                                    if (withdraw == "50%") {
-                                        console.log("withdraw", withdraw);
-                                        if (result == "มาตรฐาน") {
-                                            return res.status(200).json({ message: "ระดับมาตรฐาน คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", money: maxExpense / 2 })
-                                        }
-                                        // ต้องเช็ค 100มั้ย
-                                        else if (result == "ดีมาก") {
-                                            return res.status(200).json({ message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", money: maxExpense / 2 })
-                                        }
-                                    }
-                                    else if (withdraw == "1000%") {
-                                        console.log("withdraw", withdraw);
-                                        if (result == "มาตรฐาน") {
-                                            return res.status(200).json({ message: "ระดับมาตรฐาน คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", money: maxExpense })
-                                        }
-                                        else if (result == "ดีมาก") {
-                                            return res.status(200).json({ message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", money: maxExpense })
-                                        }
-                                    }
+                                    return res.status(200).json({ message: 
+                                        result == "ดีมาก" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน" : "ระดับมาตรฐาน คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", 
+                                        money: withdraw == "50%" ? finalSum.maxExpense / 2 : finalSum.maxExpense, 
+                                        inOutC: finalSum.locat 
+                                    })
                                 }
                             } else {
                                 console.log("ไม่ตรงเงื่อนไขการขอรับการสนับสนุน");
@@ -374,11 +296,11 @@ router.get("/confer/calc/:id", async (req, res) => {
                         }
                         // ไม่มี
                         else {
-                            console.log("ไม่ตรงเงื่อนไขการขอรับการสนับสนุน");
+                            console.log("ไม่ตรงเงื่อนไขการขอรับการสนับสนุน ในการลาครั้งที่ 2");
 
                             res
                                 .status(200)
-                                .json({ message: "ไม่ตรงเงื่อนไขการขอรับการสนับสนุน" });
+                                .json({ message: "ไม่ตรงเงื่อนไขการขอรับการสนับสนุน ในการลาครั้งที่ 2" });
                         }
                     }
                 }
