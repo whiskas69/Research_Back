@@ -244,4 +244,65 @@ router.get("/count_confer_withdraw", async (req, res) => {
   }
 });
 
+router.get("/count_confer_country", async (req, res) => {
+  try {
+    const [Summary] = await db.query(
+      `SELECT c.location, c.withdraw, c.country_conf,
+      SUM(COALESCE(c.total_amount, 0)) AS total_registration,
+      SUM(
+        COALESCE(c.domestic_expenses, 0) +
+        COALESCE(c.overseas_expenses, 0) +
+        COALESCE(c.airplane_tax, 0)) AS total_other,
+      SUM(COALESCE(c.inter_expenses, 0)) AS total_ticket,
+      SUM(COALESCE(c.total_room, 0)) AS total_room,
+      SUM(COALESCE(c.total_allowance, 0)) AS total_allowance,
+      SUM(
+        COALESCE(c.total_amount, 0) + COALESCE(c.domestic_expenses, 0) +
+        COALESCE(c.overseas_expenses, 0) + COALESCE(c.airplane_tax, 0) +
+        COALESCE(c.inter_expenses, 0) + COALESCE(c.total_room, 0) +
+        COALESCE(c.total_allowance, 0)) AS all_total,
+      SUM(COALESCE(b.amount_approval, 0)) AS total_amount_approval,
+      COUNT(*) AS total_count,
+    
+      CASE 
+        WHEN c.country_conf = "ณ ต่างประเทศ" THEN 
+            CASE 
+                WHEN c.location IN ('ลาว', 'กัมพูชา', 'อินโดนีเซีย', 'เมียนมาร์', 'มาเลเซีย', 'เวียดนาม', 'ฟิลิปปินส์') THEN 'SEA'
+                WHEN c.location IN ('บรูไน', 'สิงคโปร์', 'ญี่ปุ่น', 'เกาหลีใต้', 'ไต้หวัน', 'จีน', 'ฮ่องกง', 'อินเดีย', 'ศรีลังกา', 'ปากีสถาน', 'บังกลาเทศ', 'เนปาล', 'ภูฏาน', 'มัลดีฟส์', 'มองโกเลีย', 'คาซัคสถาน', 'อุซเบกิสถาน', 'เติร์กเมนิสถาน', 'คีร์กีซสถาน', 'ทาจิกิสถาน') THEN 'ASIA'
+                ELSE 'EUA'
+            END
+        ELSE 'ในประเทศ'
+      END AS region_category
+    
+      FROM conference c
+      JOIN form f ON c.conf_id = f.conf_id
+      LEFT JOIN Budget b ON f.form_id = b.form_id
+      WHERE f.form_status = "อนุมัติ"
+      GROUP BY region_category, c.location, c.withdraw, c.country_conf
+      ORDER BY region_category ASC, c.location ASC;`
+    );
+    
+    // จัดกลุ่มข้อมูลตาม region_category
+    const groupedSummary = Summary.reduce((acc, row) => {
+      const { region_category, ...data } = row;
+    
+      if (!acc[region_category]) {
+        acc[region_category] = { count: 0, data: [] };
+      }
+    
+      acc[region_category].count += 1;
+      acc[region_category].data.push(data);
+    
+      return acc;
+    }, {});
+    
+    console.log(groupedSummary);
+    
+    
+    res.status(200).json(groupedSummary);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+})
+
 exports.router = router;
