@@ -348,4 +348,34 @@ router.get("/count_confer_thai", async (req, res) => {
   }
 })
 
+router.get("/eachyears", async (req, res) => {
+  const [Summary] = await db.query(
+    `SELECT * FROM form`
+//     `
+//     SELECT 
+//     b.budget_year,
+//     SUM(CASE WHEN TRMI(f.form_type) = 'Conference' THEN 1 ELSE 0 END) AS confer_count,
+//     SUM(CASE WHEN TRIM(f.form_type) = 'Page_Charge' THEN 1 ELSE 0 END) AS pc_count
+// FROM form f
+// JOIN budget b ON f.form_id = b.form_id
+// WHERE TRIM(f.form_status) = 'อนุมัติ'
+// GROUP BY b.budget_year
+// ORDER BY b.budget_year DESC;
+// `
+//     `SELECT 
+//     b.budget_year,
+//     SUM(CASE WHEN f.form_type = 'Conference' THEN 1 ELSE 0 END) AS confer_count,
+//     SUM(CASE WHEN f.form_type = 'Page_Charge' THEN 1 ELSE 0 END) AS pc_count
+// FROM form f
+// JOIN budget b ON f.form_id = b.form_id
+// WHERE b.budget_year >= YEAR(CURDATE()) - 2
+// AND f.form_status = 'อนุมัติ'
+// GROUP BY b.budget_year
+// ORDER BY b.budget_year DESC;
+// `
+  );
+
+  res.status(200).json(Summary);
+})
+
 exports.router = router;
