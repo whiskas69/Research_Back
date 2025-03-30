@@ -499,13 +499,14 @@ router.get("/getFileConf", async (req, res) => {
   const { conf_id } = req.query;
 
   const file = await db.query(
-    `SELECT full_page, published_journals, accepted, q_proof, call_for_paper, fee_receipt, fx_rate_document, conf_proof FROM file_pdf WHERE conf_id = ?`,
+    `SELECT full_page, date_published_journals, published_journals, accepted, q_proof, call_for_paper, fee_receipt, fx_rate_document, conf_proof FROM file_pdf WHERE conf_id = ?`,
     [conf_id]
   );
 
   console.log("file", file);
 
   const file_full_page = `http://localhost:3000/uploads/${file[0]?.[0]?.full_page}`;
+  const date_published_journals = file[0][0].date_published_journals
   const file_published_journals = `http://localhost:3000/uploads/${file[0]?.[0]?.published_journals}`;
   const file_accepted = `http://localhost:3000/uploads/${file[0]?.[0]?.accepted}`;
   const file_q_proof = `http://localhost:3000/uploads/${file[0]?.[0]?.q_proof}`;
@@ -517,6 +518,7 @@ router.get("/getFileConf", async (req, res) => {
   res.json({
     message: "Get File Successfully",
     file_full_page,
+    date_published_journals,
     file_published_journals,
     file_accepted,
     file_q_proof,

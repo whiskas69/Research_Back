@@ -91,7 +91,7 @@ router.get("/form/:id", async (req, res) => {
 
   try {
     const [form] = await db.query(
-      `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, f.kris_id, f.form_status,b.amount_approval
+      `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, f.kris_id, f.form_status ,b.amount_approval
       ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
       ,COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title
       ,COALESCE(c.conf_name, p.journal_name) AS article_name
@@ -119,7 +119,7 @@ router.get("/allForms", async (req, res) => {
     console.log("ki ");
 
     const [form] = await db.query(
-      `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, f.kris_id, f.form_status, b.amount_approval
+      `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, f.kris_id, f.form_status, b.amount_approval, u.user_nameth
       ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
       ,COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title
       ,COALESCE(c.conf_name, p.journal_name) AS article_name

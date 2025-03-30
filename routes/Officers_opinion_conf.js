@@ -14,11 +14,17 @@ router.post("/opinionConf", async (req, res) => {
     //insert hr opinion
     const [createOpi_result] = await database.query(
       `INSERT INTO officers_opinion_conf
-          (conf_id, c_research_hr, c_reason, c_meet_quality, c_good_reason,
-          c_deputy_dean, c_approve_result, hr_doc_submit_date, research_doc_submit_date,
+          (hr_id, research_id, associate_id, dean_id, conf_id, 
+          c_research_hr, c_reason, c_meet_quality, c_good_reason,
+          c_deputy_dean, c_approve_result, hr_doc_submit_date, 
+          research_doc_submit_date,
           associate_doc_submit_date, dean_doc_submit_date)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
+        data.hr_id || null, 
+        data.research_id|| null, 
+        data.associate_id || null, 
+        data.dean_id || null,
         data.conf_id,
         data.c_research_hr,
         data.c_reason,
