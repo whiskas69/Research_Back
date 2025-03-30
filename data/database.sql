@@ -20,7 +20,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 -- สร้างตาราง Users CHECK
 CREATE TABLE Users (
-	user_id Integer PRIMARY KEY UNIQUE  AUTO_INCREMENT,
+	user_id INT PRIMARY KEY UNIQUE  AUTO_INCREMENT,
 	user_role ENUM('professor', 'admin', 'hr', 'research', 'finance', 'associate', 'dean') NOT NULL,
 	user_nameth VARCHAR(255) NOT NULL,
 	user_nameeng VARCHAR(255) NOT NULL,
@@ -30,15 +30,15 @@ CREATE TABLE Users (
     user_moneyCF DECIMAL(10,2),
 	user_positionth VARCHAR(255) NOT NULL,
     user_positioneng VARCHAR(255) NOT NULL,
-    user_startwork date NOT NULL,
-    user_year int NOT NULL,
+    user_startwork DATE NOT NULL,
+    user_year INT NOT NULL,
     user_confer boolean NOT NULL
 );
 
 -- ตารางเอกสารขออนุมัติค่าเดินทาง (Conference) CHECK
 CREATE TABLE Conference (
-    conf_id INTEGER PRIMARY KEY AUTO_INCREMENT UNIQUE,
-    user_id INTEGER NOT NULL,
+    conf_id INT PRIMARY KEY AUTO_INCREMENT UNIQUE,
+    user_id INT NOT NULL,
     conf_times INT NOT NULL,
     conf_days DATE NOT NULL,
     trav_dateStart DATE NOT NULL,
@@ -81,8 +81,8 @@ CREATE TABLE Conference (
 );
 -- ตารางคำนวณคะแนนคุณภาพการประชุมวิชาการ (Score) CHECK
 CREATE TABLE Score (
-    sc_id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    conf_id INTEGER NOT NULL UNIQUE,
+    sc_id INT PRIMARY KEY AUTO_INCREMENT,
+    conf_id INT NOT NULL UNIQUE,
     score_type ENUM('SJR', 'CIF', 'CORE'),
     sjr_score DECIMAL(10,2),
     sjr_year INT,
@@ -95,8 +95,8 @@ CREATE TABLE Score (
 );
 -- ตารางเอกสารขออนุมัติค่า Page Charge (Page_Charge) CHECK
 CREATE TABLE Page_Charge (
-    pageC_id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    user_id INTEGER NOT NULL,
+    pageC_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
     pageC_times INT NOT NULL,
     pageC_days DATE NOT NULL,
     journal_name VARCHAR(255) NOT NULL,
@@ -134,7 +134,7 @@ CREATE TABLE Page_Charge (
 -- Table for Research_KRIS CHECK
 CREATE TABLE Research_KRIS (
 	kris_id INT AUTO_INCREMENT PRIMARY KEY,
-	user_id INTEGER NOT NULL,
+	user_id INT NOT NULL,
 	name_research_th VARCHAR(255) NOT NULL,
 	name_research_en VARCHAR(255) NOT NULL,
 	research_cluster JSON NOT NULL,
@@ -144,7 +144,7 @@ CREATE TABLE Research_KRIS (
 	h_index DECIMAL(10,2) NOT NULL,
 	his_invention Varchar (255) NOT NULL,
 	participation_percent DECIMAL(10,2) NOT NULL,
-	year INTEGER NOT NULL,
+	year INT NOT NULL,
 	project_periodStart Date NOT NULL,
 	project_periodEnd Date NOT NULL,
 	doc_submit_date DATE DEFAULT (CURRENT_DATE),
@@ -156,11 +156,11 @@ ALTER TABLE Research_KRIS MODIFY COLUMN res_standard_trade JSON;
 
 -- สร้างตาราง Form CHECK
 CREATE TABLE Form (
-	form_id INTEGER PRIMARY KEY AUTO_INCREMENT UNIQUE,
+	form_id INT PRIMARY KEY AUTO_INCREMENT UNIQUE,
 	form_type ENUM('Conference', 'Page_Charge', 'Research_KRIS') NOT NULL,
-	conf_id INTEGER UNIQUE,
-	pageC_id INTEGER UNIQUE,
-	kris_id INTEGER UNIQUE,
+	conf_id INT UNIQUE,
+	pageC_id INT UNIQUE,
+	kris_id INT UNIQUE,
 	form_status ENUM('ฝ่ายบริหารทรัพยากรบุคคล','ฝ่ายบริหารงานวิจัย',  'ฝ่ายบริหารการเงิน', 'รองคณบดี', 'คณบดี','รออนุมัติ', 'อนุมัติ', 'ไม่อนุมัติ', 'เข้าที่ประชุม') NOT NULL,
 	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id),
 	FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id),
@@ -168,11 +168,11 @@ CREATE TABLE Form (
 );
 -- ตารางเก็บเอกสาร PDF (File_pdf) CHECK
 CREATE TABLE File_pdf (
-	file_id INTEGER PRIMARY KEY AUTO_INCREMENT UNIQUE,
+	file_id INT PRIMARY KEY AUTO_INCREMENT UNIQUE,
 	type ENUM ('Conference', 'Page_Charge','Research_KRIS') NOT NULL,
-	conf_id INTEGER UNIQUE,
-	pageC_id INTEGER UNIQUE,
-	kris_id INTEGER UNIQUE,
+	conf_id INT UNIQUE,
+	pageC_id INT UNIQUE,
+	kris_id INT UNIQUE,
 	kris_file VARCHAR(255),
 	full_page VARCHAR(255), -- confer
 	date_published_journals VARCHAR(255),
@@ -194,24 +194,35 @@ CREATE TABLE File_pdf (
 -- Table for officer's_opinion_pc CHECK
 CREATE TABLE officers_opinion_pc (
 	p_office_id INT AUTO_INCREMENT PRIMARY KEY,
-	pageC_id INTEGER NOT NULL UNIQUE,
-	p_research_admin ENUM('อนุมัติ', 'รอหนังสือตอบรับ', 'อื่นๆ'),
-	p_reason VARCHAR(255),
-	p_deputy_dean VARCHAR(255),
-	p_date_accepted_approve DATE, -- วันที่เอกสารได้รับการอนุมัติ
+    research_id INT,
+    associate_id INT,
+    dean_id INT,
+    pageC_id INT NOT NULL,
+    p_research_admin ENUM('อนุมัติ', 'รอหนังสือตอบรับ', 'อื่นๆ'),
+    p_reason VARCHAR(255),
+    p_deputy_dean VARCHAR(255),
+    p_date_accepted_approve DATE, -- วันที่เอกสารได้รับการอนุมัติ
     p_acknowledge ENUM('รับทราบ', 'ไม่อนุมัติ'),
-	p_approve_result ENUM('รับทราบ','อนุมัติ', 'ไม่อนุมัติ', 'อื่นๆ'),
+    p_approve_result ENUM('รับทราบ', 'อนุมัติ', 'ไม่อนุมัติ', 'อื่นๆ'),
     p_reason_dean_approve VARCHAR(255),
     descriptionOther VARCHAR(255),
     research_doc_submit_date DATE DEFAULT (CURRENT_DATE),
     associate_doc_submit_date DATE DEFAULT (CURRENT_DATE),
     dean_doc_submit_date DATE DEFAULT (CURRENT_DATE),
-	FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id)
+    FOREIGN KEY (research_id) REFERENCES Users(user_id),
+    FOREIGN KEY (associate_id) REFERENCES Users(user_id),
+    FOREIGN KEY (dean_id) REFERENCES Users(user_id),
+    FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id),
+    UNIQUE (research_id, associate_id, dean_id, pageC_id)
 );
 -- Table: officer's_opinion_conf CHECK
 CREATE TABLE officers_opinion_conf (
-	c_office_id INTEGER PRIMARY KEY AUTO_INCREMENT,
-	conf_id INTEGER NOT NULL UNIQUE,
+	c_office_id INT PRIMARY KEY AUTO_INCREMENT,
+    hr_id INT,
+    research_id INT,
+    associate_id INT,
+    dean_id INT,
+	conf_id INT NOT NULL,
 	c_research_hr ENUM('ถูกต้อง', 'ไม่ถูกต้อง', 'อื่น ๆ'),
 	c_reason VARCHAR(255),
     c_noteOther VARCHAR(255),
@@ -223,35 +234,44 @@ CREATE TABLE officers_opinion_conf (
     research_doc_submit_date DATE DEFAULT (CURRENT_DATE),
     associate_doc_submit_date DATE DEFAULT (CURRENT_DATE),
     dean_doc_submit_date DATE DEFAULT (CURRENT_DATE),
-	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id)
+    FOREIGN KEY (hr_id) REFERENCES Users(user_id),
+    FOREIGN KEY (research_id) REFERENCES Users(user_id),
+    FOREIGN KEY (associate_id) REFERENCES Users(user_id),
+    FOREIGN KEY (dean_id) REFERENCES Users(user_id),
+	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id),
+    UNIQUE (hr_id, research_id, associate_id, dean_id, conf_id)
 );
 -- Table: officer's_opinion_kris CHECK
 CREATE TABLE officers_opinion_kris (
-	k_office_id INTEGER PRIMARY KEY AUTO_INCREMENT,
-	kris_id INTEGER NOT NULL UNIQUE,
+	k_office_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL UNIQUE,
+	kris_id INT NOT NULL UNIQUE,
 	research_admin ENUM('รับทราบ', 'ไม่รับทราบ'),
     doc_submit_date DATE DEFAULT (CURRENT_DATE),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
 	FOREIGN KEY (kris_id) REFERENCES Research_KRIS(kris_id)
 );
 -- Table: Budget CHECK
 CREATE TABLE Budget (
 	budget_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL UNIQUE,
 	form_id INT NOT NULL UNIQUE,
 	budget_year INT NOT NULL,
 	Page_Charge_amount DECIMAL(10,2),
     Conference_amount DECIMAL(10,2),
-	num_expenses_approved Integer NOT NULL,
+	num_expenses_approved INT NOT NULL,
 	total_amount_approved DECIMAL(10,2) NOT NULL,
 	remaining_credit_limit DECIMAL(10,2) NOT NULL,
 	amount_approval DECIMAL(10,2) NOT NULL,
 	total_remaining_credit_limit DECIMAL(10,2) NOT NULL,
     doc_submit_date DATE DEFAULT (CURRENT_DATE),
-	FOREIGN KEY (form_id) REFERENCES Form(form_id)
+	FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (form_id) REFERENCES Form(form_id)
 );
 CREATE TABLE Notification (
 	noti_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INTEGER NOT NULL,
-    form_id INTEGER UNIQUE NOT NULL,
+    user_id INT NOT NULL,
+    form_id INT UNIQUE NOT NULL,
     name_form VARCHAR(255) NOT NULL,
     is_read boolean NOT NULL,
     date_update DATE DEFAULT (CURRENT_DATE),
