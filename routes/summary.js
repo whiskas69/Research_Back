@@ -15,6 +15,7 @@ router.get("/all_summary_conference", async (req, res) => {
       c.quality_meeting,
       c.time_of_leave,
       c.withdraw,
+      f.form_status,
       COALESCE(c.total_amount, 0) AS total_amount,
       COALESCE(c.inter_expenses, 0) AS inter_expenses,
       COALESCE(c.total_room, 0) AS total_room,
@@ -24,9 +25,12 @@ router.get("/all_summary_conference", async (req, res) => {
       COALESCE(b.amount_approval, 0) AS amount_approval
       FROM conference c
       JOIN users u ON c.user_id = u.user_id
-      LEFT JOIN form f ON c.conf_id = f.conf_id AND f.form_status = "อนุมัติ"
-      LEFT JOIN Budget b ON f.form_id = b.form_id;`
+      LEFT JOIN form f ON c.conf_id = f.conf_id
+      LEFT JOIN Budget b ON f.form_id = b.form_id
+      WHERE f.form_status = "อนุมัติ";`
+      
     );
+    console.log("Summary kub", Summary)
     res.status(200).json(Summary);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -120,6 +124,8 @@ router.get("/all_summary_page_charge", async (req, res) => {
       GROUP BY b.budget_year
       ORDER BY b.budget_year DESC;`
     );
+    console.log("count", count)
+    console.log("Summary", Summary)
     res.status(200).json([Summary, count]);
   } catch (error) {
     res.status(500).json({ error: error.message });
