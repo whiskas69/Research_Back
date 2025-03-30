@@ -305,4 +305,41 @@ router.get("/count_confer_country", async (req, res) => {
   }
 })
 
+router.get("/count_confer_thai", async (req, res) => {
+  try {
+    const [Summary] = await db.query(
+      `SELECT c.location, c.country_conf,
+      SUM(COALESCE(c.total_amount, 0)) AS total_registration,
+      SUM(
+          COALESCE(c.domestic_expenses, 0) +
+          COALESCE(c.overseas_expenses, 0) +
+          COALESCE(c.airplane_tax, 0)
+      ) AS total_other,
+      SUM(COALESCE(c.inter_expenses, 0)) AS total_ticket,
+      SUM(COALESCE(c.total_room, 0)) AS total_room,
+      SUM(COALESCE(c.total_allowance, 0)) AS total_allowance,
+      SUM(
+          COALESCE(c.total_amount, 0) + COALESCE(c.domestic_expenses, 0) +
+          COALESCE(c.overseas_expenses, 0) + COALESCE(c.airplane_tax, 0) +
+          COALESCE(c.inter_expenses, 0) + COALESCE(c.total_room, 0) +
+          COALESCE(c.total_allowance, 0)
+      ) AS all_total,
+      SUM(COALESCE(b.amount_approval, 0)) AS total_amount_approval,
+      COUNT(*) AS total_count
+
+    FROM conference c
+    JOIN form f ON c.conf_id = f.conf_id
+    LEFT JOIN Budget b ON f.form_id = b.form_id
+    WHERE f.form_status = "อนุมัติ" and c.country_conf = "ภายในประเทศ"
+    GROUP BY c.location, c.country_conf
+    ORDER BY c.location ASC;
+`
+    );
+    
+    res.status(200).json(Summary);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+})
+
 exports.router = router;
