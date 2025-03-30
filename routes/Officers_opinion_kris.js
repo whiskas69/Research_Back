@@ -14,9 +14,9 @@ router.post("/opinionKris", async (req, res) => {
     //insert research opinion
     const [createOpi_result] = await database.query(
       `INSERT INTO officers_opinion_kris
-          (kris_id, research_admin, doc_submit_date)
-          VALUES (?, ?, ?)`,
-      [data.kris_id, data.research_admin, data.doc_submit_date]
+          (user_id, kris_id, research_admin, doc_submit_date)
+          VALUES (?, ?, ?, ?)`,
+      [data.user_id, data.kris_id, data.research_admin, data.doc_submit_date]
     );
 
     console.log("createOpi_result :", createOpi_result);

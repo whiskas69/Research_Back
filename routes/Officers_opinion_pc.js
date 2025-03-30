@@ -14,11 +14,14 @@ router.post("/opinionPC", async (req, res) => {
     //insert research opinion
     const [createOpi_result] = await database.query(
       `INSERT INTO officers_opinion_pc
-          (pageC_id, p_research_admin, p_reason, p_deputy_dean,
+          (research_id, associate_id, dean_id, pageC_id, p_research_admin, p_reason, p_deputy_dean,
           p_date_accepted_approve, p_acknowledge, p_approve_result, research_doc_submit_date,
           associate_doc_submit_date, dean_doc_submit_date)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
+        data.research_id|| null, 
+        data.associate_id || null, 
+        data.dean_id || null,
         data.pageC_id,
         data.p_research_admin || null,
         data.p_reason || null,
@@ -64,10 +67,14 @@ router.put("/opinionPC/:id", async (req, res) => {
     //update: add opinion of other role
     const [updateOpi_result] = await database.query(
       `UPDATE officers_opinion_pc SET
+          research_id = ?, associate_id = ?, dean_id = ?,
           pageC_id = ?, p_research_admin = ?, p_reason = ?, p_deputy_dean = ?,
           p_date_accepted_approve = ?, p_acknowledge = ?, p_approve_result = ?, p_reason_dean_approve = ?,
           research_doc_submit_date = ?, associate_doc_submit_date = ?, dean_doc_submit_date = ? WHERE pageC_id = ?`,
       [
+        data.research_id|| null, 
+        data.associate_id || null, 
+        data.dean_id || null,
         data.pageC_id,
         data.p_research_admin,
         data.p_reason,
