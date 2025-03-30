@@ -8,11 +8,11 @@ router.post('/budget', async (req, res) => {
   const data = req.body;
   try {
     const [result] = await db.query(
-      `INSERT INTO Budget (form_id, budget_year, Page_Charge_amount, Conference_amount, 
+      `INSERT INTO Budget (user_id, form_id, budget_year, Page_Charge_amount, Conference_amount, 
       num_expenses_approved, total_amount_approved, remaining_credit_limit, amount_approval, 
       total_remaining_credit_limit) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [data.form_id, data.budget_year, data.Page_Charge_amount || null, data.Conference_amount || null, data.num_expenses_approved,
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [data.user_id, data.form_id, data.budget_year, data.Page_Charge_amount || null, data.Conference_amount || null, data.num_expenses_approved,
       data.total_amount_approved, data.remaining_credit_limit, data.amount_approval, data.total_remaining_credit_limit]
     );
     const [updateForm] = await db.query(

@@ -15,11 +15,11 @@ router.post("/opinionConf", async (req, res) => {
     const [createOpi_result] = await database.query(
       `INSERT INTO officers_opinion_conf
           (hr_id, research_id, associate_id, dean_id, conf_id, 
-          c_research_hr, c_reason, c_meet_quality, c_good_reason,
-          c_deputy_dean, c_approve_result, hr_doc_submit_date, 
-          research_doc_submit_date,
+          c_research_hr, c_reason, c_noteOther, c_meet_quality, 
+          c_good_reason, c_deputy_dean, c_approve_result, 
+          hr_doc_submit_date, research_doc_submit_date,
           associate_doc_submit_date, dean_doc_submit_date)
-          VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         data.hr_id || null, 
         data.research_id|| null, 
@@ -28,6 +28,7 @@ router.post("/opinionConf", async (req, res) => {
         data.conf_id,
         data.c_research_hr,
         data.c_reason,
+        data.c_noteOther || null,
         data.c_meet_quality || null,
         data.c_good_reason || null,
         data.c_deputy_dean || null,
@@ -72,13 +73,19 @@ router.put("/opinionConf/:id", async (req, res) => {
     //update: add opinion of other role
     const [updateOpi_result] = await database.query(
       `UPDATE officers_opinion_conf SET
-      conf_id = ?, c_research_hr = ?, c_reason = ?, c_meet_quality = ?,
+      hr_id = ?, research_id = ?, associate_id = ?, dean_id = ?,
+      conf_id = ?, c_research_hr = ?, c_reason = ?, c_noteOther = ?, c_meet_quality = ?,
       c_good_reason = ?, c_deputy_dean = ?, c_approve_result = ?, hr_doc_submit_date = ?,
       research_doc_submit_date = ?, associate_doc_submit_date = ?, dean_doc_submit_date = ? WHERE conf_id = ?`,
       [
+        data.hr_id || null, 
+        data.research_id|| null, 
+        data.associate_id || null, 
+        data.dean_id || null,
         data.conf_id,
         data.c_research_hr,
         data.c_reason,
+        data.c_noteOther || null,
         data.c_meet_quality || null,
         data.c_good_reason || null,
         data.c_deputy_dean || null,
@@ -127,7 +134,8 @@ router.get("/opinionConf/:id", async (req, res) => {
   const { id } = req.params;
   try {
     const [opinionConf] = await db.query(
-      `SELECT ooc.c_office_id, ooc.conf_id, ooc.c_research_hr, ooc.c_reason,
+      `SELECT ooc.hr_id, ooc.research_id, ooc.associate_id, ooc.dean_id, 
+      ooc.c_office_id, ooc.conf_id, ooc.c_research_hr, ooc.c_reason, ooc.c_noteOther,
       ooc.c_meet_quality,ooc.c_good_reason, ooc.c_deputy_dean,
       ooc.c_approve_result, ooc.hr_doc_submit_date,
       ooc.research_doc_submit_date, ooc.associate_doc_submit_date,
