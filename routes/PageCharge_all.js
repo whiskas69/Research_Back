@@ -571,6 +571,8 @@ router.put(
     }
 
     const data = req.body;
+    console.log("ddddddd", data)
+    console.log("ddddddd", data.q_pc_proof)
 
     try {
       const files = req.files;
@@ -580,11 +582,13 @@ router.put(
       }
 
       const fileData = {
-        q_pc_proof: files.q_pc_proof?.[0]?.filename || null,
-        invoice_public: files.invoice_public?.[0]?.filename || null,
-        accepted: files.accepted?.[0]?.filename || null,
-        copy_article: files.copy_article?.[0]?.filename || null,
+        q_pc_proof: files.q_pc_proof?.[0]?.filename || data.q_pc_proof,
+        invoice_public: files.invoice_public?.[0]?.filename || data.invoice_public,
+        accepted: files.accepted?.[0]?.filename || data.accepted,
+        copy_article: files.copy_article?.[0]?.filename || data.copy_article,
       };
+
+      console.log("ddd", fileData)
 
       const update = await db.query(
         `UPDATE File_pdf SET q_pc_proof = ?, invoice_public = ?, accepted = ?, copy_article = ? WHERE pageC_id = ?`,
@@ -596,6 +600,13 @@ router.put(
           data.pageC_id,
         ]
       );
+
+      const [updateForm_result] = await database.query(
+        "UPDATE Form SET form_status = ? WHERE pageC_id = ?",
+        ["ฝ่ายบริหารงานวิจัย", data.pageC_id]
+      );
+
+      console.log("updateForm_result :", updateForm_result);
 
       console.log("✅ Update successful:", update);
       res.json({ success: true, message: "อัปเดตข้อมูลสำเร็จ" });
