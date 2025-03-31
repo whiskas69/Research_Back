@@ -212,7 +212,7 @@ CREATE TABLE officers_opinion_pc (
     FOREIGN KEY (research_id) REFERENCES Users(user_id),
     FOREIGN KEY (associate_id) REFERENCES Users(user_id),
     FOREIGN KEY (dean_id) REFERENCES Users(user_id),
-    FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id),
+    FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id)
 );
 -- Table: officer's_opinion_conf CHECK
 CREATE TABLE officers_opinion_conf (
@@ -237,7 +237,7 @@ CREATE TABLE officers_opinion_conf (
     FOREIGN KEY (research_id) REFERENCES Users(user_id),
     FOREIGN KEY (associate_id) REFERENCES Users(user_id),
     FOREIGN KEY (dean_id) REFERENCES Users(user_id),
-	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id),
+	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id)
 );
 -- Table: officer's_opinion_kris CHECK
 CREATE TABLE officers_opinion_kris (
@@ -321,5 +321,9 @@ INSERT INTO Users (
 ('professor', 'บุญเลิศ  วัจจะตรากุล', 'Boonlert Watjatrakul', 'boonlert@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2024-01-02', TIMESTAMPDIFF(YEAR, '2024-01-02', CURRENT_DATE), false),
 ('professor', 'จันทร์บูรณ์  สถิตวิริยวงศ์', 'Chanboon Sathitwiriyawong', 'chanboon@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
 
-('admin', 'พีรณัฐ ทิพย์รักษ์', 'Chanboon Sathitwiriyawong', '64070075@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
-('professor', 'ศศิกานต์ หลงกระจ่าง', 'Chanboon Sathitwiriyawong', '64070105@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true);
+('associate', 'พีรณัฐ ทิพย์รักษ์', 'Peeranut Thiprak', '64070075@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2024-10-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
+('hr', 'ศศิกานต์ หลงกระจ่าง', 'Sasikan Longkachang', '64070105@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2000-09-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
+('research', 'ชนากาญจน์ สุทธิกุล', 'Chanakan Sutthikul', '64070018@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2019-08-10', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
+('finance', 'ณัฐพร เกษมสุข', 'Nataporn Kasamsuk', '64070030@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '1999-08-20', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
+('dean', 'ฤกษ์สุรัศมิ์ อตินันทชัย', 'Rerksurat Atinantachai', '64070094@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2015-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
+('admin', 'กชกร นิลกำแหง', 'Kodchakorn Nilkumhang', '64070105@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2011-08-25', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true);
