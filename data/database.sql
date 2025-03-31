@@ -197,7 +197,7 @@ CREATE TABLE officers_opinion_pc (
     research_id INT,
     associate_id INT,
     dean_id INT,
-    pageC_id INT NOT NULL,
+    pageC_id INT NOT NULL UNIQUE,
     p_research_admin ENUM('อนุมัติ', 'รอหนังสือตอบรับ', 'อื่นๆ'),
     p_reason VARCHAR(255),
     p_deputy_dean VARCHAR(255),
@@ -213,7 +213,6 @@ CREATE TABLE officers_opinion_pc (
     FOREIGN KEY (associate_id) REFERENCES Users(user_id),
     FOREIGN KEY (dean_id) REFERENCES Users(user_id),
     FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id),
-    UNIQUE (research_id, associate_id, dean_id, pageC_id)
 );
 -- Table: officer's_opinion_conf CHECK
 CREATE TABLE officers_opinion_conf (
@@ -222,7 +221,7 @@ CREATE TABLE officers_opinion_conf (
     research_id INT,
     associate_id INT,
     dean_id INT,
-	conf_id INT NOT NULL,
+	conf_id INT NOT NULL UNIQUE,
 	c_research_hr ENUM('ถูกต้อง', 'ไม่ถูกต้อง', 'อื่น ๆ'),
 	c_reason VARCHAR(255),
     c_noteOther VARCHAR(255),
@@ -239,12 +238,11 @@ CREATE TABLE officers_opinion_conf (
     FOREIGN KEY (associate_id) REFERENCES Users(user_id),
     FOREIGN KEY (dean_id) REFERENCES Users(user_id),
 	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id),
-    UNIQUE (hr_id, research_id, associate_id, dean_id, conf_id)
 );
 -- Table: officer's_opinion_kris CHECK
 CREATE TABLE officers_opinion_kris (
 	k_office_id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL UNIQUE,
+    user_id INT NOT NULL,
 	kris_id INT NOT NULL UNIQUE,
 	research_admin ENUM('รับทราบ', 'ไม่รับทราบ'),
     doc_submit_date DATE DEFAULT (CURRENT_DATE),
@@ -254,7 +252,7 @@ CREATE TABLE officers_opinion_kris (
 -- Table: Budget CHECK
 CREATE TABLE Budget (
 	budget_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL UNIQUE,
+    user_id INT NOT NULL,
 	form_id INT NOT NULL UNIQUE,
 	budget_year INT NOT NULL,
 	Page_Charge_amount DECIMAL(10,2),

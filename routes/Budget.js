@@ -32,22 +32,15 @@ router.get("/budgetsPC", async (req, res) => {
   try {
     const [budgets] = await db.query(
       `SELECT 
-      COUNT(*) AS total_budgets,
+      COUNT(b.budget_id) AS total_budgets,
       COUNT(CASE 
-        WHEN f.form_status LIKE '%รองคณบดี%' 
-          OR f.form_status LIKE '%คณบดี%'  
-          OR f.form_status LIKE '%รออนุมัติ%' 
-          OR f.form_status LIKE '%อนุมัติ%' 
-        AND f.form_type LIKE '%Page_Charge%' 
+        WHEN f.form_type = '%Page_Charge%' 
         THEN 1 
     END) AS numapproved,
 
       SUM(CASE 
-        WHEN f.form_status LIKE '%รองคณบดี%'  
-          OR f.form_status LIKE '%คณบดี%'  
-          OR f.form_status LIKE '%รออนุมัติ%' 
-          OR f.form_status LIKE '%อนุมัติ%' 
-        AND f.form_type LIKE '%Page_Charge%' 
+        WHEN f.form_type = '%Page_Charge%' 
+        AND f.form_status IN ('รองคณบดี', 'คณบดี', 'รออนุมัติ', 'อนุมัติ')
         THEN b.amount_approval
     END) AS totalapproved
       FROM Budget b
