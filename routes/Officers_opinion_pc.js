@@ -73,7 +73,7 @@ router.put("/opinionPC/:id", async (req, res) => {
           research_doc_submit_date = ?, associate_doc_submit_date = ?, dean_doc_submit_date = ? WHERE pageC_id = ?`,
       [
         data.research_id|| null, 
-        data.associate_id || null, 
+        data.associate_id || null,
         data.dean_id || null,
         data.pageC_id,
         data.p_research_admin,

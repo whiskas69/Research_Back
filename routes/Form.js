@@ -45,10 +45,15 @@ router.get("/formsOffice", async (req, res) => {
             "SELECT user_id, user_nameth, user_nameeng FROM Users WHERE user_id = ?",
             [pageCData[0].user_id]
           );
+          const [fileAccepted] = await db.query(
+            "SELECT accepted FROM File_pdf WHERE pageC_id = ?",
+            [forms[i].pageC_id]
+          )
           console.log("nameP", nameP);
+          console.log("fileAccepted", fileAccepted);
 
           newC = [];
-          newC.push(forms[i].pageC_id, nameP[0]);
+          newC.push(forms[i].pageC_id, { ...nameP[0], ...fileAccepted[0] });
           console.log("newD", newC);
           //[PC_id , nameP]
           // pageC.push(nameP[0])
@@ -74,7 +79,7 @@ router.get("/formsOffice", async (req, res) => {
         }
       }
     }
-
+console.log("pageC3rr3",pageC)
     return res.send({
       forms: forms,
       confer: confer,

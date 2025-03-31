@@ -20,17 +20,6 @@ const storage = multer.diskStorage({
   }
 })
 
-// const fileFilter = function (req, file, cd) {
-//   if (file.mimetype == 'image/png' || file.mimetype == 'image/jpeg') {
-//     cd(null, true)
-//   } else {
-//     req.errorMessage = 'File is not a valid image!'
-//     cd(null, false)
-//   }
-// }
-
-// const upload = multer({ storage, fileFilter })
-
 const uploadDocuments = multer({
   storage,
   fileFilter: function (req, file, cb) {
