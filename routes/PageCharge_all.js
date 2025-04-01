@@ -524,7 +524,6 @@ router.get("/page_charge/:id", async (req, res) => {
 //status page
 router.get("/form/Pc/:id", async (req, res) => {
   const { id } = req.params;
-
   if (!id) {
     return res.status(401).json({ error: "ไม่มีแบบฟอร์มนี้" });
   }
@@ -542,7 +541,6 @@ router.get("/form/Pc/:id", async (req, res) => {
       "SELECT journal_name, article_title FROM page_charge WHERE pageC_id = ? ",
       [id]
     );
-
     res.status(200).json({
       form: form[0],
       page_c: page_c[0],

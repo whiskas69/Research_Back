@@ -65,7 +65,7 @@ const researchSchema = Joi.object({
     then: Joi.string().required(),
     otherwise: Joi.optional(),
   }),
-  h_index: Joi.number().integer().required(),
+  h_index: Joi.number().required(),
   his_invention: Joi.string().required(),
   participation_percent: Joi.number().greater(0).max(100).required(),
   year: Joi.number().integer().required(),
