@@ -7,27 +7,28 @@ router.get("/all_summary_conference", async (req, res) => {
   try {
     const [Summary] = await db.query(
       `SELECT
-      u.user_nameth,
-      c.conf_research,
-      c.conf_name,
-      c.location,
-      c.meeting_type,
-      c.quality_meeting,
-      c.time_of_leave,
-      c.withdraw,
-      f.form_status,
-      COALESCE(c.total_amount, 0) AS total_amount,
-      COALESCE(c.inter_expenses, 0) AS inter_expenses,
-      COALESCE(c.total_room, 0) AS total_room,
-      COALESCE(c.total_allowance, 0) AS total_allowance,
-      COALESCE(c.domestic_expenses, 0) + COALESCE(c.overseas_expenses, 0) + COALESCE(c.airplane_tax, 0) AS total_other,
-      COALESCE(c.all_money, 0) AS all_money,
-      COALESCE(b.amount_approval, 0) AS amount_approval
-      FROM conference c
-      JOIN users u ON c.user_id = u.user_id
-      LEFT JOIN form f ON c.conf_id = f.conf_id
-      LEFT JOIN Budget b ON f.form_id = b.form_id
-      WHERE f.form_status = "อนุมัติ";`
+    u.user_nameth,
+    c.conf_research,
+    c.conf_name,
+    c.location,
+    c.meeting_type,
+    c.quality_meeting,
+    c.time_of_leave,
+    c.withdraw,
+    f.form_status,
+    COALESCE(c.total_amount, 0) AS total_amount,
+    COALESCE(c.inter_expenses, 0) AS inter_expenses,
+    COALESCE(c.total_room, 0) AS total_room,
+    COALESCE(c.total_allowance, 0) AS total_allowance,
+    COALESCE(c.domestic_expenses, 0) + COALESCE(c.overseas_expenses, 0) + COALESCE(c.airplane_tax, 0) AS total_other,
+    COALESCE(c.all_money, 0) AS all_money,
+    COALESCE(b.amount_approval, 0) AS amount_approval
+FROM conference c
+JOIN users u ON c.user_id = u.user_id
+LEFT JOIN form f ON c.conf_id = f.conf_id
+LEFT JOIN Budget b ON f.form_id = b.form_id
+WHERE f.form_status = "อนุมัติ"
+AND YEAR(b.budget_year) = YEAR(CURRENT_DATE());`
       
     );
     console.log("Summary kub", Summary)
@@ -41,24 +42,28 @@ router.get("/all_summary_page_charge", async (req, res) => {
   try {
     const [Summary] = await db.query(
       `SELECT
-        p.pageC_id,
-        u.user_nameth,
-        p.article_title,
-        p.journal_name,
-        p.quality_journal,
-        p.qt_isi,
-        p.qt_sjr,
-        p.qt_scopus,
-        p.month,
-        p.year,
-        p.article_research_ject,
-        p.research_type,
-        p.request_support,
-        f.form_status
-        FROM Page_Charge p
-        JOIN users u ON p.user_id = u.user_id
-        LEFT JOIN form f ON p.pageC_id = f.pageC_id
-        WHERE f.form_status = "อนุมัติ";`
+    p.pageC_id,
+    u.user_nameth,
+    p.article_title,
+    p.journal_name,
+    p.quality_journal,
+    p.qt_isi,
+    p.qt_sjr,
+    p.qt_scopus,
+    p.month,
+    p.year,
+    p.article_research_ject,
+    p.research_type,
+    p.request_support,
+    f.form_status,
+    b.budget_year
+FROM Page_Charge p
+JOIN users u ON p.user_id = u.user_id
+LEFT JOIN form f ON p.pageC_id = f.pageC_id
+LEFT JOIN budget b ON f.form_id = b.form_id
+WHERE f.form_status = "อนุมัติ"
+AND b.budget_year = YEAR(CURDATE());
+`
     );
 
     const [count] = await db.query(
@@ -353,8 +358,8 @@ router.get("/eachyears", async (req, res) => {
     `SELECT b.budget_year,
     COALESCE(SUM(CASE WHEN f.form_type = 'Conference' THEN 1 ELSE 0 END), 0) AS total_conferences,
     COALESCE(SUM(CASE WHEN f.form_type = 'Page_Charge' THEN 1 ELSE 0 END), 0) AS total_pagecharge,
-    COALESCE(SUM(b.Page_Charge_amount), 0) AS total_pagecharge_amount,
-    COALESCE(SUM(b.Conference_amount), 0) AS total_conference_amount
+    COALESCE(SUM(b.amount_approval), 0) AS total_pagecharge_amount,
+    COALESCE(SUM(b.amount_approval), 0) AS total_conference_amount
     FROM budget b
     LEFT JOIN form f ON b.form_id = f.form_id
     WHERE b.budget_year >= (YEAR(CURRENT_DATE) - 3) AND f.form_status = "อนุมัติ"
