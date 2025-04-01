@@ -24,15 +24,39 @@ router.post('/budget', async (req, res) => {
       `SELECT conf_id, pageC_id FROM Form WHERE form_id = ?`,
       [data.form_id]
     );
-    console.log("formType: ", formType);
-    // if(formType[0].pageC_id){
-    //   const [user]  = await db.query(
-    //     `SELECT user_moneyPC, pageC_id FROM Users WHERE form_id = ?`,
-    //     [formType[0].pageC_id]
-    //   );
-    //   console.log("formType: ", formType);
-    // }
-    
+    if(formType[0].pageC_id){
+      console.log('in if pc')
+      const [pc]  = await db.query(
+        `SELECT user_id FROM Page_Charge WHERE pageC_id = ?`,
+        [formType[0].pageC_id]
+      );
+      const [user]  = await db.query(
+        `SELECT user_moneyPC FROM Users WHERE user_id = ?`,
+        [pc[0].user_id]
+      );
+      const moneyPC = parseFloat(user[0].user_moneyPC) + parseFloat(data.amount_approval)
+      const [updateMoneyPC] = await db.query(
+        `UPDATE Users SET user_moneyPC = ? WHERE user_id = ?`,
+        [moneyPC, pc[0].user_id]
+      );
+      console.log("success ja", updateMoneyPC)
+    }else if(formType[0].conf_id){
+      console.log('in if confer')
+      const [confer]  = await db.query(
+        `SELECT user_id FROM Conference WHERE conf_id = ?`,
+        [formType[0].conf_id]
+      );
+      const [user]  = await db.query(
+        `SELECT user_moneyCF FROM Users WHERE user_id = ?`,
+        [confer[0].user_id]
+      );
+      const moneyConfer = parseFloat(user[0].user_moneyCF) - parseFloat(data.amount_approval)
+      const [updateMoneyConfer] = await db.query(
+        `UPDATE Users SET user_moneyCF = ? WHERE user_id = ?`,
+        [moneyConfer, confer[0].user_id]
+      );
+      console.log("success ja", updateMoneyConfer)
+    }
     console.log(data)
     res.status(201).json({ message: "Budget created successfully!", id: result.insertId });
   } catch (err) {
