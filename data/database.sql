@@ -326,4 +326,4 @@ INSERT INTO Users (
 ('research', 'ชนากาญจน์ สุทธิกุล', 'Chanakan Sutthikul', '64070018@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2019-08-10', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
 ('finance', 'ณัฐพร เกษมสุข', 'Nataporn Kasamsuk', '64070030@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '1999-08-20', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
 ('dean', 'ฤกษ์สุรัศมิ์ อตินันทชัย', 'Rerksurat Atinantachai', '64070094@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2015-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
-('admin', 'กชกร นิลกำแหง', 'Kodchakorn Nilkumhang', '64070105@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2011-08-25', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true);
+('admin', 'กชกร นิลกำแหง', 'Kodchakorn Nilkumhang', '64070120@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2011-08-25', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true);
