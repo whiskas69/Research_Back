@@ -20,6 +20,19 @@ router.post('/budget', async (req, res) => {
       [data.form_status, data.form_id]
     );
     console.log("update: ", updateForm);
+    const [formType]  = await db.query(
+      `SELECT conf_id, pageC_id FROM Form WHERE form_id = ?`,
+      [data.form_id]
+    );
+    console.log("formType: ", formType);
+    // if(formType[0].pageC_id){
+    //   const [user]  = await db.query(
+    //     `SELECT user_moneyPC, pageC_id FROM Users WHERE form_id = ?`,
+    //     [formType[0].pageC_id]
+    //   );
+    //   console.log("formType: ", formType);
+    // }
+    
     console.log(data)
     res.status(201).json({ message: "Budget created successfully!", id: result.insertId });
   } catch (err) {
