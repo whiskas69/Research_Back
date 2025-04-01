@@ -39,9 +39,9 @@ router.post("/auth", async (req, res) => {
 
     const userDetails = userResponse.data;
 
-    if (!userDetails.email.endsWith("@it.kmitl.ac.th")) {
-      return res.status(403).json({ message: "อีเมลของคุณไม่ได้รับอนุญาต กรุณาใช้ @it.kmitl.ac.th เท่านั้น" });
-    }
+    // if (!userDetails.email.endsWith("@it.kmitl.ac.th")) {
+    //   return res.status(403).json({ message: "อีเมลของคุณไม่ได้รับอนุญาต กรุณาใช้ @it.kmitl.ac.th เท่านั้น" });
+    // }
 
     //ตรวจสอบในฐานข้อมูลว่ามีผู้ใช้อยู่หรือไม่
     let [rows] = await db.query("SELECT * FROM users WHERE user_email = ?", [
