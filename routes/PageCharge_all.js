@@ -601,7 +601,7 @@ router.put(
         ]
       );
 
-      const [updateForm_result] = await database.query(
+      const [updateForm_result] = await db.query(
         "UPDATE Form SET form_status = ? WHERE pageC_id = ?",
         ["ฝ่ายบริหารงานวิจัย", data.pageC_id]
       );
