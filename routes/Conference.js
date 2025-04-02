@@ -196,11 +196,7 @@ const ConferSchema = Joi.object({
   daily_allowance: Joi.number().invalid(0).precision(2).allow(null, ""),
   total_allowance: Joi.number().invalid(0).precision(2).allow(null, ""),
   all_money: Joi.number().invalid(0).precision(2).allow(null, ""),
-  date_published_journals: Joi.number()
-    .integer()
-    .min(today.year - 2)
-    .max(today.year)
-    .allow(null, ""),
+  date_published_journals: Joi.number().integer().min(today.year - 2).max(today.year).allow(null, ""),
 });
 
 //insert data to db
@@ -249,6 +245,8 @@ router.post(
 
     const database = await db.getConnection();
     await database.beginTransaction(); //start transaction
+
+    console.log("conferdata : ", conferenceData)
 
     try {
       //query insert data to Conference
