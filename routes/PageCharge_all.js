@@ -55,7 +55,6 @@ const uploadDocuments = multer({
 });
 
 const today = DateTime.now();
-// const today = DateTime.now().toISODate(); // ได้รูปแบบ YYYY-MM-DD
 
 // แปลง JSON String > Array
 const parseJsonArray = (value, helpers) => {
@@ -143,30 +142,13 @@ const pageChargeSchema = Joi.object({
 
   article_title: Joi.string().required(),
 
-  vol_journal: Joi.number().integer().min(new Date().getFullYear()).required(),
+  vol_journal: Joi.number().integer().min(new Date().getFullYear()),
 
-  issue_journal: Joi.number().integer().required(),
+  issue_journal: Joi.number().integer(),
 
-  month: Joi.string()
-    .valid(
-      "มกราคม",
-      "กุมภาพันธ์",
-      "มีนาคม",
-      "เมษายน",
-      "พฤษภาคม",
-      "มิถุนายน",
-      "กรกฎาคม",
-      "สิงหาคม",
-      "กันยายน",
-      "ตุลาคม",
-      "พฤศจิกายน",
-      "ธันวาคม"
-    )
-    .required(),
+  year: Joi.number().integer().min(new Date().getFullYear()),
 
-  year: Joi.number().integer().required().min(new Date().getFullYear()),
-
-  ISSN_ISBN: Joi.string().required(),
+  ISSN_ISBN: Joi.string(),
 
   submission_date: Joi.date().max(today).required(),
 
