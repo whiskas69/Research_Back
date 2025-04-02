@@ -27,8 +27,7 @@ FROM conference c
 JOIN users u ON c.user_id = u.user_id
 LEFT JOIN form f ON c.conf_id = f.conf_id
 LEFT JOIN Budget b ON f.form_id = b.form_id
-WHERE f.form_status = "อนุมัติ"
-AND YEAR(b.budget_year) = YEAR(CURRENT_DATE());`
+WHERE f.form_status = "อนุมัติ"`
       
     );
     console.log("Summary kub", Summary)
@@ -61,8 +60,7 @@ FROM Page_Charge p
 JOIN users u ON p.user_id = u.user_id
 LEFT JOIN form f ON p.pageC_id = f.pageC_id
 LEFT JOIN budget b ON f.form_id = b.form_id
-WHERE f.form_status = "อนุมัติ"
-AND b.budget_year = YEAR(CURDATE());
+WHERE f.form_status = "อนุมัติ";
 `
     );
 

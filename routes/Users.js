@@ -90,9 +90,9 @@ router.post("/user", async (req, res) => {
     const [result] = await db.query(
       `INSERT INTO Users (
       user_role, user_nameth, user_nameeng, user_email, user_moneyCF, user_positionth, 
-      user_positioneng, user_startwork, user_year
+      user_positioneng, user_startwork, user_year,user_confer
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         data.user_role,
         data.user_nameth,
@@ -102,7 +102,8 @@ router.post("/user", async (req, res) => {
         data.user_positionth || null,
         data.user_positioneng || null,
         data.user_startwork,
-        data.user_year
+        data.user_year,
+        0,
       ]
     );
     console.log(result);
