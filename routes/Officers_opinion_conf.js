@@ -17,9 +17,8 @@ router.post("/opinionConf", async (req, res) => {
           (hr_id, research_id, associate_id, dean_id, conf_id, 
           c_research_hr, c_reason, c_noteOther, c_meet_quality, 
           c_quality_reason, c_deputy_dean, c_approve_result, 
-          hr_doc_submit_date, research_doc_submit_date,
-          associate_doc_submit_date, dean_doc_submit_date)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          research_doc_submit_date, associate_doc_submit_date, dean_doc_submit_date)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         data.hr_id || null, 
         data.research_id|| null, 
@@ -33,7 +32,6 @@ router.post("/opinionConf", async (req, res) => {
         data.c_quality_reason || null,
         data.c_deputy_dean || null,
         data.c_approve_result || null,
-        data.hr_doc_submit_date || null,
         data.research_doc_submit_date || null,
         data.associate_doc_submit_date || null,
         data.dean_doc_submit_date || null,
