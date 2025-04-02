@@ -17,20 +17,22 @@ router.post('/budget', async (req, res) => {
     );
     const [updateForm] = await db.query(
       `UPDATE Form SET form_status = ? WHERE form_id = ?`,
-      [data.form_status, data.form_id]
+      ["ฝ่ายบริหารการเงิน", data.form_id]
     );
+    // data.form_status
     console.log("update: ", updateForm);
-    const [formType]  = await db.query(
+    const [formType] = await db.query(
       `SELECT conf_id, pageC_id FROM Form WHERE form_id = ?`,
       [data.form_id]
     );
-    if(formType[0].pageC_id){
+
+    if (formType[0].pageC_id) {
       console.log('in if pc')
-      const [pc]  = await db.query(
+      const [pc] = await db.query(
         `SELECT user_id FROM Page_Charge WHERE pageC_id = ?`,
         [formType[0].pageC_id]
       );
-      const [user]  = await db.query(
+      const [user] = await db.query(
         `SELECT user_moneyPC FROM Users WHERE user_id = ?`,
         [pc[0].user_id]
       );
@@ -40,17 +42,17 @@ router.post('/budget', async (req, res) => {
         [moneyPC, pc[0].user_id]
       );
       console.log("success ja", updateMoneyPC)
-    }else if(formType[0].conf_id){
+    } else if (formType[0].conf_id) {
       console.log('in if confer')
-      const [confer]  = await db.query(
-        `SELECT user_id FROM Conference WHERE conf_id = ?`,
+      const [confer] = await db.query(
+        `SELECT user_id, quality_meeting, total_amount FROM Conference WHERE conf_id = ?`,
         [formType[0].conf_id]
       );
-      const [user]  = await db.query(
+      const [user] = await db.query(
         `SELECT user_moneyCF FROM Users WHERE user_id = ?`,
         [confer[0].user_id]
       );
-      const moneyConfer = parseFloat(user[0].user_moneyCF) - parseFloat(data.amount_approval)
+      const moneyConfer = confer[0].quality_meeting == "ดีมาก" ? parseFloat(user[0].user_moneyCF) - parseFloat(data.amount_approval) : parseFloat(user[0].user_moneyCF) - parseFloat(data.amount_approval) - parseFloat(confer[0].total_amount)
       const [updateMoneyConfer] = await db.query(
         `UPDATE Users SET user_moneyCF = ? WHERE user_id = ?`,
         [moneyConfer, confer[0].user_id]

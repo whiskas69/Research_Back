@@ -164,7 +164,7 @@ router.get("/confer/calc/:id", async (req, res) => {
                 if (In_Out_Scopus == "คณะจัด ไม่อยู่scopus") {
                     console.log("In_Out_Scopus", In_Out_Scopus);
                     //คิดจังหวัด
-                    return res.status(200).json({message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", 
+                    return res.status(200).json({message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", 
                         inthai: finalSum.inThai == 'ไม่สามารถเบิกค่าเบี้ยเลี้ยงเดินทางได้' ?  'ไม่สามารถเบิกค่าเบี้ยเลี้ยงเดินทางได้' : 'ค่าเบี้ยเลี้ยงเดินทาง <= 300 บาท/คน/วัน',
                         inOutC: finalSum.locat
                     })
@@ -177,7 +177,7 @@ router.get("/confer/calc/:id", async (req, res) => {
                         console.log("Leave", Leave);
                         console.log("สมมติว่ามีเรื่องตีพิม ตีพิมพ์เรื่องเต็มใน Proceeding");
                         return res.status(200).json({message: 
-                            result == "ดีมาก" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน" : "ระดับมาตรฐาน คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", 
+                            result == "ดีมาก" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน" : "คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", 
                             inthai: finalSum.inThai == 'ไม่สามารถเบิกค่าเบี้ยเลี้ยงเดินทางได้' ?  'ไม่สามารถเบิกค่าเบี้ยเลี้ยงเดินทางได้' : 'ค่าเบี้ยเลี้ยงเดินทาง <= 300 บาท/คน/วัน',
                             inOutC: finalSum.locat
                         })
@@ -209,7 +209,7 @@ router.get("/confer/calc/:id", async (req, res) => {
                         //ไม่เคยไป และทำงานไม่ถึง 3 ปี
                         //เบิก 50 ทันที
                         return res.status(200).json({ 
-                            message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", 
+                            message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", 
                             money: withdraw == "50%" ? finalSum.maxExpense / 2 : finalSum.maxExpense,
                             inOutC: finalSum.locat
                         })
@@ -218,7 +218,7 @@ router.get("/confer/calc/:id", async (req, res) => {
                         //เคยไป หรือ ทำงานเกิน 3 ปี
                         //ต้องพิจารณาอีกทีว่า 50/ 100
                         return res.status(200).json({ 
-                            message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน", 
+                            message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", 
                             money: withdraw == "50%" ? finalSum.maxExpense / 2 : finalSum.maxExpense,
                             inOutC: finalSum.locat
                         })
@@ -238,7 +238,7 @@ router.get("/confer/calc/:id", async (req, res) => {
                             //เบิก 50 ทันที
                                 console.log("withdraw", withdraw);
                                 return res.status(200).json({ message: 
-                                    result == "ดีมาก" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน" : "ระดับมาตรฐาน คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", 
+                                    result == "ดีมาก" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน" : "คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", 
                                     money: withdraw == "50%" ? finalSum.maxExpense / 2 : finalSum.maxExpense, 
                                     inOutC: finalSum.locat 
                                 })
@@ -247,7 +247,7 @@ router.get("/confer/calc/:id", async (req, res) => {
                             //เคยไป หรือ ทำงานเกิน 3 ปี
                             //ต้องพิจารณาอีกทีว่า 50/ 100
                             return res.status(200).json({ message: 
-                                result == "ดีมาก" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน" : "ระดับมาตรฐาน คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", 
+                                result == "ดีมาก" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน" : "คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", 
                                 money: withdraw == "50%" ? finalSum.maxExpense / 2 : finalSum.maxExpense, 
                                 inOutC: finalSum.locat 
                             })
@@ -272,7 +272,7 @@ router.get("/confer/calc/:id", async (req, res) => {
                                     //ไม่เคยไป และทำงานไม่ถึง 3 ปี
                                     //เบิก 50 ทันที
                                     return res.status(200).json({ message: 
-                                        result == "ดีมาก" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน" : "ระดับมาตรฐาน คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", 
+                                        result == "ดีมาก" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน" : "คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", 
                                         money: withdraw == "50%" ? finalSum.maxExpense / 2 : finalSum.maxExpense, 
                                         inOutC: finalSum.locat 
                                     })
@@ -281,7 +281,7 @@ router.get("/confer/calc/:id", async (req, res) => {
                                     //เคยไป หรือ ทำงานเกิน 3 ปี
                                     //ต้องพิจารณาอีกทีว่า 50/ 100
                                     return res.status(200).json({ message: 
-                                        result == "ดีมาก" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน สามารถเบิกได้ตามเงื่อนไขในประกาศสถาบัน" : "ระดับมาตรฐาน คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", 
+                                        result == "ดีมาก" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน" : "คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", 
                                         money: withdraw == "50%" ? finalSum.maxExpense / 2 : finalSum.maxExpense, 
                                         inOutC: finalSum.locat 
                                     })
