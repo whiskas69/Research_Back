@@ -352,16 +352,19 @@ router.get("/count_confer_thai", async (req, res) => {
 
 router.get("/eachyears", async (req, res) => {
   const [Summary] = await db.query(
-    `SELECT b.budget_year,
-    COALESCE(SUM(CASE WHEN f.form_type = 'Conference' THEN 1 ELSE 0 END), 0) AS total_conferences,
-    COALESCE(SUM(CASE WHEN f.form_type = 'Page_Charge' THEN 1 ELSE 0 END), 0) AS total_pagecharge,
-    COALESCE(SUM(b.amount_approval), 0) AS total_pagecharge_amount,
-    COALESCE(SUM(b.amount_approval), 0) AS total_conference_amount
-    FROM budget b
-    LEFT JOIN form f ON b.form_id = f.form_id
-    WHERE b.budget_year >= (YEAR(CURRENT_DATE) - 3) AND f.form_status = "อนุมัติ"
-    GROUP BY b.budget_year
-    ORDER BY b.budget_year DESC;`
+    `SELECT 
+    b.budget_year,
+    SUM(CASE WHEN f.form_type = 'Conference' THEN 1 ELSE 0 END) AS total_conferences,
+    SUM(CASE WHEN f.form_type = 'Page_Charge' THEN 1 ELSE 0 END) AS total_pagecharge,
+    SUM(CASE WHEN f.form_type = 'Page_Charge' THEN b.amount_approval ELSE 0 END) AS total_pagecharge_amount, 
+    SUM(CASE WHEN f.form_type = 'Conference' THEN b.amount_approval ELSE 0 END) AS total_conference_amount 
+FROM budget b
+LEFT JOIN form f ON b.form_id = f.form_id
+WHERE b.budget_year >= (YEAR(CURRENT_DATE) - 3) 
+AND f.form_status = "อนุมัติ"
+GROUP BY b.budget_year
+ORDER BY b.budget_year DESC;
+`
   );
 
   res.status(200).json(Summary);
@@ -375,10 +378,10 @@ router.get("/money_user", async (req, res) => {
     u.user_moneyPC,
     u.user_moneyCF,
     COALESCE(SUM(CASE WHEN f.form_type = 'Conference' THEN b.amount_approval ELSE 0 END), 0) AS total_conference,
-    COALESCE(SUM(CASE WHEN f.form_type = 'PC' THEN b.amount_approval ELSE 0 END), 0) AS total_pc
+    COALESCE(SUM(CASE WHEN f.form_type = 'Page_Charge' THEN b.amount_approval ELSE 0 END), 0) AS total_pc
 FROM users u
-LEFT JOIN budget b ON b.user_id = u.user_id AND b.budget_year = YEAR(CURDATE()) + 543  -- ✅ กรองเฉพาะปีงบประมาณปัจจุบัน
-LEFT JOIN form f ON f.form_id = b.form_id AND f.form_status = 'อนุมัติ'  -- ✅ เฉพาะฟอร์มที่อนุมัติ
+LEFT JOIN budget b ON b.user_id = u.user_id AND b.budget_year = YEAR(CURDATE()) + 543
+LEFT JOIN form f ON f.form_id = b.form_id AND f.form_status = 'อนุมัติ'
 GROUP BY u.user_id
 ORDER BY u.user_nameth;
 
