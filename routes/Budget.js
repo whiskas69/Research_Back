@@ -66,6 +66,52 @@ router.post('/budget', async (req, res) => {
   }
 });
 
+router.get("/sumBudgets/:id", async (req, res) => {
+  const { id } = req.params;
+  console.log("/sumBudgets/:id", id)
+  try {
+    let sumPC = [];
+    let sumConfer = [];
+    const [conf] = await db.query(`SELECT conf_id FROM Conference WHERE user_id = ?`, [id]);
+    const [pc] = await db.query(`SELECT pageC_id FROM Page_Charge WHERE user_id = ?`, [id]);
+    const [form] = await db.query(`SELECT * FROM Form`);
+    for (let i = 0; i < form.length; i++) {
+      console.log("inloopsunbudgets", i);
+      const matchedConf = conf.find(c => c.conf_id === form[i].conf_id);
+      if (matchedConf && form[i].form_status === "อนุมัติ") {
+        console.log("Matched:", form[i], matchedConf);
+        let [budgets] = await db.query(`SELECT amount_approval FROM Budget WHERE form_id = ?`, [form[i].form_id]);
+        console.log("budgets", budgets);
+        budgets.forEach(budget => {
+          const moneyConfer = matchedConf.quality_meeting === "ดีมาก"
+            ? parseFloat(budget.amount_approval) - parseFloat(matchedConf.total_amount)
+            : parseFloat(budget.amount_approval);
+          console.log("moneyConfer", moneyConfer);
+          sumConfer.push({ form_id: form[i].form_id, tpye: form[i].form_type, money: moneyConfer });
+        });
+      }
+      const matchedPC = pc.find(p => p.pageC_id === form[i].pageC_id);
+      if (matchedPC && form[i].form_status === "อนุมัติ") {
+        console.log("Matched:", form[i], matchedPC);
+        let [budgets] = await db.query(`SELECT amount_approval FROM Budget WHERE form_id = ?`, [form[i].form_id]);
+        console.log("budgets", budgets);
+        budgets.forEach(budget => {
+          const moneyPC = parseFloat(budget.amount_approval)
+          console.log("moneyPC", moneyPC);
+          sumPC.push({ form_id: form[i].form_id, tpye: form[i].form_type, money: moneyPC });
+        });
+      }
+    }
+    const totalPC = sumPC.reduce((acc, item) => acc + item.money, 0);
+    const totalConfer = sumConfer.reduce((acc, item) => acc + item.money, 0);
+    const totalMoney = totalPC + totalConfer;
+
+    res.status(200).json({ sumPC: sumPC, sumConfer: sumConfer, totalPC: totalPC, totalConfer: totalConfer, totalMoney: totalMoney});
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get("/budgetsPC", async (req, res) => {
   try {
     const [budgets] = await db.query(

@@ -89,18 +89,18 @@ const getMaxExpense = (place, In_Out_Country) => {
             const data = country[category];
             if (Array.isArray(data.countries) && data.countries.includes(place)) {
                 result.maxExpense = data.max_expense;
-                result.locat = 'Out_Country'
+                result.locat = "Out_Country"
                 break;
             }
         }
-    } else if (In_Out_Country == "ในประเทศ") {
+    } else if (In_Out_Country == "ภายในประเทศ") {
         console.log("getMaxExpense ในประเทศ : ", place)
         if (["กรุงเทพ", "นนทบุรี", "สมุทรปราการ", "ปทุมธานี", "ฉะเชิงเทรา"].includes(place)) {
             result.inThai = "ไม่สามารถเบิกค่าเบี้ยเลี้ยงเดินทางได้";
-            result.locat = 'In_Country'
+            result.locat = "In_Country"
         } else {
             result.inThai = "ค่าเบี้ยเลี้ยงเดินทาง <= 300 บาท/คน/วัน";
-            result.locat = 'In_Country'
+            result.locat = "In_Country"
         }
     }
     return result;
