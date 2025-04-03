@@ -17,9 +17,8 @@ router.post('/budget', async (req, res) => {
     );
     const [updateForm] = await db.query(
       `UPDATE Form SET form_status = ? WHERE form_id = ?`,
-      ["ฝ่ายบริหารการเงิน", data.form_id]
+      [data.form_status, data.form_id]
     );
-    // data.form_status
     console.log("update: ", updateForm);
     const [formType] = await db.query(
       `SELECT conf_id, pageC_id FROM Form WHERE form_id = ?`,
