@@ -118,12 +118,12 @@ router.get("/budgetsPC", async (req, res) => {
       `SELECT 
       COUNT(b.budget_id) AS total_budgets,
       COUNT(CASE 
-        WHEN f.form_type = '%Page_Charge%' 
+        WHEN f.form_type = 'Page_Charge' 
         THEN 1 
     END) AS numapproved,
 
       SUM(CASE 
-        WHEN f.form_type = '%Page_Charge%' 
+        WHEN f.form_type = 'Page_Charge'
         AND f.form_status IN ('รองคณบดี', 'คณบดี', 'รออนุมัติ', 'อนุมัติ')
         THEN b.amount_approval
     END) AS totalapproved
