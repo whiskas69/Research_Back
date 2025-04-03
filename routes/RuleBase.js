@@ -157,7 +157,8 @@ router.get("/confer/calc/:id", async (req, res) => {
             console.log("Author", Author);
 
             //ส่วนในประเทศ
-            if (In_Out_Country == "ในประเทศ") {
+            if (In_Out_Country == "ภายในประเทศ") {
+                console.log("In_Out_Country");
                 console.log("In_Out_Country", In_Out_Country);
 
                 //ได้รับการสนับสนุนจากคณะ
@@ -166,7 +167,8 @@ router.get("/confer/calc/:id", async (req, res) => {
                     //คิดจังหวัด
                     return res.status(200).json({message: "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", 
                         inthai: finalSum.inThai == 'ไม่สามารถเบิกค่าเบี้ยเลี้ยงเดินทางได้' ?  'ไม่สามารถเบิกค่าเบี้ยเลี้ยงเดินทางได้' : 'ค่าเบี้ยเลี้ยงเดินทาง <= 300 บาท/คน/วัน',
-                        inOutC: finalSum.locat
+                        inOutC: finalSum.locat,
+                        money: confer[0][0].all_money >= 8000 ? 8000 : confer[0][0].all_money
                     })
                     //ทำตามเกณฑ์ปกติ
                 } else if (In_Out_Scopus == "อยู่ในscopus") {
@@ -179,7 +181,8 @@ router.get("/confer/calc/:id", async (req, res) => {
                         return res.status(200).json({message: 
                             result == "ดีมาก" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน" : "คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน", 
                             inthai: finalSum.inThai == 'ไม่สามารถเบิกค่าเบี้ยเลี้ยงเดินทางได้' ?  'ไม่สามารถเบิกค่าเบี้ยเลี้ยงเดินทางได้' : 'ค่าเบี้ยเลี้ยงเดินทาง <= 300 บาท/คน/วัน',
-                            inOutC: finalSum.locat
+                            inOutC: finalSum.locat,
+                            money: confer[0][0].all_money >= 8000 ? 8000 : confer[0][0].all_money
                         })
 
                     } else {
