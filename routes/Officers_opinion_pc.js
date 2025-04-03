@@ -38,10 +38,22 @@ router.post("/opinionPC", async (req, res) => {
     console.log("create Opinion :", createOpi_result);
 
     //update status from
-    const [updateForm_result] = await db.query(
+    const [updateForm_result] = await database.query(
       "UPDATE Form SET form_status = ? WHERE pageC_id = ?",
       [data.form_status, data.pageC_id]
     );
+
+    //get pageC_id
+    const [getID] = await database.query(
+      "SELECT form_id FROM Form WHERE pageC_id = ?", [data.pageC_id]
+    )
+    console.log("GetID : ", getID);
+
+    //update Noti
+    const [updateNoti_result] = await database.query(
+      `UPDATE Notification SET is_read = 0 WHERE form_id = ?`, [getID[0].form_id]
+    )
+    console.log("updateNoti_result : ", updateNoti_result);
 
     console.log("updateForm_result :", updateForm_result);
     await database.commit(); //commit transaction
@@ -97,6 +109,18 @@ router.put("/opinionPC/:id", async (req, res) => {
       "UPDATE Form SET form_status = ? WHERE pageC_id = ?",
       [data.form_status, id]
     );
+
+    //get pageC_id
+    const [getID] = await database.query(
+      "SELECT form_id FROM Form WHERE pageC_id = ?", [id]
+    )
+    console.log("GetID : ", getID);
+
+    //update Noti
+    const [updateNoti_result] = await database.query(
+      `UPDATE Notification SET is_read = 0 WHERE form_id = ?`, [getID[0].form_id]
+    )
+    console.log("updateNoti_result : ", updateNoti_result);
 
     console.log("updateForm_result :", updateForm_result);
 

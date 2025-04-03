@@ -37,14 +37,25 @@ router.post("/opinionConf", async (req, res) => {
         data.dean_doc_submit_date || null,
       ]
     );
-
     console.log("createOpi_result :", createOpi_result);
 
     //update status form
-    const [updateForm_result] = await db.query(
+    const [updateForm_result] = await database.query(
       "UPDATE Form SET form_status = ? WHERE conf_id = ?",
       ["ฝ่ายบริหารงานวิจัย", data.conf_id]
     );
+
+    //get form_id
+    const [getID] = await database.query(
+      "SELECT form_id FROM Form WHERE conf_id = ?", [data.conf_id]
+    )
+    console.log("GetID : ", getID);
+
+    //update Noti
+    const [updateNoti_result] = await database.query(
+      `UPDATE Notification SET is_read = 0 WHERE form_id = ?`, [getID[0].form_id]
+    )
+    console.log("updateNoti_result : ", updateNoti_result);
 
     console.log("updateForm_result :", updateForm_result);
 
@@ -103,6 +114,18 @@ router.put("/opinionConf/:id", async (req, res) => {
       "UPDATE Form SET form_status = ? WHERE conf_id = ?",
       [data.form_status, id]
     );
+
+    //get form_id
+    const [getID] = await database.query(
+      "SELECT form_id FROM Form WHERE conf_id = ?", [id]
+    )
+    console.log("GetID : ", getID);
+
+    //update Noti
+    const [updateNoti_result] = await database.query(
+      `UPDATE Notification SET is_read = 0 WHERE form_id = ?`, [getID[0].form_id]
+    )
+    console.log("updateNoti_result : ", updateNoti_result);
 
     console.log("updateForm_result: ", updateForm_result);
 

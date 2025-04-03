@@ -299,7 +299,7 @@ router.post(
       const formData = {
         form_type: "Page_Charge",
         pageC_id: pageCId,
-        form_status: "ฝ่ายบริหารงานวิจัย"
+        form_status: "ฝ่ายบริหารงานวิจัย",
       };
 
       //insert to Form
@@ -551,8 +551,8 @@ router.put(
     }
 
     const data = req.body;
-    console.log("ddddddd", data)
-    console.log("ddddddd", data.q_pc_proof)
+    console.log("ddddddd", data);
+    console.log("ddddddd", data.q_pc_proof);
 
     try {
       const files = req.files;
@@ -563,12 +563,13 @@ router.put(
 
       const fileData = {
         q_pc_proof: files.q_pc_proof?.[0]?.filename || data.q_pc_proof,
-        invoice_public: files.invoice_public?.[0]?.filename || data.invoice_public,
+        invoice_public:
+          files.invoice_public?.[0]?.filename || data.invoice_public,
         accepted: files.accepted?.[0]?.filename || data.accepted,
         copy_article: files.copy_article?.[0]?.filename || data.copy_article,
       };
 
-      console.log("ddd", fileData)
+      console.log("ddd", fileData);
 
       const update = await db.query(
         `UPDATE File_pdf SET q_pc_proof = ?, invoice_public = ?, accepted = ?, copy_article = ? WHERE pageC_id = ?`,
@@ -587,6 +588,19 @@ router.put(
       );
 
       console.log("updateForm_result :", updateForm_result);
+
+      //get pageC_id
+      const [getID] = await db.query(
+        "SELECT form_id FROM Form WHERE pageC_id = ?",
+        [data.pageC_id]
+      );
+      console.log("GetID : ", getID);
+
+      //update Noti
+      const [updateNoti_result] = await database.query(
+        `UPDATE Notification SET is_read = 0 WHERE form_id = ?`,
+        [getID[0].form_id]
+      );
 
       console.log("✅ Update successful:", update);
       res.json({ success: true, message: "อัปเดตข้อมูลสำเร็จ" });

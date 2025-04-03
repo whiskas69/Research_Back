@@ -28,6 +28,20 @@ router.post("/opinionKris", async (req, res) => {
     );
     console.log("updateForm_result :", updateForm_result);
 
+    //get kris_id
+    const [getID] = await database.query(
+      "SELECT form_id FROM Form WHERE kris_id = ?", [id]
+    )
+    console.log("GetID : ", getID);
+
+    //update Noti
+    const [updateNoti_result] = await database.query(
+      `UPDATE Notification SET is_read = 0 WHERE form_id = ?`, [getID[0].form_id]
+    )
+    console.log("updateNoti_result : ", updateNoti_result);
+
+    console.log("updateForm_result: ", updateForm_result);
+
     await database.commit(); //commit transaction
     res.status(200).json({ success: true, message: "Success" });
   } catch (error) {
