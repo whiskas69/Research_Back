@@ -41,11 +41,15 @@ router.post("/opinionKris", async (req, res) => {
 
 router.get("/opinionkris/:id", async (req, res) => {
   const { id } = req.params;
+  console.log("id", req.params.id)
   try {
     const [opinionkris] = await db.query(
       "SELECT * FROM officers_opinion_kris WHERE kris_id = ?",
       [id]
     );
+
+    console.log("opinionkris", opinionkris)
+
     if (opinionkris.length === 0) {
       return res.status(404).json({ message: "opinionkris not found" });
     }
