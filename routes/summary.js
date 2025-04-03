@@ -20,17 +20,16 @@ router.get("/all_summary_conference", async (req, res) => {
     COALESCE(c.inter_expenses, 0) AS inter_expenses,
     COALESCE(c.total_room, 0) AS total_room,
     COALESCE(c.total_allowance, 0) AS total_allowance,
-    COALESCE(c.domestic_expenses, 0) + COALESCE(c.overseas_expenses, 0) + COALESCE(c.airplane_tax, 0) AS total_other,
+    COALESCE(c.domestic_expenses, 0) + COALESCE(c.overseas_expenses, 0) + COALESCE(c.airplane_tax, 0) AS total_other, 
     COALESCE(c.all_money, 0) AS all_money,
     COALESCE(b.amount_approval, 0) AS amount_approval
-FROM conference c
-JOIN users u ON c.user_id = u.user_id
-LEFT JOIN form f ON c.conf_id = f.conf_id
-LEFT JOIN Budget b ON f.form_id = b.form_id
-WHERE f.form_status = "อนุมัติ"`
-      
-    );
-    console.log("Summary kub", Summary)
+    FROM conference c
+    JOIN users u ON c.user_id = u.user_id
+    LEFT JOIN form f ON c.conf_id = f.conf_id
+    LEFT JOIN Budget b ON f.form_id = b.form_id
+    WHERE f.form_status = "อนุมัติ"
+    AND b.budget_year = YEAR(CURDATE()) + 543;`);
+
     res.status(200).json(Summary);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -231,19 +230,23 @@ router.get("/count_confer_withdraw", async (req, res) => {
         COALESCE(c.domestic_expenses, 0) +
         COALESCE(c.overseas_expenses, 0) +
         COALESCE(c.airplane_tax, 0)
-        ) AS total_other,
-      SUM(COALESCE(c.inter_expenses, 0)) AS total_ticket,
+      ) AS total_other,
+      (COALESCE(c.inter_expenses, 0)) AS total_ticket,
       SUM(COALESCE(c.total_room, 0)) AS total_room,
       SUM(COALESCE(c.total_allowance, 0)) AS total_allowance,
       SUM(
-        COALESCE(c.total_amount, 0) + COALESCE(c.domestic_expenses, 0) +
-        COALESCE(c.overseas_expenses, 0) + COALESCE(c.airplane_tax, 0) +
-        COALESCE(c.inter_expenses, 0) + COALESCE(c.total_room, 0) +
+        COALESCE(c.total_amount, 0) +
+        COALESCE(c.domestic_expenses, 0) +
+        COALESCE(c.overseas_expenses, 0) +
+        COALESCE(c.airplane_tax, 0) +
+        COALESCE(c.inter_expenses, 0) +
+        COALESCE(c.total_room, 0) +
         COALESCE(c.total_allowance, 0)
       ) AS all_total
       FROM conference c
       JOIN form f ON c.conf_id = f.conf_id
       WHERE f.form_status = 'อนุมัติ'
+      AND f.country_conf = 'ณ ต่างประเทศ'
       GROUP BY c.withdraw
       ORDER BY c.withdraw;`
     );
@@ -304,10 +307,6 @@ router.get("/count_confer_country", async (req, res) => {
     
       return acc;
     }, {});
-    
-    console.log(groupedSummary);
-    
-    
     res.status(200).json(groupedSummary);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -363,6 +362,27 @@ router.get("/eachyears", async (req, res) => {
     WHERE b.budget_year >= (YEAR(CURRENT_DATE) - 3) AND f.form_status = "อนุมัติ"
     GROUP BY b.budget_year
     ORDER BY b.budget_year DESC;`
+  );
+
+  res.status(200).json(Summary);
+})
+
+router.get("/money_user", async (req, res) => {
+  const [Summary] = await db.query(
+    `SELECT 
+    u.user_nameth,
+    u.user_role,
+    u.user_moneyPC,
+    u.user_moneyCF,
+    COALESCE(SUM(CASE WHEN f.form_type = 'Conference' THEN b.amount_approval ELSE 0 END), 0) AS total_conference,
+    COALESCE(SUM(CASE WHEN f.form_type = 'PC' THEN b.amount_approval ELSE 0 END), 0) AS total_pc
+FROM users u
+LEFT JOIN budget b ON b.user_id = u.user_id AND b.budget_year = YEAR(CURDATE()) + 543  -- ✅ กรองเฉพาะปีงบประมาณปัจจุบัน
+LEFT JOIN form f ON f.form_id = b.form_id AND f.form_status = 'อนุมัติ'  -- ✅ เฉพาะฟอร์มที่อนุมัติ
+GROUP BY u.user_id
+ORDER BY u.user_nameth;
+
+`
   );
 
   res.status(200).json(Summary);
