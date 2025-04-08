@@ -520,7 +520,7 @@ router.get("/form/Pc/:id", async (req, res) => {
     );
 
     const [info_pageC] = await db.query(
-      "SELECT journal_name, article_title FROM page_charge WHERE pageC_id = ? ",
+      "SELECT journal_name, article_title FROM Page_Charge WHERE pageC_id = ? ",
       [id]
     );
     res.status(200).json({
@@ -615,7 +615,7 @@ router.get("/getFilepage_c", async (req, res) => {
   const { pageC_id } = req.query;
 
   const file = await db.query(
-    `SELECT pc_proof, q_pc_proof, invoice_public, accepted, copy_article FROM file_pdf WHERE pageC_id = ?`,
+    `SELECT pc_proof, q_pc_proof, invoice_public, accepted, copy_article FROM File_pdf WHERE pageC_id = ?`,
     [pageC_id]
   );
 

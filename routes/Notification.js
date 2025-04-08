@@ -20,8 +20,8 @@ router.get("/notification/:id", async (req, res) => {
       `
         SELECT n.noti_id, n.user_id, n.form_id, n.name_form, n.is_read, n.date_update, f.form_type, f.form_status, u.user_nameth
         FROM notification n
-        LEFT JOIN form f ON n.form_id = f.form_id
-        LEFT JOIN users u ON n.user_id = u.user_id
+        LEFT JOIN Form f ON n.form_id = f.form_id
+        LEFT JOIN Users u ON n.user_id = u.user_id
         WHERE n.user_id = ?
         AND n.date_update >= DATE_SUB(NOW(), INTERVAL 3 DAY)
         ORDER BY n.date_update DESC;`,
@@ -46,8 +46,8 @@ router.get("/status_notification/:status", async (req, res) => {
       `
         SELECT n.noti_id, n.user_id, n.form_id, n.name_form, n.is_read, n.date_update, f.form_type, f.form_status, u.user_nameth
         FROM notification n
-        LEFT JOIN form f ON n.form_id = f.form_id
-        LEFT JOIN users u ON n.user_id = u.user_id
+        LEFT JOIN Form f ON n.form_id = f.form_id
+        LEFT JOIN Users u ON n.user_id = u.user_id
         WHERE f.form_status = ?
         AND n.date_update >= DATE_SUB(NOW(), INTERVAL 3 DAY)
         ORDER BY n.date_update DESC;`,

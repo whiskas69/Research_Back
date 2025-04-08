@@ -415,7 +415,7 @@ router.get("/form/confer/:id", async (req, res) => {
     ]);
 
     const [infoConf] = await db.query(
-      "select conf_research, conf_name, withdraw FROM conference WHERE conf_id = ?",
+      "select conf_research, conf_name, withdraw FROM Conference WHERE conf_id = ?",
       [id]
     );
 
@@ -495,7 +495,7 @@ router.get("/getFileConf", async (req, res) => {
   const { conf_id } = req.query;
 
   const file = await db.query(
-    `SELECT full_page, date_published_journals, published_journals, accepted, q_proof, call_for_paper, fee_receipt, fx_rate_document, conf_proof FROM file_pdf WHERE conf_id = ?`,
+    `SELECT full_page, date_published_journals, published_journals, accepted, q_proof, call_for_paper, fee_receipt, fx_rate_document, conf_proof FROM File_pdf WHERE conf_id = ?`,
     [conf_id]
   );
 

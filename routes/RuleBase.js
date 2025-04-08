@@ -111,11 +111,11 @@ router.get("/confer/calc/:id", async (req, res) => {
     console.log("confer id", id);
     try {
         const confer = await db.query(
-            `SELECT * FROM conference WHERE conf_id = ?`,
+            `SELECT * FROM Conference WHERE conf_id = ?`,
             [id]
         );
-        const score = await db.query(`SELECT * FROM score WHERE conf_id = ?`, [id]);
-        const file = await db.query(`SELECT * FROM file_pdf WHERE conf_id = ?`, [
+        const score = await db.query(`SELECT * FROM Score WHERE conf_id = ?`, [id]);
+        const file = await db.query(`SELECT * FROM File_pdf WHERE conf_id = ?`, [
             id,
         ]);
         const user_work = await db.query(`SELECT user_confer FROM Users WHERE user_id = ?`, [confer[0][0].user_id])

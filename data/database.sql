@@ -1,3 +1,4 @@
+USE ResearchAdministration;
 -- ปิดการตรวจสอบ Foreign Key ก่อน
 SET FOREIGN_KEY_CHECKS = 0;
 

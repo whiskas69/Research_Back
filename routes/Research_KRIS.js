@@ -214,7 +214,7 @@ router.get("/form/kris/:id", async (req, res) => {
 
   try {
     const [form] = await db.query("SELECT * FROM Form WHERE kris_id = ?", [id]);
-    const [name] = await db.query("SELECT name_research_th FROM research_kris WHERE kris_id = ?", [id]);
+    const [name] = await db.query("SELECT name_research_th FROM Research_KRIS WHERE kris_id = ?", [id]);
 
     if (!form.length && !name.length) {
       return res.status(404).json({ error: "ไม่พบข้อมูลฟอร์ม" });
@@ -234,7 +234,7 @@ router.get("/getFilekris", async (req, res) => {
   const { kris_id } = req.query;
 
   const file = await db.query(
-    "SELECT kris_file FROM file_pdf WHERE kris_id = ?",
+    "SELECT kris_file FROM File_pdf WHERE kris_id = ?",
     [kris_id]
   );
 

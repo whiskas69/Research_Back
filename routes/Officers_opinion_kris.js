@@ -6,6 +6,7 @@ router = express.Router();
 //create first opinion and update form
 router.post("/opinionKris", async (req, res) => {
   const data = req.body;
+  console.log("data", data)
 
   const database = await db.getConnection();
   await database.beginTransaction(); //start transaction
@@ -30,7 +31,7 @@ router.post("/opinionKris", async (req, res) => {
 
     //get kris_id
     const [getID] = await database.query(
-      "SELECT form_id FROM Form WHERE kris_id = ?", [id]
+      "SELECT form_id FROM Form WHERE kris_id = ?", [data.kris_id]
     )
     console.log("GetID : ", getID);
 

@@ -100,10 +100,10 @@ router.get("/form/:id", async (req, res) => {
       ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
       ,COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title
       ,COALESCE(c.conf_name, p.journal_name) AS article_name
-      FROM form f
-      LEFT JOIN research_kris k ON f.kris_id = k.kris_id
-      LEFT JOIN conference c ON f.conf_id = c.conf_id
-      LEFT JOIN page_charge p ON f.pageC_id = p.pageC_id
+      FROM Form f
+      LEFT JOIN Research_KRIS k ON f.kris_id = k.kris_id
+      LEFT JOIN Conference c ON f.conf_id = c.conf_id
+      LEFT JOIN Page_Charge p ON f.pageC_id = p.pageC_id
       LEFT JOIN Budget b ON f.form_id = b.form_id
       WHERE COALESCE(k.user_id, c.user_id, p.user_id) = ?
       ORDER BY f.form_id DESC`,
@@ -129,10 +129,10 @@ router.get("/allForms", async (req, res) => {
       ,COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title
       ,COALESCE(c.conf_name, p.journal_name) AS article_name
       ,u.user_nameth
-      FROM form f
-      LEFT JOIN research_kris k ON f.kris_id = k.kris_id
-      LEFT JOIN conference c ON f.conf_id = c.conf_id
-      LEFT JOIN page_charge p ON f.pageC_id = p.pageC_id
+      FROM Form f
+      LEFT JOIN Research_KRIS k ON f.kris_id = k.kris_id
+      LEFT JOIN Conference c ON f.conf_id = c.conf_id
+      LEFT JOIN Page_Charge p ON f.pageC_id = p.pageC_id
       LEFT JOIN Users u ON u.user_id = COALESCE(k.user_id, c.user_id, p.user_id)
       LEFT JOIN Budget b ON f.form_id = b.form_id
       `

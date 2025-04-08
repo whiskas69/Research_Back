@@ -197,6 +197,15 @@ router.put("/updateRoles", async (req, res) => {
   }
 });
 
+router.put("/userSignat/:id", (req, res) => {
+  console.log("delete userSignat")
+  const id = req.params.id;
+  db.query("UPDATE Users SET user_signature = null WHERE user_id = ?", [id], (err, result) => {
+    if (err) return res.status(500).json(err);
+    res.status(200).json({ message: "Record deleted successfully!" });
+  });
+  res.status(200).json({ success: true, message: "User data updated successfully" });
+});
 
 router.delete("/user/:id", (req, res) => {
   console.log("delete")

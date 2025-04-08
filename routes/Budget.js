@@ -170,8 +170,8 @@ router.get("/budgetsConfer", async (req, res) => {
              AND f.form_status IN ('รองคณบดี', 'คณบดี', 'รออนุมัติ', 'อนุมัติ') 
              THEN b.amount_approval 
         END) AS totalapproved
-    FROM budget b
-    JOIN form f ON b.form_id = f.form_id;
+    FROM Budget b
+    JOIN Form f ON b.form_id = f.form_id;
       `
     );
     console.log("budgets CONFER", budgets)

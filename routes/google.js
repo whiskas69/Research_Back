@@ -44,7 +44,7 @@ router.post("/auth", async (req, res) => {
     // }
 
     //ตรวจสอบในฐานข้อมูลว่ามีผู้ใช้อยู่หรือไม่
-    let [rows] = await db.query("SELECT * FROM users WHERE user_email = ?", [
+    let [rows] = await db.query("SELECT * FROM Users WHERE user_email = ?", [
       userDetails.email,
     ]);
 
@@ -87,7 +87,7 @@ router.get("/me", authenticate, async (req, res) => {
   }
 
   try {
-    const [rows] = await db.query("SELECT * FROM users WHERE user_id = ?", [
+    const [rows] = await db.query("SELECT * FROM Users WHERE user_id = ?", [
       req.user.userId,
     ]);
 
