@@ -68,6 +68,7 @@ const researchSchema = Joi.object({
   h_index: Joi.number().required(),
   his_invention: Joi.string().required(),
   participation_percent: Joi.number().greater(0).max(100).required(),
+  proposed_budget: Joi.number().required(),
   year: Joi.number().integer().required(),
   project_periodStart: Joi.date().required(),
   project_periodEnd: Joi.date()
@@ -102,8 +103,8 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     //insert data to Research_KRIS
     const [kris_result] = await database.query(
       `INSERT INTO Research_KRIS (
-      user_id, name_research_th, name_research_en, research_cluster, res_cluster_other, res_standard, res_standard_trade, h_index, his_invention, participation_percent, year, project_periodStart, project_periodEnd)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      user_id, name_research_th, name_research_en, research_cluster, res_cluster_other, res_standard, res_standard_trade, h_index, his_invention, participation_percent, proposed_budget, year, project_periodStart, project_periodEnd)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         kris_data.user_id,
         kris_data.name_research_th,
@@ -115,6 +116,7 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
         kris_data.h_index,
         kris_data.his_invention,
         kris_data.participation_percent || null,
+        kris_data.proposed_budget,
         kris_data.year,
         kris_data.project_periodStart,
         kris_data.project_periodEnd,

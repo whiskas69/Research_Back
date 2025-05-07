@@ -142,6 +142,12 @@ const pageChargeSchema = Joi.object({
 
   article_title: Joi.string().required(),
 
+  num_co_researchers: Joi.number().integer(),
+
+  name_co_researchers: Joi.string(), 
+
+  course_co_researchers: Joi.string(),
+
   vol_journal: Joi.number().integer().min(new Date().getFullYear()),
 
   issue_journal: Joi.number().integer(),
@@ -203,6 +209,7 @@ router.post(
     const requiredFiles = ["pc_proof", "q_pc_proof", "copy_article"];
     const missingFiles = requiredFiles.filter((field) => !req.files[field]);
 
+    console.log("all data", req.body)
     //check dataError and missingFiles
     try {
       //check missingFiles
@@ -223,6 +230,7 @@ router.post(
 
     const pageChargeData = req.body;
     const pageChargeFiles = req.files;
+    console.log("pageChargeData",pageChargeData)
 
     const database = await db.getConnection();
     await database.beginTransaction(); //start transaction
@@ -233,11 +241,12 @@ router.post(
         user_id, pageC_times, pageC_days, journal_name, quality_journal,
         pc_isi_year, pc_sjr_year, pc_scopus_year, impact_factor, sjr_score,
         cite_score, qt_isi, qt_sjr, qt_scopus, support_limit, article_title,
+        num_co_researchers, name_co_researchers, course_co_researchers,
         vol_journal, issue_journal, month, year, ISSN_ISBN, submission_date,
         date_review_announce, final_date, article_research_ject, research_type,
         research_type2, name_funding_source, budget_limit, annual, presenter_type,
         request_support)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       //insert to Page_Charge
       const [pagec_result] = await database.query(query, [
@@ -257,6 +266,9 @@ router.post(
         pageChargeData.qt_scopus || null,
         pageChargeData.support_limit,
         pageChargeData.article_title,
+        pageChargeData.num_co_researchers || null,
+        JSON.stringify(pageChargeData.name_co_researchers || null),
+        JSON.stringify(pageChargeData.course_co_researchers || null),
         pageChargeData.vol_journal,
         pageChargeData.issue_journal,
         pageChargeData.month,

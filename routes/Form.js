@@ -100,6 +100,7 @@ router.get("/form/:id", async (req, res) => {
       ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
       ,COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title
       ,COALESCE(c.conf_name, p.journal_name) AS article_name
+      ,COALESCE(c.doc_submit_date, p.doc_submit_date, k.doc_submit_date) AS doc_submit_date
       FROM Form f
       LEFT JOIN Research_KRIS k ON f.kris_id = k.kris_id
       LEFT JOIN Conference c ON f.conf_id = c.conf_id
@@ -128,6 +129,7 @@ router.get("/allForms", async (req, res) => {
       ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
       ,COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title
       ,COALESCE(c.conf_name, p.journal_name) AS article_name
+      ,COALESCE(c.doc_submit_date, p.doc_submit_date, k.doc_submit_date) AS doc_submit_date
       ,u.user_nameth
       FROM Form f
       LEFT JOIN Research_KRIS k ON f.kris_id = k.kris_id

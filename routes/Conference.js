@@ -68,6 +68,9 @@ const ConferSchema = Joi.object({
   trav_dateEnd: Joi.date().iso().min(Joi.ref("trav_dateStart")).required(), //test ก่อนนะ
   conf_research: Joi.string().required(),
   conf_name: Joi.string().required(),
+  num_co_researchers: Joi.number().integer(),
+  name_co_researchers: Joi.string(), 
+  course_co_researchers: Joi.string(),
   country_conf: Joi.any().valid("ณ ต่างประเทศ", "ภายในประเทศ").required(),
   location: Joi.string().required(),
   meeting_date: Joi.date()
@@ -251,17 +254,19 @@ router.post(
     try {
       //query insert data to Conference
       const query = `INSERT INTO Conference (
-        user_id, conf_times, conf_days, trav_dateStart, trav_dateEnd, conf_research, conf_name,
+        user_id, conf_times, conf_days, trav_dateStart, trav_dateEnd, conf_research,
+        num_co_researchers, name_co_researchers, course_co_researchers, conf_name,
         meeting_date, meeting_venue, date_submit_organizer, argument_date_review, last_day_register,
         meeting_type, quality_meeting, presenter_type, time_of_leave, location, wos_2_leave, name_2_leave,
         withdraw, wd_100_quality, wd_name_100, country_conf, num_register_articles, regist_amount_1_article, total_amount,
         domestic_expenses, overseas_expenses, travel_country, inter_expenses, airplane_tax, num_days_room, room_cost_per_night, total_room,
         num_travel_days, daily_allowance,total_allowance, all_money)
-        VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)`;
+        VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)`;
 
         //insert data to Conference
       const [conference_result] = await database.query(query, [
-        conferenceData.user_id, conferenceData.conf_times, conferenceData.conf_days, conferenceData.trav_dateStart, conferenceData.trav_dateEnd, conferenceData.conf_research,
+        conferenceData.user_id, conferenceData.conf_times, conferenceData.conf_days, conferenceData.trav_dateStart, conferenceData.trav_dateEnd, 
+        conferenceData.conf_research, conferenceData.num_co_researchers || null, JSON.stringify(conferenceData.name_co_researchers || null), JSON.stringify(conferenceData.course_co_researchers || null),
         conferenceData.conf_name, conferenceData.meeting_date, conferenceData.meeting_venue, conferenceData.date_submit_organizer, conferenceData.argument_date_review,
         conferenceData.last_day_register, conferenceData.meeting_type, conferenceData.quality_meeting, conferenceData.presenter_type, conferenceData.time_of_leave,
         conferenceData.location || null, conferenceData.wos_2_leave || null, conferenceData.name_2_leave || null, conferenceData.withdraw || null,
