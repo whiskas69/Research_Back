@@ -42,7 +42,7 @@ router.post("/opinionConf", async (req, res) => {
     //update status form
     const [updateForm_result] = await database.query(
       "UPDATE Form SET form_status = ? WHERE conf_id = ?",
-      ["ฝ่ายบริหารงานวิจัย", data.conf_id]
+      [data.form_status, data.conf_id]
     );
 
     //get form_id
