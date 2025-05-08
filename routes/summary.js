@@ -14,6 +14,8 @@ router.get("/all_summary_conference", async (req, res) => {
     c.meeting_type,
     c.quality_meeting,
     c.time_of_leave,
+    c.trav_dateStart,
+    c.trav_dateEnd,
     c.withdraw,
     f.form_status,
     COALESCE(c.total_amount, 0) AS total_amount,
@@ -28,7 +30,8 @@ router.get("/all_summary_conference", async (req, res) => {
     LEFT JOIN Form f ON c.conf_id = f.conf_id
     LEFT JOIN Budget b ON f.form_id = b.form_id
     WHERE f.form_status = "อนุมัติ"
-    AND b.budget_year = YEAR(CURDATE()) + 543;`);
+    AND b.budget_year = YEAR(CURDATE()) + 543;`
+    );
 
     res.status(200).json(Summary);
   } catch (error) {
@@ -50,8 +53,7 @@ router.get("/all_summary_page_charge", async (req, res) => {
     p.qt_scopus,
     p.month,
     p.year,
-    p.article_research_ject,
-    p.research_type,
+    p.date_review_announce,
     p.request_support,
     f.form_status,
     b.budget_year
@@ -126,8 +128,8 @@ WHERE f.form_status = "อนุมัติ";
       GROUP BY b.budget_year
       ORDER BY b.budget_year DESC;`
     );
-    console.log("count", count)
-    console.log("Summary", Summary)
+    console.log("count", count);
+    console.log("Summary", Summary);
     res.status(200).json([Summary, count]);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -293,25 +295,25 @@ router.get("/count_confer_country", async (req, res) => {
       GROUP BY region_category, c.location, c.withdraw, c.country_conf
       ORDER BY region_category ASC, c.location ASC;`
     );
-    
+
     // จัดกลุ่มข้อมูลตาม region_category
     const groupedSummary = Summary.reduce((acc, row) => {
       const { region_category, ...data } = row;
-    
+
       if (!acc[region_category]) {
         acc[region_category] = { count: 0, data: [] };
       }
-    
+
       acc[region_category].count += 1;
       acc[region_category].data.push(data);
-    
+
       return acc;
     }, {});
     res.status(200).json(groupedSummary);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-})
+});
 
 router.get("/count_confer_thai", async (req, res) => {
   try {
@@ -343,12 +345,12 @@ router.get("/count_confer_thai", async (req, res) => {
     ORDER BY c.location ASC;
 `
     );
-    
+
     res.status(200).json(Summary);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-})
+});
 
 router.get("/eachyears", async (req, res) => {
   const [Summary] = await db.query(
@@ -368,7 +370,7 @@ ORDER BY b.budget_year DESC;
   );
 
   res.status(200).json(Summary);
-})
+});
 
 router.get("/money_user", async (req, res) => {
   const [Summary] = await db.query(
@@ -384,11 +386,80 @@ LEFT JOIN Budget b ON b.user_id = u.user_id AND b.budget_year = YEAR(CURDATE()) 
 LEFT JOIN Form f ON f.form_id = b.form_id AND f.form_status = 'อนุมัติ'
 GROUP BY u.user_id
 ORDER BY u.user_nameth;
-
 `
   );
 
   res.status(200).json(Summary);
-})
+});
+
+router.get("/all_sum", async (req, res) => {
+  const [rows] = await db.query(`
+    SELECT
+  y.budget_year,
+  t.form_type,
+  IFNULL(COUNT(b.budget_id), 0) AS total_forms_approved,
+  IFNULL(COUNT(DISTINCT b.user_id), 0) AS total_users_approved,
+  IFNULL(FORMAT(SUM(b.amount_approval), 2), '0.00') AS total_amount_approved
+FROM
+  (SELECT DISTINCT budget_year FROM budget) AS y
+  CROSS JOIN
+  (SELECT DISTINCT form_type FROM form) AS t
+  LEFT JOIN (
+    SELECT * FROM form WHERE form_status = 'อนุมัติ'
+  ) AS f ON f.form_type = t.form_type
+  LEFT JOIN budget b ON b.form_id = f.form_id AND b.budget_year = y.budget_year
+GROUP BY
+  y.budget_year,
+  t.form_type
+ORDER BY
+  y.budget_year, t.form_type;
+  `);
+
+  const allFormTypes = ["Conference", "Page_Charge"]; // ฟอร์มที่ต้องมีเสมอ
+
+  const grouped = rows.reduce((acc, row) => {
+    const year = row.budget_year;
+    if (!acc[year]) {
+      acc[year] = {
+        budget_year: year,
+        forms: [],
+      };
+    }
+
+    acc[year].forms.push({
+      form_type: row.form_type,
+      total_forms_approved: Number(row.total_forms_approved),
+      total_users_approved: Number(row.total_users_approved),
+      total_amount_approved: row.total_amount_approved,
+    });
+
+    return acc;
+  }, {});
+
+  // 🔧 เติม form_type ที่ขาด
+  Object.values(grouped).forEach((group) => {
+    const existingTypes = group.forms.map((f) => f.form_type);
+    allFormTypes.forEach((type) => {
+      if (!existingTypes.includes(type)) {
+        group.forms.push({
+          form_type: type,
+          total_forms_approved: 0,
+          total_users_approved: 0,
+          total_amount_approved: "0.00",
+        });
+      }
+    });
+
+    // จัดเรียง form_type
+    group.forms.sort(
+      (a, b) =>
+        allFormTypes.indexOf(a.form_type) - allFormTypes.indexOf(b.form_type)
+    );
+  });
+
+  const finalResult = Object.values(grouped);
+
+  res.status(200).json(finalResult);
+});
 
 exports.router = router;
