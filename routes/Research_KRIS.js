@@ -2,11 +2,11 @@ const express = require("express");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
-
-const db = require("../config.js");
-
 const Joi = require("joi");
 const { DateTime } = require("luxon");
+
+const db = require("../config.js");
+const createTransporter = require("../middleware/mailer.js");
 
 const router = express.Router();
 
@@ -166,7 +166,31 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     );
     console.log("notification_result", notification_result);
 
+    const getuser = await database.query(
+      `SELECT user_nameth FROM Users WHERE user_id = ?`,
+      [kris_data.user_id]
+    );
+    console.log("getuser", getuser[0][0]);
+
     await database.commit(); //commit transaction
+
+    //send email to user
+    const transporter = createTransporter();
+    const mailOptions = {
+      form: `"ระบบสนับสนุนงานบริหารงานวิจัย" <${process.env.EMAIL_USER}>`,
+      to: "64070105@kmitl.ac.th", //edit mail
+      subject: "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการส่งแบบฟอร์มงานวิจัย",
+      text: `มีการส่งแบบฟอร์มงานวิจัยจาก ${getuser[0][0].user_nameth} ชื่อโครงการ: ${kris_data.name_research_th}
+      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`
+    };
+
+    try {
+      const info = await transporter.sendMail(mailOptions);
+      console.log("Email sent:", info.response);
+    } catch (error) {
+      console.error("Error sending email:", error);
+    }
+
     res.status(200).json({ success: true, message: "Success",});
   } catch (error) {
     database.rollback(); //rollback transaction

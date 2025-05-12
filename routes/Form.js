@@ -1,5 +1,6 @@
 const express = require("express");
 const db = require("../config.js");
+const createTransporter = require("../middleware/mailer.js");
 
 router = express.Router();
 
@@ -201,6 +202,24 @@ router.put("/form/:id", async (req, res) => {
       ]
     );
     console.log("update form: ", form);
+
+      //send email to user
+      const transporter = createTransporter();
+      const mailOptions = {
+        form: `"ระบบสนับสนุนงานบริหารงานวิจัย" <${process.env.EMAIL_USER}>`,
+        to: "64070105@kmitl.ac.th", //edit mail
+        subject: "แจ้งเตือนจากระบบสนับสนุนงานวิจัย แบบฟอร์มขอรับการสนับสนุน หรือแบบฟอร์มงานวิจัยได้รับการอนุมัติหรือตอบกลับแล้ว",
+        text: `แบบฟอร์มขอรับการสนับสนุน ได้รับการอนุมัติหรือตอบกลับแล้ว ท่านสามารถเข้าระบบสนับสนุนงานบริหารงานวิจัยเพื่อดูรายละเอียดเพิ่มเติมได้
+        กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`,
+      };
+
+      try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log("Email sent:", info.response);
+      } catch (error) {
+        console.error("Error sending email:", error);
+      }
+
     res.status(200).json({ message: "form updated successfully!", id });
   } catch (err) {
     res.status(500).json({ error: err.message });

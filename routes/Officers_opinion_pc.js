@@ -1,5 +1,6 @@
 const express = require("express");
 const db = require("../config.js");
+const createTransporter = require("../middleware/mailer.js");
 
 router = express.Router();
 
@@ -55,8 +56,25 @@ router.post("/opinionPC", async (req, res) => {
     )
     console.log("updateNoti_result : ", updateNoti_result);
 
-    console.log("updateForm_result :", updateForm_result);
     await database.commit(); //commit transaction
+
+    //send email to user
+    const transporter = createTransporter();
+    const mailOptions = {
+      form: `"ระบบสนับสนุนงานบริหารงานวิจัย" <${process.env.EMAIL_USER}>`,
+      to: "64070105@kmitl.ac.th", //edit mail
+      subject: "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ในวารสารรอการอนุมัติและตรวจสอบ",
+      text: `มีแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ในวารสารรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
+      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`,
+    };
+
+    try {
+      const info = await transporter.sendMail(mailOptions);
+      console.log("Email sent:", info.response);
+    } catch (error) {
+      console.error("Error sending email:", error);
+    }
+
     res.status(200).json({ success: true, message: "Success" });
   } catch (error) {
     database.rollback(); //rollback transaction
@@ -122,9 +140,25 @@ router.put("/opinionPC/:id", async (req, res) => {
     )
     console.log("updateNoti_result : ", updateNoti_result);
 
-    console.log("updateForm_result :", updateForm_result);
-
     await database.commit(); //commit transaction
+
+    //send email to user
+    const transporter = createTransporter();
+    const mailOptions = {
+      form: `"ระบบสนับสนุนงานบริหารงานวิจัย" <${process.env.EMAIL_USER}>`,
+      to: "64070105@kmitl.ac.th", //edit mail
+      subject: "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ในวารสารรอการอนุมัติและตรวจสอบ",
+      text: `มีแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ในวารสารรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
+      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`,
+    };
+
+    try {
+      const info = await transporter.sendMail(mailOptions);
+      console.log("Email sent:", info.response);
+    } catch (error) {
+      console.error("Error sending email:", error);
+    }
+    
     res.status(200).json({ success: true, message: "Success" });
   } catch (error) {
     database.rollback(); //rollback transaction
