@@ -264,7 +264,7 @@ router.get("/getFilekris", async (req, res) => {
     [kris_id]
   );
 
-  const fileUrl = `http://localhost:3000/uploads/${file[0]?.[0]?.kris_file}`;
+  const fileUrl = `http://localhost:3002/uploads/${file[0]?.[0]?.kris_file}`;
 
   res.json({ message: "Get File successfully", fileUrl });
 });

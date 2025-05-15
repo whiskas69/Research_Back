@@ -7,7 +7,7 @@ const path = require('path');
 const createTransporter = require('./middleware/mailer.js');
 
 const app = express();
-const PORT = 3000;
+const PORT = 3002;
 
 app.use(cors({ credentials: true, origin: ["http://127.0.0.1:80", "http://localhost:5173"] }));
 app.use(cookieParser())

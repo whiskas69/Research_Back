@@ -654,11 +654,11 @@ router.get("/getFilepage_c", async (req, res) => {
     [pageC_id]
   );
 
-  const file_pc_proof = `http://localhost:3000/uploads/${file[0]?.[0]?.pc_proof}`;
-  const file_q_pc_proof = `http://localhost:3000/uploads/${file[0]?.[0]?.q_pc_proof}`;
-  const file_invoice_public = `http://localhost:3000/uploads/${file[0]?.[0]?.invoice_public}`;
-  const file_accepted = `http://localhost:3000/uploads/${file[0]?.[0]?.accepted}`;
-  const file_copy_article = `http://localhost:3000/uploads/${file[0]?.[0]?.copy_article}`;
+  const file_pc_proof = `http://localhost:3002/uploads/${file[0]?.[0]?.pc_proof}`;
+  const file_q_pc_proof = `http://localhost:3002/uploads/${file[0]?.[0]?.q_pc_proof}`;
+  const file_invoice_public = `http://localhost:3002/uploads/${file[0]?.[0]?.invoice_public}`;
+  const file_accepted = `http://localhost:3002/uploads/${file[0]?.[0]?.accepted}`;
+  const file_copy_article = `http://localhost:3002/uploads/${file[0]?.[0]?.copy_article}`;
 
   res.json({
     message: "Get File Successfully",
