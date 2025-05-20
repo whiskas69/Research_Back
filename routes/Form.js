@@ -79,7 +79,7 @@ router.get("/formsOffice", async (req, res) => {
         }
       }
     }
-console.log("pageC3rr3",pageC)
+    console.log("pageC3rr3", pageC)
     return res.send({
       forms: forms,
       confer: confer,
@@ -153,58 +153,83 @@ router.get("/allForms", async (req, res) => {
   }
 });
 
-router.get("/formPC/:id", async (req,res) => {
+router.get("/formPC/:id", async (req, res) => {
   console.log("get id pc in form")
   const { id } = req.params;
   console.log("form id: ", id);
-  try{
+  try {
     const [form] = await db.query("SELECT * FROM Form WHERE pageC_id = ?", [
       id,
     ]);
     console.log("get id pc: ", form[0]);
     res.status(200).json(form[0]);
-  }catch (err) {
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 })
 
-router.get("/formConfer/:id", async (req,res) => {
+router.get("/formConfer/:id", async (req, res) => {
   console.log("get id confer in form")
   const { id } = req.params;
   console.log("form id: ", id);
-  try{
+  try {
     const [form] = await db.query("SELECT * FROM Form WHERE conf_id = ?", [
       id,
     ]);
     console.log("get id confer: ", form[0]);
     res.status(200).json(form[0]);
-  }catch (err) {
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 })
 
-router.put("/form/:id", async (req, res) => {
-  console.log("in Update form");
+// router.put("/form/:id", async (req, res) => {
+//   console.log("in Update form");
+//   const { id } = req.params;
+//   console.log("form id: ", id);
+//   const updates = req.body;
+//   try {
+//     console.log("updates: ", updates);
+//     const [form] = await db.query(
+//       `UPDATE Form SET
+//     form_type = ?, conf_id = ?, pageC_id = ?, kris_id = ?,
+//     form_status = ? WHERE form_id = ?`,
+//       [
+//         updates.form_type, updates.conf_id || null, updates.pageC_id || null,
+//         updates.kris_id || null, updates.form_status,
+//         id
+//       ]
+//     );
+//     console.log("update form: ", form);
+//     res.status(200).json({ message: "form updated successfully!", id });
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+router.put("/editForm/:id", async (req, res) => {
+  console.log("editForm in id:", req.params)
   const { id } = req.params;
-  console.log("form id: ", id);
   const updates = req.body;
+  const editDataJson = JSON.stringify(req.body.edit_data)
+  console.log("12345", updates)
+  console.log("12345", editDataJson)
   try {
-    console.log("updates: ", updates);
-    const [form] = await db.query(
-      `UPDATE Form SET
-    form_type = ?, conf_id = ?, pageC_id = ?, kris_id = ?,
-    form_status = ? WHERE form_id = ?`,
-      [
-        updates.form_type, updates.conf_id || null, updates.pageC_id || null,
-        updates.kris_id || null, updates.form_status,
-        id
-      ]
-    );
-    console.log("update form: ", form);
-    res.status(200).json({ message: "form updated successfully!", id });
+    console.log("12345")
+    if (updates.conf_id) {
+      console.log("in conf_id")
+      const [updateOfficeEditForm] = await db.query(
+        `UPDATE Form SET edit_data = ? WHERE conf_id = ?`,
+        [editDataJson, id]
+      )
+      console.log("updateOpi_result :", updateOfficeEditForm);
+      res.status(200).json({ success: true, message: "Success",  data: updateOfficeEditForm});
+    }
+    
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+})
 
 exports.router = router;

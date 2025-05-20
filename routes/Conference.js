@@ -384,26 +384,26 @@ router.get("/conference/:id", async (req, res) => {
 });
 
 //update data to db by id Office
-router.put("/conference/:id", async (req, res) => {
-  const { id } = req.params;
-  const updates = req.body;
+// router.put("/conference/:id", async (req, res) => {
+//   const { id } = req.params;
+//   const updates = req.body;
 
-  try {
-    const fields = Object.keys(updates)
-      .map((key) => `${key} = ?`)
-      .join(", ");
-    const values = Object.values(updates);
-    const query = `UPDATE Conference SET ${fields} WHERE conf_id = ?`;
-    const [result] = await db.query(query, [...values, id]);
+//   try {
+//     const fields = Object.keys(updates)
+//       .map((key) => `${key} = ?`)
+//       .join(", ");
+//     const values = Object.values(updates);
+//     const query = `UPDATE Conference SET ${fields} WHERE conf_id = ?`;
+//     const [result] = await db.query(query, [...values, id]);
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Conference not found" });
-    }
-    res.status(200).json({ message: "Conference updated" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+//     if (result.affectedRows === 0) {
+//       return res.status(404).json({ message: "Conference not found" });
+//     }
+//     res.status(200).json({ message: "Conference updated" });
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
 
 //status page
 router.get("/form/confer/:id", async (req, res) => {
