@@ -170,6 +170,7 @@ CREATE TABLE Form (
 	pageC_id INT UNIQUE,
 	kris_id INT UNIQUE,
 	form_status ENUM('ฝ่ายบริหารทรัพยากรบุคคล','ฝ่ายบริหารงานวิจัย',  'ฝ่ายบริหารการเงิน', 'รองคณบดี', 'คณบดี','รออนุมัติ', 'อนุมัติ', 'ไม่อนุมัติ', 'เข้าที่ประชุม') NOT NULL,
+    edit_data JSON,
 	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id),
 	FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id),
 	FOREIGN KEY (kris_id) REFERENCES Research_KRIS(kris_id)
