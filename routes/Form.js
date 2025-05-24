@@ -96,7 +96,7 @@ router.get("/form/:id", async (req, res) => {
 
   try {
     const [form] = await db.query(
-      `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, f.kris_id, f.form_status ,b.amount_approval
+      `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, f.kris_id, f.form_status, f.edit_data ,b.amount_approval
       ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
       ,COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title
       ,COALESCE(c.conf_name, p.journal_name) AS article_name
@@ -206,6 +206,22 @@ router.get("/formConfer/:id", async (req, res) => {
 //     res.status(500).json({ error: err.message });
 //   }
 // });
+
+// router.get("/editForm/:id", async (req, res) => {
+//   console.log("get id confer in editForm")
+//   const { id } = req.params;
+//   console.log("form id: ", id);
+//   try {
+//     const [form] = await db.query(
+//       "SELECT * FROM Form WHERE conf_id = ?", [
+//       id,
+//     ]);
+//     console.log("get id confer: ", form[0]);
+//     res.status(200).json(form[0]);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// })
 
 router.put("/editForm/:id", async (req, res) => {
   console.log("editForm in id:", req.params)
