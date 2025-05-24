@@ -187,7 +187,7 @@ CREATE TABLE File_pdf (
 	published_journals VARCHAR(255),
 	q_proof VARCHAR(255),
 	call_for_paper VARCHAR(255),
-	fee_receipt VARCHAR(255),
+	fee_receipt VARCHAR(255),          
 	fx_rate_document VARCHAR(255),
 	conf_proof VARCHAR(255),
 	pc_proof VARCHAR(255), -- pc

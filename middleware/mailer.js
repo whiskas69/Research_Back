@@ -1,8 +1,4 @@
-// middleware/mailer.js
-require('dotenv').config(); // โหลด .env ที่นี่อีกครั้ง (เฉพาะกรณี)
-
-console.log('[mailer] EMAIL_USER:', process.env.EMAIL_USER); // ต้องไม่ undefined
-console.log('[mailer] EMAIL_PASS:', process.env.EMAIL_PASS); // ต้องไม่ undefined
+require('dotenv').config();
 
 const nodemailer = require('nodemailer');
 
