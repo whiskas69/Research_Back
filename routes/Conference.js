@@ -2,11 +2,11 @@ const express = require("express");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
-
-const db = require("../config.js");
-
 const Joi = require("joi");
 const { DateTime } = require("luxon");
+
+const db = require("../config.js");
+const createTransporter = require("../middleware/mailer.js");
 
 const router = express.Router();
 
@@ -69,7 +69,7 @@ const ConferSchema = Joi.object({
   conf_research: Joi.string().required(),
   conf_name: Joi.string().required(),
   num_co_researchers: Joi.number().integer(),
-  name_co_researchers: Joi.string(), 
+  name_co_researchers: Joi.string(),
   course_co_researchers: Joi.string(),
   country_conf: Joi.any().valid("ณ ต่างประเทศ", "ภายในประเทศ").required(),
   location: Joi.string().required(),
@@ -199,7 +199,11 @@ const ConferSchema = Joi.object({
   daily_allowance: Joi.number().invalid(0).precision(2).allow(null, ""),
   total_allowance: Joi.number().invalid(0).precision(2).allow(null, ""),
   all_money: Joi.number().invalid(0).precision(2).allow(null, ""),
-  date_published_journals: Joi.number().integer().min(today.year - 2).max(today.year).allow(null, ""),
+  date_published_journals: Joi.number()
+    .integer()
+    .min(today.year - 2)
+    .max(today.year)
+    .allow(null, ""),
 });
 
 //insert data to db
@@ -240,7 +244,9 @@ router.post(
       await ConferSchema.validate(req.body, { abortEarly: false });
     } catch (error) {
       console.log("error", error);
-      return res.status(400).json({ error: error.details.map((err) => err.message) });
+      return res
+        .status(400)
+        .json({ error: error.details.map((err) => err.message) });
     }
 
     const conferenceFile = req.files;
@@ -249,7 +255,7 @@ router.post(
     const database = await db.getConnection();
     await database.beginTransaction(); //start transaction
 
-    console.log("conferdata : ", conferenceData)
+    console.log("conferdata : ", conferenceData);
 
     try {
       //query insert data to Conference
@@ -263,18 +269,49 @@ router.post(
         num_travel_days, daily_allowance,total_allowance, all_money)
         VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)`;
 
-        //insert data to Conference
+      //insert data to Conference
       const [conference_result] = await database.query(query, [
-        conferenceData.user_id, conferenceData.conf_times, conferenceData.conf_days, conferenceData.trav_dateStart, conferenceData.trav_dateEnd, 
-        conferenceData.conf_research, conferenceData.num_co_researchers || null, JSON.stringify(conferenceData.name_co_researchers || null), JSON.stringify(conferenceData.course_co_researchers || null),
-        conferenceData.conf_name, conferenceData.meeting_date, conferenceData.meeting_venue, conferenceData.date_submit_organizer, conferenceData.argument_date_review,
-        conferenceData.last_day_register, conferenceData.meeting_type, conferenceData.quality_meeting, conferenceData.presenter_type, conferenceData.time_of_leave,
-        conferenceData.location || null, conferenceData.wos_2_leave || null, conferenceData.name_2_leave || null, conferenceData.withdraw || null,
-        conferenceData.wd_100_quality || null, conferenceData.wd_name_100 || null, conferenceData.country_conf, conferenceData.num_register_articles,
-        conferenceData.regist_amount_1_article, conferenceData.total_amount, conferenceData.domestic_expenses || null, conferenceData.overseas_expenses || null,
-        conferenceData.travel_country || null, conferenceData.inter_expenses || null, conferenceData.airplane_tax || null, conferenceData.num_days_room || null,
-        conferenceData.room_cost_per_night || null, conferenceData.total_room || null, conferenceData.num_travel_days || null, conferenceData.daily_allowance || null,
-        conferenceData.total_allowance || null, conferenceData.all_money
+        conferenceData.user_id,
+        conferenceData.conf_times,
+        conferenceData.conf_days,
+        conferenceData.trav_dateStart,
+        conferenceData.trav_dateEnd,
+        conferenceData.conf_research,
+        conferenceData.num_co_researchers || null,
+        JSON.stringify(conferenceData.name_co_researchers || null),
+        JSON.stringify(conferenceData.course_co_researchers || null),
+        conferenceData.conf_name,
+        conferenceData.meeting_date,
+        conferenceData.meeting_venue,
+        conferenceData.date_submit_organizer,
+        conferenceData.argument_date_review,
+        conferenceData.last_day_register,
+        conferenceData.meeting_type,
+        conferenceData.quality_meeting,
+        conferenceData.presenter_type,
+        conferenceData.time_of_leave,
+        conferenceData.location || null,
+        conferenceData.wos_2_leave || null,
+        conferenceData.name_2_leave || null,
+        conferenceData.withdraw || null,
+        conferenceData.wd_100_quality || null,
+        conferenceData.wd_name_100 || null,
+        conferenceData.country_conf,
+        conferenceData.num_register_articles,
+        conferenceData.regist_amount_1_article,
+        conferenceData.total_amount,
+        conferenceData.domestic_expenses || null,
+        conferenceData.overseas_expenses || null,
+        conferenceData.travel_country || null,
+        conferenceData.inter_expenses || null,
+        conferenceData.airplane_tax || null,
+        conferenceData.num_days_room || null,
+        conferenceData.room_cost_per_night || null,
+        conferenceData.total_room || null,
+        conferenceData.num_travel_days || null,
+        conferenceData.daily_allowance || null,
+        conferenceData.total_allowance || null,
+        conferenceData.all_money,
       ]);
 
       const confId = conference_result.insertId;
@@ -303,13 +340,14 @@ router.post(
         conf_id: confId,
         full_page: conferenceFile.full_page[0].filename,
         date_published_journals: conferenceData.date_published_journals || null,
-        published_journals: conferenceFile.published_journals?.[0]?.filename ?? null,
+        published_journals:
+          conferenceFile.published_journals?.[0]?.filename ?? null,
         q_proof: conferenceFile.q_proof?.[0]?.filename ?? null,
         call_for_paper: conferenceFile.call_for_paper[0].filename,
         accepted: conferenceFile.accepted[0].filename || null,
         fee_receipt: conferenceFile.fee_receipt[0].filename,
         fx_rate_document: conferenceFile.fx_rate_document[0].filename,
-        conf_proof: conferenceFile.conf_proof[0].filename
+        conf_proof: conferenceFile.conf_proof[0].filename,
       };
       console.log("fileData", fileData);
       //insert data to File_pdf
@@ -323,7 +361,7 @@ router.post(
         form_type: "Conference",
         conf_id: confId,
         form_status: "ฝ่ายบริหารทรัพยากรบุคคล",
-      }
+      };
 
       //insert data to Form
       const [form_result] = await database.query("INSERT INTO Form SET ?", [
@@ -336,13 +374,41 @@ router.post(
         `INSERT INTO Notification (
         user_id, form_id, name_form, is_read)
         VALUES (?, ?, ?, ?)`,
-        [conferenceData.user_id, form_result.insertId, conferenceData.conf_research, false]
+        [
+          conferenceData.user_id,
+          form_result.insertId,
+          conferenceData.conf_research,
+          false,
+        ]
       );
-
       console.log("notification_result", notification_result);
 
+      const getuser = await database.query(
+        `SELECT user_nameth FROM Users WHERE user_id = ?`,
+        [conferenceData.user_id]
+      );
+      console.log("getuser", getuser[0][0]);
+
       await database.commit(); //commit transaction
-      res.status(200).json({ success: true, message: "Success",});
+
+      //send email to user
+      const transporter = createTransporter();
+      const mailOptions = {
+        form: `"ระบบสนับสนุนงานบริหารงานวิจัย" <${process.env.EMAIL_USER}>`,
+        to: "64070105@kmitl.ac.th", //edit mail
+        subject: "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการส่งแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุม",
+        text: `มีการส่งแบบฟอร์มขอรับการสนับสนุนจาก ${getuser[0][0].user_nameth} งานวิจัย: ${conferenceData.conf_name} กำลังรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
+        กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`,
+      };
+
+      try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log("Email sent:", info.response);
+      } catch (error) {
+        console.error("Error sending email:", error);
+      }
+
+      res.status(200).json({ success: true, message: "Success" });
     } catch (error) {
       database.rollback(); //rollback transaction
       console.error("Error inserting into database:", error);
@@ -369,7 +435,8 @@ router.get("/conference/:id", async (req, res) => {
 
   try {
     const [conference] = await db.query(
-      "SELECT * FROM Conference WHERE conf_id = ?", [id]
+      "SELECT * FROM Conference WHERE conf_id = ?",
+      [id]
     );
 
     if (conference.length === 0) {
@@ -506,15 +573,15 @@ router.get("/getFileConf", async (req, res) => {
 
   console.log("file", file);
 
-  const file_full_page = `http://localhost:3000/uploads/${file[0]?.[0]?.full_page}`;
-  const date_published_journals = file[0][0].date_published_journals
-  const file_published_journals = `http://localhost:3000/uploads/${file[0]?.[0]?.published_journals}`;
-  const file_accepted = `http://localhost:3000/uploads/${file[0]?.[0]?.accepted}`;
-  const file_q_proof = `http://localhost:3000/uploads/${file[0]?.[0]?.q_proof}`;
-  const file_call_for_paper = `http://localhost:3000/uploads/${file[0]?.[0]?.call_for_paper}`;
-  const file_fee_receipt = `http://localhost:3000/uploads/${file[0]?.[0]?.fee_receipt}`;
-  const file_fx_rate_document = `http://localhost:3000/uploads/${file[0]?.[0]?.fx_rate_document}`;
-  const file_conf_proof = `http://localhost:3000/uploads/${file[0]?.[0]?.conf_proof}`;
+  const file_full_page = `http://localhost:3002/uploads/${file[0]?.[0]?.full_page}`;
+  const date_published_journals = file[0][0].date_published_journals;
+  const file_published_journals = `http://localhost:3002/uploads/${file[0]?.[0]?.published_journals}`;
+  const file_accepted = `http://localhost:3002/uploads/${file[0]?.[0]?.accepted}`;
+  const file_q_proof = `http://localhost:3002/uploads/${file[0]?.[0]?.q_proof}`;
+  const file_call_for_paper = `http://localhost:3002/uploads/${file[0]?.[0]?.call_for_paper}`;
+  const file_fee_receipt = `http://localhost:3002/uploads/${file[0]?.[0]?.fee_receipt}`;
+  const file_fx_rate_document = `http://localhost:3002/uploads/${file[0]?.[0]?.fx_rate_document}`;
+  const file_conf_proof = `http://localhost:3002/uploads/${file[0]?.[0]?.conf_proof}`;
 
   res.json({
     message: "Get File Successfully",

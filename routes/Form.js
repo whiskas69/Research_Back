@@ -1,5 +1,6 @@
 const express = require("express");
 const db = require("../config.js");
+const createTransporter = require("../middleware/mailer.js");
 
 router = express.Router();
 
