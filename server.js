@@ -9,7 +9,7 @@ const createTransporter = require('./middleware/mailer.js');
 const app = express();
 const PORT = 3002;
 
-app.use(cors({ credentials: true, origin: ["http://127.0.0.1:80", "http://localhost:5173"] }));
+app.use(cors({ credentials: true, origin: ["http://10.0.15.37:80", "http://10.0.15.37:5173"] }));
 app.use(cookieParser())
 // Statics
 // app.use(express.static('static'))
@@ -65,5 +65,5 @@ app.post('/api/data', (req, res) => {
 
 // Start the server
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server is running on http://10.0.15.37:${PORT}`);
 });

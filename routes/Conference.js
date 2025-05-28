@@ -595,15 +595,15 @@ router.get("/getFileConf", async (req, res) => {
 
   console.log("file", file);
 
-  const file_full_page = `http://localhost:3002/uploads/${file[0]?.[0]?.full_page}`;
+  const file_full_page = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.full_page}`;
   const date_published_journals = file[0][0].date_published_journals;
-  const file_published_journals = `http://localhost:3002/uploads/${file[0]?.[0]?.published_journals}`;
-  const file_accepted = `http://localhost:3002/uploads/${file[0]?.[0]?.accepted}`;
-  const file_q_proof = `http://localhost:3002/uploads/${file[0]?.[0]?.q_proof}`;
-  const file_call_for_paper = `http://localhost:3002/uploads/${file[0]?.[0]?.call_for_paper}`;
-  const file_fee_receipt = `http://localhost:3002/uploads/${file[0]?.[0]?.fee_receipt}`;
-  const file_fx_rate_document = `http://localhost:3002/uploads/${file[0]?.[0]?.fx_rate_document}`;
-  const file_conf_proof = `http://localhost:3002/uploads/${file[0]?.[0]?.conf_proof}`;
+  const file_published_journals = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.published_journals}`;
+  const file_accepted = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.accepted}`;
+  const file_q_proof = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.q_proof}`;
+  const file_call_for_paper = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.call_for_paper}`;
+  const file_fee_receipt = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.fee_receipt}`;
+  const file_fx_rate_document = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.fx_rate_document}`;
+  const file_conf_proof = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.conf_proof}`;
 
   res.json({
     message: "Get File Successfully",
