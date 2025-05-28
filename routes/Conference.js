@@ -450,27 +450,49 @@ router.get("/conference/:id", async (req, res) => {
   }
 });
 
-//update data to db by id Office
-// router.put("/conference/:id", async (req, res) => {
-//   const { id } = req.params;
-//   const updates = req.body;
+router.put("/editFormConfer/:id", async (req, res) => {
+  console.log("editFormConfer in id:", req.params)
+  const { id } = req.params;
+  const updates = req.body;
+  const editDataJson = req.body.edit_data
+  console.log("12345", updates)
+  console.log("12345", editDataJson)
+  try {
+    console.log("12345")
+    if (updates.conf_id) {
+      console.log("in conf_id")
 
-//   try {
-//     const fields = Object.keys(updates)
-//       .map((key) => `${key} = ?`)
-//       .join(", ");
-//     const values = Object.values(updates);
-//     const query = `UPDATE Conference SET ${fields} WHERE conf_id = ?`;
-//     const [result] = await db.query(query, [...values, id]);
 
-//     if (result.affectedRows === 0) {
-//       return res.status(404).json({ message: "Conference not found" });
-//     }
-//     res.status(200).json({ message: "Conference updated" });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// });
+      const setClause = editDataJson.map(item => `${item.field} = '${item.newValue}'`).join(", ")
+      console.log("in conf_id setClause", setClause)
+      const sql = await db.query(`UPDATE Conference SET ${setClause} WHERE conf_id = ${id};`)
+
+      console.log("789", sql);
+
+      const [updateOfficeEditForm] = await db.query(
+        `UPDATE Form SET edit_data = ? WHERE conf_id = ?`,
+        [editDataJson, id]
+      )
+      console.log("updateOpi_result :", updateOfficeEditForm);
+      
+    //score_type ENUM('SJR', 'CIF', 'CORE'),
+    // sjr_score DECIMAL(10,2),
+    // sjr_year INT,
+    // hindex_score DECIMAL(10,2),
+    // hindex_year INT,
+    // Citation DECIMAL(10,2),
+    // score_result DECIMAL(10,2),
+    // core_rank VARCHAR(255),
+
+
+      res.status(200).json({ success: true, message: "Success" });
+    }
+
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+})
 
 //status page
 router.get("/form/confer/:id", async (req, res) => {
