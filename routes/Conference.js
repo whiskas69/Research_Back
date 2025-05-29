@@ -450,27 +450,79 @@ router.get("/conference/:id", async (req, res) => {
   }
 });
 
-//update data to db by id Office
-// router.put("/conference/:id", async (req, res) => {
-//   const { id } = req.params;
-//   const updates = req.body;
+router.put("/editedFormConfer/:id", async (req, res) => {
+  console.log("editedFormConfer in id:", req.params)
+  const { id } = req.params;
+  const updates = req.body;
+  console.log("12345", updates)
 
-//   try {
-//     const fields = Object.keys(updates)
-//       .map((key) => `${key} = ?`)
-//       .join(", ");
-//     const values = Object.values(updates);
-//     const query = `UPDATE Conference SET ${fields} WHERE conf_id = ?`;
-//     const [result] = await db.query(query, [...values, id]);
+  try {
+    console.log("in conf_id")
+    const editDataJson = updates.edit_data
+    const editDataJsonScore = updates.score
+    console.log("12345 editDataJson", editDataJson)
+    console.log("12345 editDataJsonScore", editDataJsonScore)
 
-//     if (result.affectedRows === 0) {
-//       return res.status(404).json({ message: "Conference not found" });
-//     }
-//     res.status(200).json({ message: "Conference updated" });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// });
+    const setClause = editDataJson.map(item => `${item.field} = '${item.newValue}'`).join(", ")
+    console.log("in conf_id setClause", setClause)
+    const sql = await db.query(`UPDATE Conference SET ${setClause} WHERE conf_id = ${id};`)
+
+    const setClauseScore = editDataJsonScore.map(item => `${item.field} = '${item.newValue}'`).join(", ")
+    console.log("in conf_id setClause", setClauseScore)
+    const sore = await db.query(`UPDATE Score SET ${setClauseScore} WHERE conf_id = ${id};`)
+
+    console.log("789", sql);
+    console.log("789 sore", sore);
+
+    const allEdit = {
+      edit_data: updates.edit_data,
+      score: updates.score
+    };
+    const allEditString = JSON.stringify(allEdit);
+    const [updateOfficeEditetForm] = await db.query(
+      `UPDATE Form SET edit_data = ? WHERE conf_id = ?`,
+      [allEditString, id]
+    )
+    console.log("updateOpi_result :", updateOfficeEditetForm);
+    res.status(200).json({ success: true, message: "Success" });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+})
+
+// test many id
+router.put("/confirmEditedForm/:id", async (req, res) => {
+  console.log("confirmEditedForm in id:", req.params)
+  const { id } = req.params;
+  const updates = req.body;
+  console.log("12345", updates)
+  try {
+    console.log("in form id type", id)
+    let targetField = null;
+    if (updates.conf_id != null) {
+      targetField = "conf_id";
+    } else if (updates.pageC_id != null) {
+      targetField = "pageC_id";
+    } else if (updates.kris_id != null) {
+      targetField = "kris_id";
+    }
+    if (targetField) {
+      const [updateConfirmEditetForm] = await db.query(
+        `UPDATE Form SET edit_data = ?, form_status = ? WHERE ${targetField} = ?`,
+        [null, updates.form_status, updates[targetField]]
+      );
+      console.log("updateOpi_result :", updateConfirmEditetForm);
+    } else {
+      console.log("ไม่พบ field ที่ต้องการอัปเดตใน updates");
+    }
+
+    res.status(200).json({ success: true, message: "Success" });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+})
 
 //status page
 router.get("/form/confer/:id", async (req, res) => {
