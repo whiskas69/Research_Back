@@ -178,7 +178,7 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     const transporter = createTransporter();
     const mailOptions = {
       form: `"ระบบสนับสนุนงานบริหารงานวิจัย" <${process.env.EMAIL_USER}>`,
-      to: "64070105@kmitl.ac.th", //edit mail
+      to: "64070075@kmitl.ac.th", //edit mail
       subject: "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการส่งแบบฟอร์มงานวิจัย",
       text: `มีการส่งแบบฟอร์มงานวิจัยจาก ${getuser[0][0].user_nameth} ชื่อโครงการ: ${kris_data.name_research_th}
       กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`

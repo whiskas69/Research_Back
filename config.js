@@ -1,9 +1,9 @@
 const mysql = require('mysql2/promise');
 
 const pool = mysql.createPool({
-  host: '127.0.0.1',
+  host: 'localhost',
   user: 'root',
-  password: 'wine1234',//อย่าลืมแก้
+  password: ' root',//อย่าลืมแก้
   database: 'ResearchAdministration',
   waitForConnections: true,
   connectionLimit: 10,
