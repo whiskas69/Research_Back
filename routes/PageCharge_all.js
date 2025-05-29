@@ -144,7 +144,7 @@ const pageChargeSchema = Joi.object({
 
   num_co_researchers: Joi.number().integer(),
 
-  name_co_researchers: Joi.string(), 
+  name_co_researchers: Joi.string(),
 
   course_co_researchers: Joi.string(),
 
@@ -230,7 +230,7 @@ router.post(
 
     const pageChargeData = req.body;
     const pageChargeFiles = req.files;
-    console.log("pageChargeData",pageChargeData)
+    console.log("pageChargeData", pageChargeData)
 
     const database = await db.getConnection();
     await database.beginTransaction(); //start transaction
@@ -359,7 +359,7 @@ router.post(
       } catch (error) {
         console.error("Error sending email:", error);
       }
-      
+
       res.status(200).json({ success: true, message: "Success" });
     } catch (error) {
       database.rollback(); //rollback transaction
@@ -646,6 +646,41 @@ router.put(
   }
 );
 
+router.put("/editedFormPageChage/:id", async (req, res) => {
+  console.log("editedFormPageChage in id:", req.params)
+  const { id } = req.params;
+  const updates = req.body;
+  console.log("12345", updates)
+
+  try {
+    console.log("in pageC_id")
+    const editDataJson = updates.edit_data
+    console.log("12345 editDataJson", editDataJson)
+
+    const setClause = editDataJson
+      .map(item => {
+        const value = Array.isArray(item.newValue) ? JSON.stringify(item.newValue) : item.newValue;
+        return `${item.field} = '${value}'`;
+      })
+      .join(", ");
+    console.log("in pageC_id setClause", setClause)
+    const sql = await db.query(`UPDATE Page_Charge SET ${setClause} WHERE pageC_id = ${id};`)
+
+    console.log("789", sql);
+
+    const allEditString = JSON.stringify(updates.edit_data);
+    const [updateOfficeEditetForm] = await db.query(
+      `UPDATE Form SET edit_data = ? WHERE pageC_id = ?`,
+      [allEditString, id]
+    )
+    console.log("updateOpi_result :", updateOfficeEditetForm);
+    res.status(200).json({ success: true, message: "Success" });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+})
+
 router.get("/getFilepage_c", async (req, res) => {
   const { pageC_id } = req.query;
 
@@ -654,11 +689,11 @@ router.get("/getFilepage_c", async (req, res) => {
     [pageC_id]
   );
 
-  const file_pc_proof = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.pc_proof}`;
-  const file_q_pc_proof = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.q_pc_proof}`;
-  const file_invoice_public = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.invoice_public}`;
-  const file_accepted = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.accepted}`;
-  const file_copy_article = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.copy_article}`;
+  const file_pc_proof = `http://localhost:3002/uploads/${file[0]?.[0]?.pc_proof}`;
+  const file_q_pc_proof = `http://localhost:3002/uploads/${file[0]?.[0]?.q_pc_proof}`;
+  const file_invoice_public = `http://localhost:3002/uploads/${file[0]?.[0]?.invoice_public}`;
+  const file_accepted = `http://localhost:3002/uploads/${file[0]?.[0]?.accepted}`;
+  const file_copy_article = `http://localhost:3002/uploads/${file[0]?.[0]?.copy_article}`;
 
   res.json({
     message: "Get File Successfully",

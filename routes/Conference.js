@@ -450,44 +450,74 @@ router.get("/conference/:id", async (req, res) => {
   }
 });
 
-router.put("/editFormConfer/:id", async (req, res) => {
-  console.log("editFormConfer in id:", req.params)
+router.put("/editedFormConfer/:id", async (req, res) => {
+  console.log("editedFormConfer in id:", req.params)
   const { id } = req.params;
   const updates = req.body;
-  const editDataJson = req.body.edit_data
   console.log("12345", updates)
-  console.log("12345", editDataJson)
+
   try {
-    console.log("12345")
-    if (updates.conf_id) {
-      console.log("in conf_id")
+    console.log("in conf_id")
+    const editDataJson = updates.edit_data
+    const editDataJsonScore = updates.score
+    console.log("12345 editDataJson", editDataJson)
+    console.log("12345 editDataJsonScore", editDataJsonScore)
 
+    const setClause = editDataJson.map(item => `${item.field} = '${item.newValue}'`).join(", ")
+    console.log("in conf_id setClause", setClause)
+    const sql = await db.query(`UPDATE Conference SET ${setClause} WHERE conf_id = ${id};`)
 
-      const setClause = editDataJson.map(item => `${item.field} = '${item.newValue}'`).join(", ")
-      console.log("in conf_id setClause", setClause)
-      const sql = await db.query(`UPDATE Conference SET ${setClause} WHERE conf_id = ${id};`)
+    const setClauseScore = editDataJsonScore.map(item => `${item.field} = '${item.newValue}'`).join(", ")
+    console.log("in conf_id setClause", setClauseScore)
+    const sore = await db.query(`UPDATE Score SET ${setClauseScore} WHERE conf_id = ${id};`)
 
-      console.log("789", sql);
+    console.log("789", sql);
+    console.log("789 sore", sore);
 
-      const [updateOfficeEditForm] = await db.query(
-        `UPDATE Form SET edit_data = ? WHERE conf_id = ?`,
-        [editDataJson, id]
-      )
-      console.log("updateOpi_result :", updateOfficeEditForm);
-      
-    //score_type ENUM('SJR', 'CIF', 'CORE'),
-    // sjr_score DECIMAL(10,2),
-    // sjr_year INT,
-    // hindex_score DECIMAL(10,2),
-    // hindex_year INT,
-    // Citation DECIMAL(10,2),
-    // score_result DECIMAL(10,2),
-    // core_rank VARCHAR(255),
+    const allEdit = {
+      edit_data: updates.edit_data,
+      score: updates.score
+    };
+    const allEditString = JSON.stringify(allEdit);
+    const [updateOfficeEditetForm] = await db.query(
+      `UPDATE Form SET edit_data = ? WHERE conf_id = ?`,
+      [allEditString, id]
+    )
+    console.log("updateOpi_result :", updateOfficeEditetForm);
+    res.status(200).json({ success: true, message: "Success" });
 
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+})
 
-      res.status(200).json({ success: true, message: "Success" });
+// test many id
+router.put("/confirmEditedForm/:id", async (req, res) => {
+  console.log("confirmEditedForm in id:", req.params)
+  const { id } = req.params;
+  const updates = req.body;
+  console.log("12345", updates)
+  try {
+    console.log("in form id type", id)
+    let targetField = null;
+    if (updates.conf_id != null) {
+      targetField = "conf_id";
+    } else if (updates.pageC_id != null) {
+      targetField = "pageC_id";
+    } else if (updates.kris_id != null) {
+      targetField = "kris_id";
+    }
+    if (targetField) {
+      const [updateConfirmEditetForm] = await db.query(
+        `UPDATE Form SET edit_data = ?, form_status = ? WHERE ${targetField} = ?`,
+        [null, updates.form_status, updates[targetField]]
+      );
+      console.log("updateOpi_result :", updateConfirmEditetForm);
+    } else {
+      console.log("ไม่พบ field ที่ต้องการอัปเดตใน updates");
     }
 
+    res.status(200).json({ success: true, message: "Success" });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -595,15 +625,15 @@ router.get("/getFileConf", async (req, res) => {
 
   console.log("file", file);
 
-  const file_full_page = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.full_page}`;
+  const file_full_page = `http://localhost:3002/uploads/${file[0]?.[0]?.full_page}`;
   const date_published_journals = file[0][0].date_published_journals;
-  const file_published_journals = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.published_journals}`;
-  const file_accepted = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.accepted}`;
-  const file_q_proof = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.q_proof}`;
-  const file_call_for_paper = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.call_for_paper}`;
-  const file_fee_receipt = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.fee_receipt}`;
-  const file_fx_rate_document = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.fx_rate_document}`;
-  const file_conf_proof = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.conf_proof}`;
+  const file_published_journals = `http://localhost:3002/uploads/${file[0]?.[0]?.published_journals}`;
+  const file_accepted = `http://localhost:3002/uploads/${file[0]?.[0]?.accepted}`;
+  const file_q_proof = `http://localhost:3002/uploads/${file[0]?.[0]?.q_proof}`;
+  const file_call_for_paper = `http://localhost:3002/uploads/${file[0]?.[0]?.call_for_paper}`;
+  const file_fee_receipt = `http://localhost:3002/uploads/${file[0]?.[0]?.fee_receipt}`;
+  const file_fx_rate_document = `http://localhost:3002/uploads/${file[0]?.[0]?.fx_rate_document}`;
+  const file_conf_proof = `http://localhost:3002/uploads/${file[0]?.[0]?.conf_proof}`;
 
   res.json({
     message: "Get File Successfully",
