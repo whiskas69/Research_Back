@@ -242,11 +242,39 @@ router.put("/editForm/:id", async (req, res) => {
       console.log("updateOpi_result :", updateOfficeEditForm);
       res.status(200).json({ success: true, message: "Success",  data: updateOfficeEditForm});
     }
-    
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 })
+
+// test many id
+router.put("/confirmEditedForm/:id", async (req, res) => {
+  console.log("confirmEditedForm in id:", req.params)
+  const { id } = req.params;
+  const updates = req.body;
+  console.log("12345", updates)
+  try {
+    console.log("in form id type", id)
+    let targetField = null;
+    if (updates.conf_id != null) {
+      targetField = "conf_id";
+    } else if (updates.pageC_id != null) {
+      targetField = "pageC_id";
+    }
+    if (targetField) {
+      const [updateConfirmEditetForm] = await db.query(
+        `UPDATE Form SET edit_data = ?, form_status = ? WHERE ${targetField} = ?`,
+        [null, updates.form_status, updates[targetField]]
+      );
+      console.log("updateOpi_result :", updateConfirmEditetForm);
+    } else {
+      console.log("ไม่พบ field ที่ต้องการอัปเดตใน updates");
+    }
+    res.status(200).json({ success: true, message: "Success" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+})
+
 
 exports.router = router;
