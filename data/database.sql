@@ -284,6 +284,33 @@ CREATE TABLE Notification (
 	FOREIGN KEY (user_id) REFERENCES Users(user_id),
     FOREIGN KEY (form_id) REFERENCES Form(form_id)
 );
+CREATE TABLE ConditionPC (
+    condition_id INT AUTO_INCREMENT PRIMARY KEY,
+    natureAmount DECIMAL(10,2),
+    mdpiQuartile1 DECIMAL(10,2),
+    mdpiQuartile2 DECIMAL(10,2),
+    otherQuartile1 DECIMAL(10,2),
+    otherQuartile2 DECIMAL(10,2),
+    otherQuartile3 DECIMAL(10,2),
+    otherQuartile4 DECIMAL(10,2),
+    date_update DATE DEFAULT (CURRENT_DATE),
+);
+CREATE TABLE ConditionCF (
+    condition_id INT AUTO_INCREMENT PRIMARY KEY,
+    maxLeave DECIMAL(10,2),
+    workTimeYears DECIMAL(10,2),
+    journalYears DECIMAL(10,2),
+    qualityScoreSJR DECIMAL(10,2),
+    qualityScoreCIF DECIMAL(10,2),
+    qualityScoreCORE DECIMAL(10,2),
+    expense100ASEAN DECIMAL(10,2),
+    expense100Asia DECIMAL(10,2),
+    expense100EuropeAmericaAustraliaAfrica DECIMAL(10,2),
+    expense50ASEAN DECIMAL(10,2),
+    expense50Asia DECIMAL(10,2),
+    expense50EuropeAmericaAustraliaAfrica DECIMAL(10,2),
+    date_update DATE DEFAULT (CURRENT_DATE),
+);
 
 INSERT INTO Users (
     user_role, user_nameth, user_nameeng, user_email, user_signature,user_moneyPC,
