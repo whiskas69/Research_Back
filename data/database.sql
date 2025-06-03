@@ -15,6 +15,8 @@ DROP TABLE IF EXISTS Page_Charge;
 DROP TABLE IF EXISTS Score;
 DROP TABLE IF EXISTS Conference;
 DROP TABLE IF EXISTS Users;
+DROP TABLE IF EXISTS ConditionPC;
+DROP TABLE IF EXISTS ConditionCF;
 
 -- เปิดการตรวจสอบ Foreign Key กลับมา
 SET FOREIGN_KEY_CHECKS = 1;
@@ -302,14 +304,14 @@ CREATE TABLE ConditionCF (
     journalYears DECIMAL(10,2),
     qualityScoreSJR DECIMAL(10,2),
     qualityScoreCIF DECIMAL(10,2),
-    qualityScoreCORE DECIMAL(10,2),
+    qualityScoreCORE VARCHAR(10),
     expense100ASEAN DECIMAL(10,2),
     expense100Asia DECIMAL(10,2),
     expense100EuropeAmericaAustraliaAfrica DECIMAL(10,2),
     expense50ASEAN DECIMAL(10,2),
     expense50Asia DECIMAL(10,2),
     expense50EuropeAmericaAustraliaAfrica DECIMAL(10,2),
-    date_update DATE DEFAULT (CURRENT_DATE),
+    date_update DATE DEFAULT (CURRENT_DATE)
 );
 
 INSERT INTO Users (
@@ -363,3 +365,16 @@ INSERT INTO Users (
 ('associate', 'พีรณัฐ ทิพย์รักษ์', 'Peeranut Thiprak', '64070075@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2024-10-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
 ('hr', 'ศศิกานต์ หลงกระจ่าง', 'Sasikan Longkachang', '64070105@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2000-09-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
 ('admin', 'admin', 'admin', '64070075@kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2011-08-25', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true);
+
+
+INSERT INTO ConditionPC (
+    condition_id, natureAmount, mdpiQuartile1, mdpiQuartile2, otherQuartile1, otherQuartile2, otherQuartile3, otherQuartile4
+) VALUES
+(1, 70000, 60000, 40000, 60000, 40000, 30000, 20000);
+
+INSERT INTO ConditionCF (
+    condition_id, maxLeave, workTimeYears, journalYears, qualityScoreSJR, qualityScoreCIF, qualityScoreCORE,
+    expense100ASEAN, expense100Asia, expense100EuropeAmericaAustraliaAfrica,
+    expense50ASEAN, expense50Asia, expense50EuropeAmericaAustraliaAfrica
+) VALUES
+(1, 2, 3, 2, 4, 9.38, 'A', 20000, 40000, 60000, 10000, 20000, 30000);
