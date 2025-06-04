@@ -2,6 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
+const jwt = require("jsonwebtoken");
 
 const { DateTime } = require("luxon");
 
@@ -35,57 +36,64 @@ const fileFilter = function (req, file, cb) {
 
 const upload = multer({ storage, fileFilter });
 
-router.put("/uploadSignature", upload.single("user_signature"), async (req, res) => {
-  if (req.errorMessage) {
-    return res.status(422).json({ message: req.errorMessage });
-  }
-
-  const { user_id } = req.body;
-  const signatureFile = req.file;
-
-  const check = await db.query(
-    "SELECT user_signature FROM Users WHERE user_id = ?",
-    [user_id]
-  );
-
-  console.log("check,", check[0]);
-
-  if (check[0].user_signature == "" || check[0].user_signature == null) {
-    try {
-      await db.query("UPDATE Users SET user_signature = ? WHERE user_id = ?", [signatureFile.filename, user_id]);
-
-      return res.status(200).json({ message: "Upload Success" });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
+router.put(
+  "/uploadSignature",
+  upload.single("user_signature"),
+  async (req, res) => {
+    if (req.errorMessage) {
+      return res.status(422).json({ message: req.errorMessage });
     }
-  } else {
-    res.status(400).json({ message: "has signature" });
+
+    const { user_id } = req.body;
+    const signatureFile = req.file;
+
+    const check = await db.query(
+      "SELECT user_signature FROM Users WHERE user_id = ?",
+      [user_id]
+    );
+
+    console.log("check,", check[0]);
+
+    if (check[0].user_signature == "" || check[0].user_signature == null) {
+      try {
+        await db.query(
+          "UPDATE Users SET user_signature = ? WHERE user_id = ?",
+          [signatureFile.filename, user_id]
+        );
+
+        return res.status(200).json({ message: "Upload Success" });
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    } else {
+      res.status(400).json({ message: "has signature" });
+    }
   }
-}
 );
 
 router.get("/mySignature", async (req, res) => {
   const { user_id } = req.query;
 
-  console.log(user_id)
+  console.log(user_id);
 
   const signature = await db.query(
-    "SELECT user_signature FROM Users WHERE user_id = ?", [user_id]
+    "SELECT user_signature FROM Users WHERE user_id = ?",
+    [user_id]
   );
 
-  console.log(signature)
+  console.log(signature);
 
   console.log("i", signature[0]?.[0]?.user_signature);
 
-  const fileUrl = `http://localhost:3002/uploads/${signature[0][0].user_signature}`
+  const fileUrl = `http://localhost:3002/uploads/${signature[0][0].user_signature}`;
 
-  res.json({ message: 'Get File successfully', fileUrl });
+  res.json({ message: "Get File successfully", fileUrl });
 });
 
 router.post("/user", async (req, res) => {
   console.log("in post user");
   const data = req.body;
-  console.log("data",data)
+  console.log("data", data);
   try {
     const [result] = await db.query(
       `INSERT INTO Users (
@@ -156,7 +164,9 @@ router.put("/updateRoles", async (req, res) => {
       const isMoney = !isNaN(value) && String(value).trim() !== "";
       const field = isMoney ? "user_moneyCF" : "user_role";
 
-      console.log(`📝 Processing update for user_id: ${id} -> ${field}: ${value}`);
+      console.log(
+        `📝 Processing update for user_id: ${id} -> ${field}: ${value}`
+      );
 
       return new Promise((resolve, reject) => {
         db.query(
@@ -180,7 +190,9 @@ router.put("/updateRoles", async (req, res) => {
 
     console.log("addtodatabsela:");
     console.log("✅ All updates successful, sending response...");
-    res.status(200).json({ success: true, message: "User data updated successfully" });
+    res
+      .status(200)
+      .json({ success: true, message: "User data updated successfully" });
     // const results = await Promise.allSettled(queries);
     // console.log("results:", results); // ตรวจสอบว่าสามารถแสดงผลได้
 
@@ -190,7 +202,6 @@ router.put("/updateRoles", async (req, res) => {
     //   console.error("❌ Some updates failed:", errors);
     //   return res.status(500).json({ error: "Some updates failed", details: errors });
     // }
-
   } catch (err) {
     console.error("❌ Error updating roles:", err);
     res.status(500).json({ error: err.message });
@@ -198,23 +209,70 @@ router.put("/updateRoles", async (req, res) => {
 });
 
 router.put("/userSignat/:id", (req, res) => {
-  console.log("delete userSignat")
+  console.log("delete userSignat");
   const id = req.params.id;
-  db.query("UPDATE Users SET user_signature = null WHERE user_id = ?", [id], (err, result) => {
-    if (err) return res.status(500).json(err);
-    res.status(200).json({ message: "Record deleted successfully!" });
-  });
-  res.status(200).json({ success: true, message: "User data updated successfully" });
+  db.query(
+    "UPDATE Users SET user_signature = null WHERE user_id = ?",
+    [id],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
+      res.status(200).json({ message: "Record deleted successfully!" });
+    }
+  );
+  res
+    .status(200)
+    .json({ success: true, message: "User data updated successfully" });
 });
 
 router.delete("/user/:id", (req, res) => {
-  console.log("delete")
+  console.log("delete");
   const id = req.params.id;
   db.query("DELETE FROM Users WHERE user_id = ?", [id], (err, result) => {
     if (err) return res.status(500).json(err);
     res.status(200).json({ message: "Record deleted successfully!" });
   });
-  res.status(200).json({ success: true, message: "User data updated successfully" });
+  res
+    .status(200)
+    .json({ success: true, message: "User data updated successfully" });
+});
+
+router.post("/testlogin", async (req, res) => {
+  const { email } = req.body;
+
+  console.log("testlogin", email);
+
+  const [result] = await db.query("SELECT * FROM Users WHERE user_email = ?", [
+    email,
+  ]);
+
+  console.log("result", result);
+
+  if (result.length > 0) {
+    const user = result[0];
+
+    //create JWT Token
+    const token = jwt.sign(
+      { userId: user.user_id, email: user.user_email },
+      process.env.SECRET_KEY,
+      { expiresIn: "1h" } //อายุของ Token
+    );
+
+    //setting Secure Cookie (httpOnly Protect attack XSS)
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // ต้องเป็น true ถ้าใช้ HTTPS
+      sameSite: "Lax",
+      maxAge: 3600000, // 1 hour
+    });
+
+    res.status(200).json({ message: "Login successful", user: result[0] });
+  } else {
+    res
+      .status(401)
+      .json({
+        message: "ไม่พบข้อมูลของคุณ กรุณาติดต่อเจ้าหน้าที่ที่เกี่ยวข้อง",
+      });
+  }
 });
 
 exports.router = router;
