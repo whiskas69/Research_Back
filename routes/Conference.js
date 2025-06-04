@@ -482,8 +482,8 @@ router.put("/editedFormConfer/:id", async (req, res) => {
     };
     const allEditString = JSON.stringify(allEdit);
     const [updateOfficeEditetForm] = await db.query(
-      `UPDATE Form SET edit_data = ? WHERE conf_id = ?`,
-      [allEditString, id]
+      `UPDATE Form SET edit_data = ?, editor = ?, professor_reedit = ? WHERE conf_id = ?`,
+      [allEditString, updates.editor, updates.professor_reedit, id]
     )
     console.log("updateOpi_result :", updateOfficeEditetForm);
     res.status(200).json({ success: true, message: "Success" });
