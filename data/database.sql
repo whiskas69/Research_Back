@@ -173,6 +173,9 @@ CREATE TABLE Form (
 	kris_id INT UNIQUE,
 	form_status ENUM('ฝ่ายบริหารทรัพยากรบุคคล','ฝ่ายบริหารงานวิจัย',  'ฝ่ายบริหารการเงิน', 'รองคณบดี', 'คณบดี','รออนุมัติ', 'อนุมัติ', 'ไม่อนุมัติ', 'เข้าที่ประชุม') NOT NULL,
     edit_data JSON,
+    date_form_edit DATE DEFAULT (CURRENT_DATE),
+    editor VARCHAR(255),
+    professor_reedit boolean,
 	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id),
 	FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id),
 	FOREIGN KEY (kris_id) REFERENCES Research_KRIS(kris_id)
@@ -295,7 +298,7 @@ CREATE TABLE ConditionPC (
     otherQuartile2 DECIMAL(10,2),
     otherQuartile3 DECIMAL(10,2),
     otherQuartile4 DECIMAL(10,2),
-    date_update DATE DEFAULT (CURRENT_DATE),
+    date_update DATE DEFAULT (CURRENT_DATE)
 );
 CREATE TABLE ConditionCF (
     condition_id INT AUTO_INCREMENT PRIMARY KEY,
