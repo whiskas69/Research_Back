@@ -94,10 +94,13 @@ router.get("/formsOffice", async (req, res) => {
 
 router.get("/form/:id", async (req, res) => {
   const { id } = req.params;
+  console.log("user_id", id)
 
   try {
     const [form] = await db.query(
-      `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, f.kris_id, f.form_status, f.edit_data ,b.amount_approval
+      `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, 
+      f.kris_id, f.form_status, f.edit_data, f.date_form_edit,
+      f.editor, f.professor_reedit,b.amount_approval
       ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
       ,COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title
       ,COALESCE(c.conf_name, p.journal_name) AS article_name
@@ -263,8 +266,8 @@ router.put("/confirmEditedForm/:id", async (req, res) => {
     }
     if (targetField) {
       const [updateConfirmEditetForm] = await db.query(
-        `UPDATE Form SET edit_data = ?, form_status = ? WHERE ${targetField} = ?`,
-        [null, updates.form_status, updates[targetField]]
+        `UPDATE Form SET edit_data = ?, form_status = ?, editor = ?, professor_reedit = ? WHERE ${targetField} = ?`,
+        [null, updates.form_status, null, false, updates[targetField]]
       );
       console.log("updateOpi_result :", updateConfirmEditetForm);
     } else {
