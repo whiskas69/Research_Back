@@ -236,15 +236,14 @@ router.put("/editForm/:id", async (req, res) => {
   console.log("12345", editDataJson)
   try {
     console.log("12345")
-    if (updates.conf_id) {
-      console.log("in conf_id")
-      const [updateOfficeEditForm] = await db.query(
-        `UPDATE Form SET edit_data = ? WHERE conf_id = ?`,
-        [editDataJson, id]
-      )
-      console.log("updateOpi_result :", updateOfficeEditForm);
-      res.status(200).json({ success: true, message: "Success",  data: updateOfficeEditForm});
-    }
+    console.log("in conf_id")
+    const [updateOfficeEditForm] = await db.query(
+      `UPDATE Form SET edit_data = ? WHERE conf_id = ?`,
+      [editDataJson, id]
+    )
+    console.log("updateOpi_result :", updateOfficeEditForm);
+    res.status(200).json({ success: true, message: "Success", data: updateOfficeEditForm });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
