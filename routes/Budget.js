@@ -12,9 +12,11 @@ router.post('/budget', async (req, res) => {
 
   try {
     const [Budget_result] = await database.query(
-      `INSERT INTO Budget (user_id, form_id, budget_year, Page_Charge_amount, Conference_amount,
-      num_expenses_approved, total_amount_approved, remaining_credit_limit, amount_approval,
-      total_remaining_credit_limit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO Budget (
+     user_id, form_id, budget_year, Page_Charge_amount, Conference_amount,
+     num_expenses_approved, total_amount_approved, remaining_credit_limit,
+     amount_approval, total_remaining_credit_limit, doc_submit_date
+   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
       [data.user_id, data.form_id, data.budget_year, data.Page_Charge_amount || null, data.Conference_amount || null, data.num_expenses_approved,
       data.total_amount_approved, data.remaining_credit_limit, data.amount_approval, data.total_remaining_credit_limit]
     );
@@ -80,12 +82,59 @@ router.post('/budget', async (req, res) => {
   }
 });
 
+router.put("/withdraw/conference/:id", async (req, res) => {
+  console.log("withdraw in conference id:", req.params)
+  const { id } = req.params;
+  const updates = req.body;
+  try {
+    console.log("in conf_id")
+    const [findID] = await db.query(
+      `SELECT form_id FROM Form  WHERE conf_id = ?`,
+      [id]
+    )
+    console.log("findID", findID[0].form_id)
+    const [updateWithdrawMoney] = await db.query(
+      `UPDATE Budget SET travelExpenses = ?, allowance = ?, withdraw = ? WHERE form_id = ?`,
+      [updates.travelExpenses, updates.allowance, updates.withdraw, findID[0].form_id]
+    )
+    console.log("updateresult :", updateWithdrawMoney);
+    res.status(200).json({ success: true, message: "Success", data: updateWithdrawMoney });
+
+  } catch (err) {
+    console.error("SQL error →", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put("/withdraw/pageCharge/:id", async (req, res) => {
+  console.log("withdraw in pageCharge id:", req.params)
+  const { id } = req.params;
+  const updates = req.body;
+  try {
+    console.log("in pageC_id")
+    const [findID] = await db.query(
+      `SELECT form_id FROM Form  WHERE pageC_id = ?`,
+      [id]
+    )
+    console.log("findID", findID[0].form_id)
+    const [updateWithdrawMoney] = await db.query(
+      `UPDATE Budget SET withdraw = ? WHERE form_id = ?`,
+      [updates.withdraw, findID[0].form_id]
+    )
+    console.log("updateresult :", updateWithdrawMoney);
+    res.status(200).json({ success: true, message: "Success", data: updateWithdrawMoney });
+
+  } catch (err) {
+    console.error("SQL error →", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 router.get("/sumBudgets/:id", async (req, res) => {
   const { id } = req.params;
 
   const database = await db.getConnection();
   await database.beginTransaction(); //start transaction
-    
+
   try {
     let sumPC = [];
     let sumConfer = [];
@@ -103,7 +152,7 @@ router.get("/sumBudgets/:id", async (req, res) => {
           const moneyConfer = matchedConf.quality_meeting === "ดีมาก"
             ? parseFloat(budget.amount_approval) - parseFloat(matchedConf.total_amount)
             : parseFloat(budget.amount_approval);
-            
+
           sumConfer.push({ form_id: form[i].form_id, tpye: form[i].form_type, money: moneyConfer });
         });
       }
@@ -112,7 +161,7 @@ router.get("/sumBudgets/:id", async (req, res) => {
       if (matchedPC && form[i].form_status === "อนุมัติ") {
         let [budgets] = await database.query(`SELECT amount_approval FROM Budget WHERE form_id = ?`, [form[i].form_id]);
 
-        
+
         budgets.forEach(budget => {
           const moneyPC = parseFloat(budget.amount_approval)
           sumPC.push({ form_id: form[i].form_id, tpye: form[i].form_type, money: moneyPC });
@@ -124,7 +173,7 @@ router.get("/sumBudgets/:id", async (req, res) => {
     const totalMoney = totalPC + totalConfer;
 
     await database.commit(); //commit transaction
-    res.status(200).json({ sumPC: sumPC, sumConfer: sumConfer, totalPC: totalPC, totalConfer: totalConfer, totalMoney: totalMoney});
+    res.status(200).json({ sumPC: sumPC, sumConfer: sumConfer, totalPC: totalPC, totalConfer: totalConfer, totalMoney: totalMoney });
   } catch (error) {
     database.rollback(); //rollback transaction
     console.error("Error inserting into database:", error);

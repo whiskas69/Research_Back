@@ -275,7 +275,10 @@ CREATE TABLE Budget (
 	remaining_credit_limit DECIMAL(10,2) NOT NULL,
 	amount_approval DECIMAL(10,2) NOT NULL,
 	total_remaining_credit_limit DECIMAL(10,2) NOT NULL,
-    doc_submit_date DATE DEFAULT (CURRENT_DATE),
+    doc_submit_date DATE,
+    travelExpenses DECIMAL(10,2),
+    allowance DECIMAL(10,2),
+    withdraw DECIMAL(10,2),
 	FOREIGN KEY (user_id) REFERENCES Users(user_id),
     FOREIGN KEY (form_id) REFERENCES Form(form_id)
 );
