@@ -155,13 +155,12 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     //insert data to Notification
     const [notification_result] = await database.query(
       `INSERT INTO Notification (
-      user_id, form_id, name_form, is_read)
-      VALUES (?, ?, ?, ?)`,
+      user_id, form_id, name_form)
+      VALUES (?, ?, ?)`,
       [
         kris_data.user_id,
         form_result.insertId,
-        kris_data.name_research_th,
-        false,
+        kris_data.name_research_th
       ]
     );
     console.log("notification_result", notification_result);

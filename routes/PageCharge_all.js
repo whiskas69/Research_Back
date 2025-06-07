@@ -324,13 +324,12 @@ router.post(
       //insert data to Notification
       const [notification_result] = await database.query(
         `INSERT INTO Notification (
-          user_id, form_id, name_form, is_read)
-          VALUES (?, ?, ?, ?)`,
+          user_id, form_id, name_form)
+          VALUES (?, ?, ?)`,
         [
           pageChargeData.user_id,
           form_result.insertId,
-          pageChargeData.article_title,
-          false,
+          pageChargeData.article_title
         ]
       );
       console.log("notification_result", notification_result);
@@ -630,12 +629,6 @@ router.put(
         [data.pageC_id]
       );
       console.log("GetID : ", getID);
-
-      //update Noti
-      const [updateNoti_result] = await database.query(
-        `UPDATE Notification SET is_read = 0 WHERE form_id = ?`,
-        [getID[0].form_id]
-      );
 
       console.log("✅ Update successful:", update);
       res.json({ success: true, message: "อัปเดตข้อมูลสำเร็จ" });

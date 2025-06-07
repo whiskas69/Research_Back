@@ -52,12 +52,6 @@ router.post("/opinionConf", async (req, res) => {
     )
     console.log("GetID : ", getID);
 
-    //update Noti
-    const [updateNoti_result] = await database.query(
-      `UPDATE Notification SET is_read = 0 WHERE form_id = ?`, [getID[0].form_id]
-    )
-    console.log("updateNoti_result : ", updateNoti_result);
-
     await database.commit(); //commit transaction
 
     //send email to user
@@ -137,12 +131,6 @@ router.put("/opinionConf/:id", async (req, res) => {
       "SELECT form_id FROM Form WHERE conf_id = ?", [id]
     )
     console.log("GetID : ", getID);
-
-    //update Noti
-    const [updateNoti_result] = await database.query(
-      `UPDATE Notification SET is_read = 0 WHERE form_id = ?`, [getID[0].form_id]
-    )
-    console.log("updateNoti_result : ", updateNoti_result);
 
     await database.commit(); //commit transaction
 
