@@ -487,14 +487,14 @@ router.put("/editedFormConfer/:id", async (req, res) => {
       `UPDATE Form SET edit_data = ?, editor = ?, professor_reedit = ? WHERE conf_id = ?`,
       [allEditString, updates.editor, updates.professor_reedit, id]
     )
-
+    console.log("updateOpi_result :", updateOfficeEditetForm);
     //ต้องส่ง form_id มาด้วย
     const [updateNoti_result] = await database.query(
-      `UPDATE Notification SET kkewle; = 0 WHERE form_id = ?`, 
+      `UPDATE Notification SET date_update = CURRENT_DATE  WHERE form_id = ?`, 
       [updates.form_id]
     )
     console.log("updateNoti_result : ", updateNoti_result)
-    console.log("updateOpi_result :", updateOfficeEditetForm);
+    
     res.status(200).json({ success: true, message: "Success" });
 
   } catch (err) {
