@@ -372,13 +372,12 @@ router.post(
       //insert data to Notification
       const [notification_result] = await database.query(
         `INSERT INTO Notification (
-        user_id, form_id, name_form, is_read)
-        VALUES (?, ?, ?, ?)`,
+        user_id, form_id, name_form)
+        VALUES (?, ?, ?)`,
         [
           conferenceData.user_id,
           form_result.insertId,
           conferenceData.conf_research,
-          false,
         ]
       );
       console.log("notification_result", notification_result);
@@ -456,6 +455,9 @@ router.put("/editedFormConfer/:id", async (req, res) => {
   const updates = req.body;
   console.log("12345", updates)
 
+  const database = await db.getConnection();
+  await database.beginTransaction(); //start transaction
+
   try {
     console.log("in conf_id")
     const editDataJson = updates.edit_data
@@ -466,13 +468,13 @@ router.put("/editedFormConfer/:id", async (req, res) => {
     if (editDataJson && editDataJson.length > 0) {
       const setClause = editDataJson.map(item => `${item.field} = '${item.newValue}'`).join(", ")
       console.log("in conf_id setClause", setClause)
-      const sql = await db.query(`UPDATE Conference SET ${setClause} WHERE conf_id = ${id};`)
+      const sql = await database.query(`UPDATE Conference SET ${setClause} WHERE conf_id = ${id};`)
       console.log("789", sql);
     }
     if (editDataJsonScore && editDataJsonScore.length > 0) {
       const setClauseScore = editDataJsonScore.map(item => `${item.field} = '${item.newValue}'`).join(", ")
       console.log("in conf_id setClause", setClauseScore)
-      const sore = await db.query(`UPDATE Score SET ${setClauseScore} WHERE conf_id = ${id};`)
+      const sore = await database.query(`UPDATE Score SET ${setClauseScore} WHERE conf_id = ${id};`)
 
       console.log("789 sore", sore);
     }
@@ -481,10 +483,17 @@ router.put("/editedFormConfer/:id", async (req, res) => {
       score: updates.score
     };
     const allEditString = JSON.stringify(allEdit);
-    const [updateOfficeEditetForm] = await db.query(
+    const [updateOfficeEditetForm] = await database.query(
       `UPDATE Form SET edit_data = ?, editor = ?, professor_reedit = ? WHERE conf_id = ?`,
       [allEditString, updates.editor, updates.professor_reedit, id]
     )
+
+    //ต้องส่ง form_id มาด้วย
+    const [updateNoti_result] = await database.query(
+      `UPDATE Notification SET kkewle; = 0 WHERE form_id = ?`, 
+      [updates.form_id]
+    )
+    console.log("updateNoti_result : ", updateNoti_result)
     console.log("updateOpi_result :", updateOfficeEditetForm);
     res.status(200).json({ success: true, message: "Success" });
 
