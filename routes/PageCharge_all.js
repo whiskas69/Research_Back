@@ -645,9 +645,6 @@ router.put("/editedFormPageChage/:id", async (req, res) => {
   const updates = req.body;
   console.log("12345", updates)
 
-  const database = await db.getConnection();
-  await database.beginTransaction(); //start transaction
-
   try {
     console.log("in pageC_id")
     const editDataJson = updates.edit_data
@@ -660,12 +657,12 @@ router.put("/editedFormPageChage/:id", async (req, res) => {
       })
       .join(", ");
     console.log("in pageC_id setClause", setClause)
-    const sql = await database.query(`UPDATE Page_Charge SET ${setClause} WHERE pageC_id = ${id};`)
+    const sql = await db.query(`UPDATE Page_Charge SET ${setClause} WHERE pageC_id = ${id};`)
 
     console.log("789", sql);
 
     const allEditString = JSON.stringify(updates.edit_data);
-    const [updateOfficeEditetForm] = await database.query(
+    const [updateOfficeEditetForm] = await db.query(
       `UPDATE Form SET edit_data = ?, editor = ?, professor_reedit = ? WHERE pageC_id = ?`,
       [allEditString, updates.editor, updates.professor_reedit, id]
     )
@@ -678,7 +675,7 @@ router.put("/editedFormPageChage/:id", async (req, res) => {
     )
     console.log("findID", findID[0].form_id)
 
-    const [updateNoti_result] = await database.query(
+    const [updateNoti_result] = await db.query(
       `UPDATE Notification SET date_update = CURRENT_DATE  WHERE form_id = ?`, 
       [findID[0].form_id]
     )

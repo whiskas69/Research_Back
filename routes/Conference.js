@@ -455,9 +455,6 @@ router.put("/editedFormConfer/:id", async (req, res) => {
   const updates = req.body;
   console.log("12345", updates)
 
-  const database = await db.getConnection();
-  await database.beginTransaction(); //start transaction
-
   try {
     console.log("in conf_id")
     const editDataJson = updates.edit_data
@@ -468,13 +465,13 @@ router.put("/editedFormConfer/:id", async (req, res) => {
     if (editDataJson && editDataJson.length > 0) {
       const setClause = editDataJson.map(item => `${item.field} = '${item.newValue}'`).join(", ")
       console.log("in conf_id setClause", setClause)
-      const sql = await database.query(`UPDATE Conference SET ${setClause} WHERE conf_id = ${id};`)
+      const sql = await db.query(`UPDATE Conference SET ${setClause} WHERE conf_id = ${id};`)
       console.log("789", sql);
     }
     if (editDataJsonScore && editDataJsonScore.length > 0) {
       const setClauseScore = editDataJsonScore.map(item => `${item.field} = '${item.newValue}'`).join(", ")
       console.log("in conf_id setClause", setClauseScore)
-      const sore = await database.query(`UPDATE Score SET ${setClauseScore} WHERE conf_id = ${id};`)
+      const sore = await db.query(`UPDATE Score SET ${setClauseScore} WHERE conf_id = ${id};`)
 
       console.log("789 sore", sore);
     }
@@ -483,7 +480,7 @@ router.put("/editedFormConfer/:id", async (req, res) => {
       score: updates.score
     };
     const allEditString = JSON.stringify(allEdit);
-    const [updateOfficeEditetForm] = await database.query(
+    const [updateOfficeEditetForm] = await db.query(
       `UPDATE Form SET edit_data = ?, editor = ?, professor_reedit = ? WHERE conf_id = ?`,
       [allEditString, updates.editor, updates.professor_reedit, id]
     )
@@ -495,7 +492,7 @@ router.put("/editedFormConfer/:id", async (req, res) => {
       [id]
     )
     console.log("findID", findID[0].form_id)
-    const [updateNoti_result] = await database.query(
+    const [updateNoti_result] = await db.query(
       `UPDATE Notification SET date_update = CURRENT_DATE  WHERE form_id = ?`, 
       [findID[0].form_id]
     )
