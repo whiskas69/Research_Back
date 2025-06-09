@@ -487,14 +487,20 @@ router.put("/editedFormConfer/:id", async (req, res) => {
       `UPDATE Form SET edit_data = ?, editor = ?, professor_reedit = ? WHERE conf_id = ?`,
       [allEditString, updates.editor, updates.professor_reedit, id]
     )
+    console.log("updateOpi_result :", updateOfficeEditetForm);
 
-    //ต้องส่ง form_id มาด้วย
+    console.log("in conf_id find conf_id")
+    const [findID] = await db.query(
+      `SELECT form_id FROM Form  WHERE conf_id = ?`,
+      [id]
+    )
+    console.log("findID", findID[0].form_id)
     const [updateNoti_result] = await database.query(
-      `UPDATE Notification SET kkewle; = 0 WHERE form_id = ?`, 
-      [updates.form_id]
+      `UPDATE Notification SET date_update = CURRENT_DATE  WHERE form_id = ?`, 
+      [findID[0].form_id]
     )
     console.log("updateNoti_result : ", updateNoti_result)
-    console.log("updateOpi_result :", updateOfficeEditetForm);
+    
     res.status(200).json({ success: true, message: "Success" });
 
   } catch (err) {
@@ -603,15 +609,15 @@ router.get("/getFileConf", async (req, res) => {
 
   console.log("file", file);
 
-  const file_full_page = `http://localhost:3002/uploads/${file[0]?.[0]?.full_page}`;
+  const file_full_page = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.full_page}`;
   const date_published_journals = file[0][0].date_published_journals;
-  const file_published_journals = `http://localhost:3002/uploads/${file[0]?.[0]?.published_journals}`;
-  const file_accepted = `http://localhost:3002/uploads/${file[0]?.[0]?.accepted}`;
-  const file_q_proof = `http://localhost:3002/uploads/${file[0]?.[0]?.q_proof}`;
-  const file_call_for_paper = `http://localhost:3002/uploads/${file[0]?.[0]?.call_for_paper}`;
-  const file_fee_receipt = `http://localhost:3002/uploads/${file[0]?.[0]?.fee_receipt}`;
-  const file_fx_rate_document = `http://localhost:3002/uploads/${file[0]?.[0]?.fx_rate_document}`;
-  const file_conf_proof = `http://localhost:3002/uploads/${file[0]?.[0]?.conf_proof}`;
+  const file_published_journals = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.published_journals}`;
+  const file_accepted = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.accepted}`;
+  const file_q_proof = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.q_proof}`;
+  const file_call_for_paper = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.call_for_paper}`;
+  const file_fee_receipt = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.fee_receipt}`;
+  const file_fx_rate_document = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.fx_rate_document}`;
+  const file_conf_proof = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.conf_proof}`;
 
   res.json({
     message: "Get File Successfully",
