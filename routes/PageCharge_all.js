@@ -645,6 +645,9 @@ router.put("/editedFormPageChage/:id", async (req, res) => {
   const updates = req.body;
   console.log("12345", updates)
 
+  const database = await db.getConnection();
+  await database.beginTransaction(); //start transaction
+
   try {
     console.log("in pageC_id")
     const editDataJson = updates.edit_data
@@ -657,16 +660,30 @@ router.put("/editedFormPageChage/:id", async (req, res) => {
       })
       .join(", ");
     console.log("in pageC_id setClause", setClause)
-    const sql = await db.query(`UPDATE Page_Charge SET ${setClause} WHERE pageC_id = ${id};`)
+    const sql = await database.query(`UPDATE Page_Charge SET ${setClause} WHERE pageC_id = ${id};`)
 
     console.log("789", sql);
 
     const allEditString = JSON.stringify(updates.edit_data);
-    const [updateOfficeEditetForm] = await db.query(
+    const [updateOfficeEditetForm] = await database.query(
       `UPDATE Form SET edit_data = ?, editor = ?, professor_reedit = ? WHERE pageC_id = ?`,
       [allEditString, updates.editor, updates.professor_reedit, id]
     )
     console.log("updateOpi_result :", updateOfficeEditetForm);
+
+    console.log("in pageC_id find pageC_id")
+    const [findID] = await db.query(
+      `SELECT form_id FROM Form  WHERE pageC_id = ?`,
+      [id]
+    )
+    console.log("findID", findID[0].form_id)
+
+    const [updateNoti_result] = await database.query(
+      `UPDATE Notification SET date_update = CURRENT_DATE  WHERE form_id = ?`, 
+      [findID[0].form_id]
+    )
+    console.log("updateNoti_result : ", updateNoti_result)
+
     res.status(200).json({ success: true, message: "Success" });
 
   } catch (err) {
@@ -682,11 +699,11 @@ router.get("/getFilepage_c", async (req, res) => {
     [pageC_id]
   );
 
-  const file_pc_proof = `http://localhost:3002/uploads/${file[0]?.[0]?.pc_proof}`;
-  const file_q_pc_proof = `http://localhost:3002/uploads/${file[0]?.[0]?.q_pc_proof}`;
-  const file_invoice_public = `http://localhost:3002/uploads/${file[0]?.[0]?.invoice_public}`;
-  const file_accepted = `http://localhost:3002/uploads/${file[0]?.[0]?.accepted}`;
-  const file_copy_article = `http://localhost:3002/uploads/${file[0]?.[0]?.copy_article}`;
+  const file_pc_proof = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.pc_proof}`;
+  const file_q_pc_proof = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.q_pc_proof}`;
+  const file_invoice_public = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.invoice_public}`;
+  const file_accepted = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.accepted}`;
+  const file_copy_article = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.copy_article}`;
 
   res.json({
     message: "Get File Successfully",
