@@ -85,7 +85,7 @@ router.get("/mySignature", async (req, res) => {
 
   console.log("i", signature[0]?.[0]?.user_signature);
 
-  const fileUrl = `http://10.0.15.37:3002/uploads/${signature[0][0].user_signature}`;
+  const fileUrl = `http://localhost:3002/uploads/${signature[0][0].user_signature}`;
 
   res.json({ message: "Get File successfully", fileUrl });
 });
