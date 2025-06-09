@@ -6,9 +6,11 @@ router = express.Router();
 
 router.get("/formsOffice", async (req, res) => {
   try {
-    const [forms] = await db.query(
-      "SELECT * FROM Form"
-    );
+    const [forms] = await db.query(`
+      SELECT f.*, b.withdraw
+      FROM Form f
+      LEFT JOIN Budget b ON f.form_id = b.form_id
+    `);
     // console.log(forms);
 
     let confer = [];
