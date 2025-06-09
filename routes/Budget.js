@@ -124,6 +124,7 @@ router.put("/withdraw/pageCharge/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 router.get("/sumBudgets/:id", async (req, res) => {
   const { id } = req.params;
 
@@ -141,12 +142,12 @@ router.get("/sumBudgets/:id", async (req, res) => {
     for (let i = 0; i < form.length; i++) {
       const matchedConf = conf.find(c => c.conf_id === form[i].conf_id);
       if (matchedConf && form[i].form_status === "อนุมัติ") {
-        let [budgets] = await database.query(`SELECT amount_approval FROM Budget WHERE form_id = ?`, [form[i].form_id]);
+        let [budgets] = await database.query(`SELECT withdraw FROM Budget WHERE form_id = ?`, [form[i].form_id]);
 
         budgets.forEach(budget => {
           const moneyConfer = matchedConf.quality_meeting === "ดีมาก"
-            ? parseFloat(budget.amount_approval) - parseFloat(matchedConf.total_amount)
-            : parseFloat(budget.amount_approval);
+            ? parseFloat(budget.withdraw) - parseFloat(matchedConf.total_amount)
+            : parseFloat(budget.withdraw);
 
           sumConfer.push({ form_id: form[i].form_id, tpye: form[i].form_type, money: moneyConfer });
         });
@@ -154,11 +155,11 @@ router.get("/sumBudgets/:id", async (req, res) => {
       const matchedPC = pc.find(p => p.pageC_id === form[i].pageC_id);
 
       if (matchedPC && form[i].form_status === "อนุมัติ") {
-        let [budgets] = await database.query(`SELECT amount_approval FROM Budget WHERE form_id = ?`, [form[i].form_id]);
+        let [budgets] = await database.query(`SELECT withdraw FROM Budget WHERE form_id = ?`, [form[i].form_id]);
 
 
         budgets.forEach(budget => {
-          const moneyPC = parseFloat(budget.amount_approval)
+          const moneyPC = parseFloat(budget.withdraw)
           sumPC.push({ form_id: form[i].form_id, tpye: form[i].form_type, money: moneyPC });
         });
       }
