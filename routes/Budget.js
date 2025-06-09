@@ -28,11 +28,6 @@ router.post('/budget', async (req, res) => {
     );
     console.log("updateForm_result : ", updateForm_result)
 
-    const [updateNoti_result] = await database.query(
-      `UPDATE Notification SET is_read = 0 WHERE form_id = ?`, [data.form_id]
-    )
-    console.log("updateNoti_result : ", updateNoti_result)
-
     const [formType] = await database.query(
       `SELECT conf_id, pageC_id FROM Form WHERE form_id = ?`,
       [data.form_id]

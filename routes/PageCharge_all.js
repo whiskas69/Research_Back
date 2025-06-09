@@ -324,13 +324,12 @@ router.post(
       //insert data to Notification
       const [notification_result] = await database.query(
         `INSERT INTO Notification (
-          user_id, form_id, name_form, is_read)
-          VALUES (?, ?, ?, ?)`,
+          user_id, form_id, name_form)
+          VALUES (?, ?, ?)`,
         [
           pageChargeData.user_id,
           form_result.insertId,
-          pageChargeData.article_title,
-          false,
+          pageChargeData.article_title
         ]
       );
       console.log("notification_result", notification_result);
@@ -631,12 +630,6 @@ router.put(
       );
       console.log("GetID : ", getID);
 
-      //update Noti
-      const [updateNoti_result] = await database.query(
-        `UPDATE Notification SET is_read = 0 WHERE form_id = ?`,
-        [getID[0].form_id]
-      );
-
       console.log("✅ Update successful:", update);
       res.json({ success: true, message: "อัปเดตข้อมูลสำเร็จ" });
     } catch (error) {
@@ -652,6 +645,9 @@ router.put("/editedFormPageChage/:id", async (req, res) => {
   const updates = req.body;
   console.log("12345", updates)
 
+  const database = await db.getConnection();
+  await database.beginTransaction(); //start transaction
+
   try {
     console.log("in pageC_id")
     const editDataJson = updates.edit_data
@@ -664,16 +660,30 @@ router.put("/editedFormPageChage/:id", async (req, res) => {
       })
       .join(", ");
     console.log("in pageC_id setClause", setClause)
-    const sql = await db.query(`UPDATE Page_Charge SET ${setClause} WHERE pageC_id = ${id};`)
+    const sql = await database.query(`UPDATE Page_Charge SET ${setClause} WHERE pageC_id = ${id};`)
 
     console.log("789", sql);
 
     const allEditString = JSON.stringify(updates.edit_data);
-    const [updateOfficeEditetForm] = await db.query(
+    const [updateOfficeEditetForm] = await database.query(
       `UPDATE Form SET edit_data = ?, editor = ?, professor_reedit = ? WHERE pageC_id = ?`,
       [allEditString, updates.editor, updates.professor_reedit, id]
     )
     console.log("updateOpi_result :", updateOfficeEditetForm);
+
+    console.log("in pageC_id find pageC_id")
+    const [findID] = await db.query(
+      `SELECT form_id FROM Form  WHERE pageC_id = ?`,
+      [id]
+    )
+    console.log("findID", findID[0].form_id)
+
+    const [updateNoti_result] = await database.query(
+      `UPDATE Notification SET date_update = CURRENT_DATE  WHERE form_id = ?`, 
+      [findID[0].form_id]
+    )
+    console.log("updateNoti_result : ", updateNoti_result)
+
     res.status(200).json({ success: true, message: "Success" });
 
   } catch (err) {
