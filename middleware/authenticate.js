@@ -8,7 +8,7 @@ const authenticate = (req, res, next) => {
 
     if (!token){
       console.log("No token found");
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ message: "การเข้าสู่ระบบมีปัญหา" });
     }
 
     try {

@@ -80,8 +80,6 @@ router.post("/auth", async (req, res) => {
 
 //check status login
 router.get("/me", authenticate, async (req, res) => {
-  console.log("Cookie received: ", req.cookie);
-
   if (!req.user) {
     return res.status(403).json({ message: "ไม่ได้เข้าสู่ระบบ กรุณาทำการเข้าสู่ระบบอีกครั้ง" });
   }

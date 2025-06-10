@@ -259,7 +259,7 @@ router.post("/testlogin", async (req, res) => {
 
     //setting Secure Cookie (httpOnly Protect attack XSS)
     res.cookie("token", token, {
-      httpOnly: false,
+      httpOnly: true,
       secure: false, // ต้องเป็น true ถ้าใช้ HTTPS
       sameSite: "Lax",
       maxAge: 3600000, // 1 hour
