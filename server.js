@@ -9,7 +9,7 @@ const createTransporter = require('./middleware/mailer.js');
 const app = express();
 const PORT = 3002;
 
-app.use(cors({ credentials: true, origin: ["http://192.168.1.110:5173", "http://localhost:5173" , "http://172.20.10.2:5173"] }));
+app.use(cors({ credentials: true, origin: ["http://10.0.15.37:5173", "http://localhost:5173" , "http://172.20.10.2:5173"] }));
 app.use(cookieParser())
 // Statics
 // app.use(express.static('static'))
