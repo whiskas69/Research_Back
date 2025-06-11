@@ -9,7 +9,8 @@
       "เวียดนาม",
       "ฟิลิปปินส์"
     ],
-    "max_expense": 20000
+    "max_expense": 20000,
+    "zone": "ASEAN"
   },
   "Asia_40000": {
     "countries": [
@@ -34,7 +35,8 @@
       "คีร์กีซสถาน",
       "ทาจิกิสถาน"
     ],
-    "max_expense": 40000
+    "max_expense": 40000,
+    "zone": "Asia"
   },
   "Countries_60000": {
     "countries": [
@@ -96,6 +98,7 @@
       "กานา",
       "แทนซาเนีย"
     ],
-    "max_expense": 60000
+    "max_expense": 60000,
+    "zone": "Other"
   }
 }
