@@ -189,29 +189,29 @@ router.get("/formConfer/:id", async (req, res) => {
   }
 })
 
-// router.put("/form/:id", async (req, res) => {
-//   console.log("in Update form");
-//   const { id } = req.params;
-//   console.log("form id: ", id);
-//   const updates = req.body;
-//   try {
-//     console.log("updates: ", updates);
-//     const [form] = await db.query(
-//       `UPDATE Form SET
-//     form_type = ?, conf_id = ?, pageC_id = ?, kris_id = ?,
-//     form_status = ? WHERE form_id = ?`,
-//       [
-//         updates.form_type, updates.conf_id || null, updates.pageC_id || null,
-//         updates.kris_id || null, updates.form_status,
-//         id
-//       ]
-//     );
-//     console.log("update form: ", form);
-//     res.status(200).json({ message: "form updated successfully!", id });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// });
+router.put("/form/:id", async (req, res) => {
+  console.log("in Update form");
+  const { id } = req.params;
+  console.log("form id: ", id);
+  const updates = req.body;
+  try {
+    console.log("updates: ", updates);
+    const [form] = await db.query(
+      `UPDATE Form SET
+    form_type = ?, conf_id = ?, pageC_id = ?, kris_id = ?,
+    form_status = ? WHERE form_id = ?`,
+      [
+        updates.form_type, updates.conf_id || null, updates.pageC_id || null,
+        updates.kris_id || null, updates.form_status,
+        id
+      ]
+    );
+    console.log("update form: ", form);
+    res.status(200).json({ message: "form updated successfully!", id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // router.get("/editForm/:id", async (req, res) => {
 //   console.log("get id confer in editForm")
