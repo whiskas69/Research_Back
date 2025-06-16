@@ -165,11 +165,11 @@ const pageChargeSchema = Joi.object({
   article_research_ject: Joi.string().allow(null),
 
   research_type: Joi.string()
-    .valid("วิจัยพื้นฐาน", "วิจัยประยุกต์", "วิจัยและพัฒนา", "อื่นๆ")
+    .valid("basic", "applied", "research&development", "other")
     .when("article_research_ject", { is: Joi.exist(), then: Joi.required() }),
 
   research_type2: Joi.string().when("research_type", {
-    is: "อื่นๆ",
+    is: "other",
     then: Joi.required(),
   }),
 
@@ -311,7 +311,7 @@ router.post(
       const formData = {
         form_type: "Page_Charge",
         pageC_id: pageCId,
-        form_status: "ฝ่ายบริหารงานวิจัย",
+        form_status: "research",
       };
 
       //insert to Form
@@ -477,7 +477,7 @@ router.post(
       const formData = {
         form_type: "Page_Charge",
         pageC_id: pageCId,
-        form_status: "ฝ่ายบริหารงานวิจัย",
+        form_status: "research",
       };
       console.log("formData data to insert:", formData);
       const [resultForm] = await db.query("INSERT INTO Form SET ?", formData);
@@ -486,7 +486,7 @@ router.post(
         user_id: data.user_id,
         pageC_id: pageCId,
         form_id: resultForm.insertId,
-        status_form: "ฝ่ายบริหารงานวิจัย",
+        status_form: "research",
         name_form: data.article_title,
       };
       console.log("noti", noti);
@@ -618,7 +618,7 @@ router.put(
 
       const [updateForm_result] = await db.query(
         "UPDATE Form SET form_status = ? WHERE pageC_id = ?",
-        ["ฝ่ายบริหารงานวิจัย", data.pageC_id]
+        ["research", data.pageC_id]
       );
 
       console.log("updateForm_result :", updateForm_result);

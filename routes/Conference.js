@@ -71,7 +71,7 @@ const ConferSchema = Joi.object({
   num_co_researchers: Joi.number().integer(),
   name_co_researchers: Joi.string(),
   course_co_researchers: Joi.string(),
-  country_conf: Joi.any().valid("ณ ต่างประเทศ", "ภายในประเทศ").required(),
+  country_conf: Joi.any().valid("abroad", "domestic").required(),
   location: Joi.string().required(),
   meeting_date: Joi.date()
     .iso()
@@ -92,16 +92,16 @@ const ConferSchema = Joi.object({
     .required(),
 
   meeting_type: Joi.any()
-    .valid("คณะจัด ไม่อยู่scopus", "อยู่ในscopus")
+    .valid("facultyHost", "inScopus")
     .required(),
   quality_meeting: Joi.any().when("meeting_type", {
-    is: "อยู่ในscopus",
-    then: Joi.any().valid("มาตรฐาน", "ดีมาก").required(),
+    is: "inScopus",
+    then: Joi.any().valid("standard", "good").required(),
     otherwise: Joi.any().allow(null, ""),
   }),
 
   score_type: Joi.any().when("quality_meeting", {
-    is: "ดีมาก",
+    is: "good",
     then: Joi.any().valid("SJR", "CIF", "CORE").required(),
     otherwise: Joi.any().allow(null, ""),
   }),
@@ -149,7 +149,7 @@ const ConferSchema = Joi.object({
   wos_2_leave: Joi.any().when(
     Joi.object({
       time_of_leave: Joi.valid("2"),
-      country_conf: Joi.valid("ณ ต่างประเทศ"),
+      country_conf: Joi.valid("abroad"),
     }),
     {
       then: Joi.any().valid("WoS-Q1", "WoS-Q2").required(),
@@ -159,7 +159,7 @@ const ConferSchema = Joi.object({
   name_2_leave: Joi.any().when(
     Joi.object({
       time_of_leave: Joi.valid("2"),
-      country_conf: Joi.valid("ณ ต่างประเทศ"),
+      country_conf: Joi.valid("abroad"),
     }),
     {
       then: Joi.string().required(),
@@ -167,7 +167,7 @@ const ConferSchema = Joi.object({
     }
   ),
   withdraw: Joi.any().when("country_conf", {
-    is: "ณ ต่างประเทศ",
+    is: "abroad",
     then: Joi.any().valid("50%", "100%").required(),
     otherwise: Joi.any().allow(null, ""),
   }),
@@ -360,7 +360,7 @@ router.post(
       const formData = {
         form_type: "Conference",
         conf_id: confId,
-        form_status: "ฝ่ายบริหารทรัพยากรบุคคล",
+        form_status: "hr",
       };
 
       //insert data to Form

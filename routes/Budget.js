@@ -141,11 +141,11 @@ router.get("/sumBudgets/:id", async (req, res) => {
 
     for (let i = 0; i < form.length; i++) {
       const matchedConf = conf.find(c => c.conf_id === form[i].conf_id);
-      if (matchedConf && form[i].form_status === "อนุมัติ") {
+      if (matchedConf && form[i].form_status === "approval") {
         let [budgets] = await database.query(`SELECT withdraw FROM Budget WHERE form_id = ?`, [form[i].form_id]);
 
         budgets.forEach(budget => {
-          const moneyConfer = matchedConf.quality_meeting === "ดีมาก"
+          const moneyConfer = matchedConf.quality_meeting === "good"
             ? parseFloat(budget.withdraw) - parseFloat(matchedConf.total_amount)
             : parseFloat(budget.withdraw);
 
@@ -154,7 +154,7 @@ router.get("/sumBudgets/:id", async (req, res) => {
       }
       const matchedPC = pc.find(p => p.pageC_id === form[i].pageC_id);
 
-      if (matchedPC && form[i].form_status === "อนุมัติ") {
+      if (matchedPC && form[i].form_status === "approval") {
         let [budgets] = await database.query(`SELECT withdraw FROM Budget WHERE form_id = ?`, [form[i].form_id]);
 
 
@@ -191,7 +191,7 @@ router.get("/budgetsPC", async (req, res) => {
 
       SUM(CASE 
         WHEN f.form_type = 'Page_Charge'
-        AND f.form_status IN ('รองคณบดี', 'คณบดี', 'รออนุมัติ', 'อนุมัติ')
+        AND f.form_status IN ('associate', 'dean', 'waitingApproval', 'approval')
         THEN b.amount_approval
     END) AS totalapproved
       FROM Budget b
@@ -212,7 +212,7 @@ router.get("/budgetsConfer", async (req, res) => {
     COUNT(b.budget_id) AS total_budgets, 
     COUNT(CASE WHEN f.form_type = 'Conference' THEN 1 END) AS numapproved,
     SUM(CASE WHEN f.form_type = 'Conference' 
-             AND f.form_status IN ('รองคณบดี', 'คณบดี', 'รออนุมัติ', 'อนุมัติ') 
+             AND f.form_status IN ('associate', 'dean', 'waitingApproval', 'approval') 
              THEN b.amount_approval 
         END) AS totalapproved
     FROM Budget b

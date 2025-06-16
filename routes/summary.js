@@ -29,7 +29,7 @@ router.get("/all_summary_conference", async (req, res) => {
     JOIN Users u ON c.user_id = u.user_id
     LEFT JOIN Form f ON c.conf_id = f.conf_id
     LEFT JOIN Budget b ON f.form_id = b.form_id
-    WHERE f.form_status = "อนุมัติ"
+    WHERE f.form_status = "approval"
     AND b.budget_year = YEAR(CURDATE()) + 543;`
     );
 
@@ -61,7 +61,7 @@ FROM Page_Charge p
 JOIN Users u ON p.user_id = u.user_id
 LEFT JOIN Form f ON p.pageC_id = f.pageC_id
 LEFT JOIN Budget b ON f.form_id = b.form_id
-WHERE f.form_status = "อนุมัติ";
+WHERE f.form_status = "approval";
 `
     );
 
@@ -124,7 +124,7 @@ WHERE f.form_status = "อนุมัติ";
       FROM Page_Charge p
       JOIN Form f ON p.pageC_id = f.pageC_id
       JOIN Budget b ON f.form_id = b.form_id
-      WHERE f.form_status = 'อนุมัติ'
+      WHERE f.form_status = 'approval'
       GROUP BY b.budget_year
       ORDER BY b.budget_year DESC;`
     );
@@ -154,7 +154,7 @@ router.get("/all_summary_kris", async (req, res) => {
         FROM Research_KRIS k
         JOIN Users u ON k.user_id = u.user_id
         LEFT JOIN Form f ON k.kris_id = f.kris_id
-        WHERE f.form_status = "อนุมัติ";`
+        WHERE f.form_status = "approval";`
     );
     res.status(200).json(Summary);
   } catch (error) {
@@ -173,7 +173,7 @@ router.get("/remainingConference", async (req, res) => {
       f.form_type
       FROM Budget b
       JOIN Form f ON b.form_id = f.form_id
-      WHERE f.form_status = "อนุมัติ"
+      WHERE f.form_status = "approval"
       AND f.form_type = "Conference"
       ORDER BY b.budget_id DESC
       LIMIT 1;`
@@ -195,7 +195,7 @@ router.get("/remainingPc", async (req, res) => {
       f.form_type
       FROM Budget b
       JOIN Form f ON b.form_id = f.form_id
-      WHERE f.form_status = "อนุมัติ"
+      WHERE f.form_status = "approval"
       AND f.form_type = "Page_Charge"
       ORDER BY b.budget_id DESC
       LIMIT 1;`
@@ -211,7 +211,7 @@ router.get("/count", async (req, res) => {
     const [Summary] = await db.query(
       `SELECT form_type, COUNT(*) AS total_count
       FROM Form
-      WHERE form_status = 'อนุมัติ'
+      WHERE form_status = 'approval'
       AND form_type IN ('Conference', 'Page_Charge', 'Research_KRIS')
       GROUP BY form_type;`
     );
@@ -247,8 +247,8 @@ router.get("/count_confer_withdraw", async (req, res) => {
       ) AS all_total
 FROM Conference c
 JOIN Form f ON c.conf_id = f.conf_id
-WHERE f.form_status = 'อนุมัติ'
-AND c.country_conf = 'ณ ต่างประเทศ'
+WHERE f.form_status = 'approval'
+AND c.country_conf = 'abroad'
 GROUP BY c.withdraw
 ORDER BY c.withdraw;`
     );
@@ -279,7 +279,7 @@ router.get("/count_confer_country", async (req, res) => {
       COUNT(*) AS total_count,
     
       CASE 
-        WHEN c.country_conf = "ณ ต่างประเทศ" THEN 
+        WHEN c.country_conf = "abroad" THEN 
             CASE 
                 WHEN c.location IN ('ลาว', 'กัมพูชา', 'อินโดนีเซีย', 'เมียนมาร์', 'มาเลเซีย', 'เวียดนาม', 'ฟิลิปปินส์') THEN 'SEA'
                 WHEN c.location IN ('บรูไน', 'สิงคโปร์', 'ญี่ปุ่น', 'เกาหลีใต้', 'ไต้หวัน', 'จีน', 'ฮ่องกง', 'อินเดีย', 'ศรีลังกา', 'ปากีสถาน', 'บังกลาเทศ', 'เนปาล', 'ภูฏาน', 'มัลดีฟส์', 'มองโกเลีย', 'คาซัคสถาน', 'อุซเบกิสถาน', 'เติร์กเมนิสถาน', 'คีร์กีซสถาน', 'ทาจิกิสถาน') THEN 'ASIA'
@@ -291,7 +291,7 @@ router.get("/count_confer_country", async (req, res) => {
       FROM Conference c
       JOIN Form f ON c.conf_id = f.conf_id
       LEFT JOIN Budget b ON f.form_id = b.form_id
-      WHERE f.form_status = "อนุมัติ"
+      WHERE f.form_status = "approval"
       GROUP BY region_category, c.location, c.withdraw, c.country_conf
       ORDER BY region_category ASC, c.location ASC;`
     );
@@ -340,7 +340,7 @@ router.get("/count_confer_thai", async (req, res) => {
     FROM Conference c
     JOIN Form f ON c.conf_id = f.conf_id
     LEFT JOIN Budget b ON f.form_id = b.form_id
-    WHERE f.form_status = "อนุมัติ" and c.country_conf = "ภายในประเทศ"
+    WHERE f.form_status = "approval" and c.country_conf = "domestic"
     GROUP BY c.location, c.country_conf
     ORDER BY c.location ASC;
 `
@@ -363,7 +363,7 @@ router.get("/eachyears", async (req, res) => {
 FROM Budget b
 LEFT JOIN Form f ON b.form_id = f.form_id
 WHERE b.budget_year >= (YEAR(CURRENT_DATE) - 3) 
-AND f.form_status = "อนุมัติ"
+AND f.form_status = "approval"
 GROUP BY b.budget_year
 ORDER BY b.budget_year DESC;
 `
@@ -383,7 +383,7 @@ router.get("/money_user", async (req, res) => {
     COALESCE(SUM(CASE WHEN f.form_type = 'Page_Charge' THEN b.amount_approval ELSE 0 END), 0) AS total_pc
 FROM Users u
 LEFT JOIN Budget b ON b.user_id = u.user_id AND b.budget_year = YEAR(CURDATE()) + 543
-LEFT JOIN Form f ON f.form_id = b.form_id AND f.form_status = 'อนุมัติ'
+LEFT JOIN Form f ON f.form_id = b.form_id AND f.form_status = 'approval'
 GROUP BY u.user_id
 ORDER BY u.user_nameth;
 `
@@ -405,7 +405,7 @@ FROM
   CROSS JOIN
   (SELECT DISTINCT form_type FROM form) AS t
   LEFT JOIN (
-    SELECT * FROM form WHERE form_status = 'อนุมัติ'
+    SELECT * FROM form WHERE form_status = 'approval'
   ) AS f ON f.form_type = t.form_type
   LEFT JOIN budget b ON b.form_id = f.form_id AND b.budget_year = y.budget_year
 GROUP BY

@@ -47,8 +47,8 @@ const researchSchema = Joi.object({
   ),
   res_cluster_other: Joi.when("research_cluster", {
     is: Joi.alternatives().try(
-      "อื่นๆ",
-      Joi.array().items(Joi.string().valid("อื่นๆ"))
+      "other",
+      Joi.array().items(Joi.string().valid("other"))
     ),
     then: Joi.string().required(),
     otherwise: Joi.optional(),
@@ -143,7 +143,7 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     const formData = {
       form_type: "Research_KRIS",
       kris_id: krisID,
-      form_status: "ฝ่ายบริหารงานวิจัย"
+      form_status: "research"
     };
 
     //insert data to Form

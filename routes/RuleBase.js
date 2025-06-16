@@ -128,20 +128,20 @@ const scoreStandard = async (typeScore, total, standard, core) => {
 
   let result = "";
 
-  if (standard == "มาตรฐาน" && typeScore == null) {
-    return (result = "มาตรฐาน");
+  if (standard == "standard" && typeScore == null) {
+    return (result = "standard");
   } else {
     if (typeScore == "SJR") {
       if (total >= parseFloat(qualityScoreSJR)) {
         console.log("ค่า SJR อยู่ในเกณฑ์ดีมาก : ", total);
         console.log("ดีมากคับ ไม่คิดค่าลงทะเบียน");
 
-        result = "ดีมาก";
+        result = "good";
         return result;
       } else {
         console.log("อยู่ในเกณฑ์มาตรฐาน : ", total);
 
-        result = "มาตรฐาน";
+        result = "standard";
         return result;
       }
     } else if (typeScore == "CIF") {
@@ -149,12 +149,12 @@ const scoreStandard = async (typeScore, total, standard, core) => {
         console.log("ค่า CIF อยู่ในเกณฑ์ดีมาก : ", total);
         console.log("ดีมากคับ ไม่คิดค่าลงทะเบียน");
 
-        result = "ดีมาก";
+        result = "good";
         return result;
       } else {
         console.log("อยู่ในเกณฑ์มาตรฐาน : ", total);
 
-        result = "มาตรฐาน";
+        result = "standard";
         return result;
       }
     } else if (typeScore == "CORE") {
@@ -162,12 +162,12 @@ const scoreStandard = async (typeScore, total, standard, core) => {
         console.log("ค่า core อยู่ในเกณฑ์ดีมาก : ", core);
         console.log("ดีมากคับ ไม่คิดค่าลงทะเบียน");
 
-        result = "ดีมาก";
+        result = "good";
         return result;
       } else {
         console.log("อยู่ในเกณฑ์มาตรฐาน : ", total);
 
-        result = "มาตรฐาน";
+        result = "standard";
         return result;
       }
     } else {
@@ -223,7 +223,7 @@ const getMaxExpense = async (place, In_Out_Country) => {
 
   let result = { maxExpense: 0, inThai: "", locat: "" };
 
-  if (In_Out_Country == "ณ ต่างประเทศ") {
+  if (In_Out_Country == "abroad") {
     console.log("ณ ต่างประเทศ ประเทศ : ", place);
 
     for (const category in country) {
@@ -254,7 +254,7 @@ const getMaxExpense = async (place, In_Out_Country) => {
         }
       }
     }
-  } else if (In_Out_Country == "ภายในประเทศ") {
+  } else if (In_Out_Country == "domestic") {
     console.log("ณ ภายในประเทศ จังหวัด : ", place);
 
     if (
@@ -332,11 +332,11 @@ router.get("/confer/calc/:id", async (req, res) => {
             console.log(Author);
             
             //ส่วนในประเทศ
-            if (In_Out_Country == "ภายในประเทศ") {
+            if (In_Out_Country == "domestic") {
                 console.log(In_Out_Country);
                 
                 //ได้รับการสนับสนุนจากคณะ
-                if (In_Out_Scopus == "คณะจัด ไม่อยู่scopus") {
+                if (In_Out_Scopus == "facultyHost") {
                     console.log(In_Out_Scopus);
                     
                     //pull data from getMaxExpense
@@ -348,7 +348,7 @@ router.get("/confer/calc/:id", async (req, res) => {
                     });
                     
                 //เกณฑ์ปกติ
-                } else if (In_Out_Scopus == "อยู่ในscopus") {
+                } else if (In_Out_Scopus == "inScopus") {
                     console.log(In_Out_Scopus);
                     
                     //ระดับไหน => คิดจังหวัด
@@ -359,7 +359,7 @@ router.get("/confer/calc/:id", async (req, res) => {
                         
                         return res.status(200).json({
                             message: 
-                            result == "ดีมาก" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน" : "คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน",
+                            result == "good" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน" : "คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน",
                             inthai: finalSum.inThai == "ไม่สามารถเบิกค่าเบี้ยเลี้ยงเดินทางได้" ? "ไม่สามารถเบิกค่าเบี้ยเลี้ยงเดินทางได้" : "ค่าเบี้ยเลี้ยงเดินทาง <= 300 บาท/คน/วัน",
                             inOutC: finalSum.locat,
                             money:
@@ -375,11 +375,11 @@ router.get("/confer/calc/:id", async (req, res) => {
                 }
             }
             //ส่วนต่างประเทศ
-            else if (In_Out_Country == "ณ ต่างประเทศ") {
+            else if (In_Out_Country == "abroad") {
                 console.log(In_Out_Country);
                 
                 //ได้รับการสนับสนุนจากคณะ
-                if (In_Out_Scopus == "คณะจัด ไม่อยู่scopus") {
+                if (In_Out_Scopus == "facultyHost") {
                     console.log(In_Out_Scopus);
                     //เข้า loop ดูว่าเบิกได้เท่าไหร่
                     //ถ้าเช้ค 50 100 befor year_work
@@ -405,7 +405,7 @@ router.get("/confer/calc/:id", async (req, res) => {
                     }
                 }
                 //เกณฑ์ปกติ
-                else if (In_Out_Scopus == "อยู่ในscopus") {
+                else if (In_Out_Scopus == "inScopus") {
                     console.log(In_Out_Scopus);
                     
                     //ลาตามเกณฑ์ปกติ
@@ -421,7 +421,7 @@ router.get("/confer/calc/:id", async (req, res) => {
                             console.log("withdraw", withdraw);
                             return res.status(200).json({
                                 message:
-                                result == "ดีมาก" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน" : "คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน",
+                                result == "good" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน" : "คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน",
                                 money: withdraw == "50%" ? finalSum.maxExpense / 2 : finalSum.maxExpense,
                                 inOutC: finalSum.locat,
                             });
@@ -431,7 +431,7 @@ router.get("/confer/calc/:id", async (req, res) => {
                             //ต้องพิจารณาอีกทีว่า 50/ 100
                             return res.status(200).json({
                                 message:
-                                result == "ดีมาก" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน" : "คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน",
+                                result == "good" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน" : "คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน",
                                 money: withdraw == "50%" ? finalSum.maxExpense / 2 : finalSum.maxExpense, inOutC: finalSum.locat,
                             });
                         }
@@ -448,7 +448,7 @@ router.get("/confer/calc/:id", async (req, res) => {
                                 console.log("Sec_Leave_name", Sec_Leave_name);
                                 //เข้า loop ดูว่าเบิกได้เท่าไหร่
                                 return res.status(200).json({
-                                    message: result == "ดีมาก" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน" : "คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน",
+                                    message: result == "good" ? "ไม่คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน" : "คิดค่าลงทะเบียนรวมกับวงเงินสนับสนุน",
                                     money: withdraw == "50%" ? finalSum.maxExpense / 2 : finalSum.maxExpense,
                                     inOutC: finalSum.locat,
                                 });
