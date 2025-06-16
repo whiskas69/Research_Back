@@ -56,8 +56,8 @@ CREATE TABLE Conference (
     date_submit_organizer DATE NOT NULL,
     argument_date_review DATE NOT NULL,
     last_day_register DATE NOT NULL,
-    meeting_type ENUM('คณะจัด ไม่อยู่scopus', 'อยู่ในscopus') NOT NULL,
-    quality_meeting ENUM('มาตรฐาน', 'ดีมาก', ''),
+    meeting_type ENUM('facultyHost', 'inScopus') NOT NULL,
+    quality_meeting ENUM('standard', 'good', ''),
     presenter_type ENUM('First Author', 'Corresponding Author') NOT NULL,
     time_of_leave ENUM('1', '2'),
     location VARCHAR(255) NOT NULL,
@@ -66,7 +66,7 @@ CREATE TABLE Conference (
     withdraw ENUM('50%', '100%'),
     wd_100_quality ENUM('WoS-Q1', 'WoS-Q2', 'WoS-Q3', 'SJR-Q1', 'SJR-Q2'),
     wd_name_100 VARCHAR(255),
-    country_conf ENUM('ณ ต่างประเทศ', 'ภายในประเทศ') NOT NULL,
+    country_conf ENUM('abroad', 'domestic') NOT NULL,
     num_register_articles DECIMAL(10,2) NOT NULL,
 	regist_amount_1_article DECIMAL(10,2) NOT NULL,
     total_amount DECIMAL(10,2) NOT NULL,
@@ -130,7 +130,7 @@ CREATE TABLE Page_Charge (
 	date_review_announce DATE NOT NULL,
     final_date DATE NOT NULL,
     article_research_ject VARCHAR(255),
-    research_type ENUM('วิจัยพื้นฐาน', 'วิจัยประยุกต์', 'วิจัยและพัฒนา', 'อื่นๆ' ),
+    research_type ENUM('basic', 'applied', 'research&development', 'other' ),
     research_type2 VARCHAR(255),
     name_funding_source VARCHAR(255),
     budget_limit DECIMAL(10,2),
@@ -171,7 +171,7 @@ CREATE TABLE Form (
 	conf_id INT UNIQUE,
 	pageC_id INT UNIQUE,
 	kris_id INT UNIQUE,
-	form_status ENUM('ฝ่ายบริหารทรัพยากรบุคคล','ฝ่ายบริหารงานวิจัย',  'ฝ่ายบริหารการเงิน', 'รองคณบดี', 'คณบดี','รออนุมัติ', 'อนุมัติ', 'ไม่อนุมัติ', 'เข้าที่ประชุม') NOT NULL,
+	form_status ENUM('hr', 'research', 'finance', 'associate', 'dean','waitingApproval', 'approve', 'notApproved', 'attendMeeting') NOT NULL,
     edit_data JSON,
     date_form_edit DATE DEFAULT (CURRENT_DATE),
     editor VARCHAR(255),
@@ -212,12 +212,12 @@ CREATE TABLE officers_opinion_pc (
     associate_id INT,
     dean_id INT,
     pageC_id INT NOT NULL UNIQUE,
-    p_research_admin ENUM('อนุมัติ', 'รอหนังสือตอบรับ', 'อื่นๆ'),
+    p_research_admin ENUM('approve', 'waiting letter', 'other'),
     p_reason VARCHAR(255),
     p_deputy_dean VARCHAR(255),
     p_date_accepted_approve DATE, -- วันที่เอกสารได้รับการอนุมัติ
-    p_acknowledge ENUM('รับทราบ', 'ไม่อนุมัติ'),
-    p_approve_result ENUM('รับทราบ', 'อนุมัติ', 'ไม่อนุมัติ', 'อื่นๆ'),
+    p_acknowledge ENUM('acknowledge', 'notApproved'),
+    p_approve_result ENUM('acknowledge', 'approve', 'notApproved', 'other'),
     p_reason_dean_approve VARCHAR(255),
     research_doc_submit_date DATE DEFAULT (CURRENT_DATE),
     associate_doc_submit_date DATE DEFAULT (CURRENT_DATE),
@@ -235,13 +235,13 @@ CREATE TABLE officers_opinion_conf (
     associate_id INT,
     dean_id INT,
 	conf_id INT NOT NULL UNIQUE,
-	c_research_hr ENUM('ถูกต้อง', 'ไม่ถูกต้อง', 'อื่น ๆ'),
+	c_research_hr ENUM('correct', 'notCorrect', 'other'),
 	c_reason VARCHAR(255),
     c_noteOther VARCHAR(255),
-	c_meet_quality ENUM('ถูกต้อง', 'ไม่ถูกต้อง'),
+	c_meet_quality ENUM('correct', 'notCorrect'),
 	c_quality_reason VARCHAR(255),
 	c_deputy_dean VARCHAR(255),
-	c_approve_result ENUM('รับทราบ', 'ไม่อนุมัติ'),
+	c_approve_result ENUM('acknowledge', 'notApproved'),
     hr_doc_submit_date DATE DEFAULT (CURRENT_DATE),
     research_doc_submit_date DATE DEFAULT (CURRENT_DATE),
     associate_doc_submit_date DATE DEFAULT (CURRENT_DATE),
@@ -257,7 +257,7 @@ CREATE TABLE officers_opinion_kris (
 	k_office_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
 	kris_id INT NOT NULL UNIQUE,
-	research_admin ENUM('รับทราบ', 'ไม่รับทราบ'),
+	research_admin ENUM('acknowledge', 'notAcknowledge'),
     doc_submit_date DATE DEFAULT (CURRENT_DATE),
     FOREIGN KEY (user_id) REFERENCES Users(user_id),
 	FOREIGN KEY (kris_id) REFERENCES Research_KRIS(kris_id)
@@ -372,7 +372,6 @@ INSERT INTO Users (
 ('hr', 'ศศิกานต์ หลงกระจ่าง', 'Sasikan Longkachang', '64070105@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2000-09-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
 ('admin', 'admin', 'admin', '64070075@kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2011-08-25', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true);
 
-
 INSERT INTO ConditionPC (
     condition_id, natureAmount, mdpiQuartile1, mdpiQuartile2, otherQuartile1, otherQuartile2, otherQuartile3, otherQuartile4
 ) VALUES
@@ -384,3 +383,11 @@ INSERT INTO ConditionCF (
     expense50ASEAN, expense50Asia, expense50EuropeAmericaAustraliaAfrica
 ) VALUES
 (1, 2, 3, 2, 4, 9.38, 'A', 20000, 40000, 60000, 10000, 20000, 30000);
+
+UPDATE mytable
+SET name = CONVERT(CAST(CONVERT(name USING latin1) AS BINARY) USING utf8mb4);UPDATE mytable
+SET name = CONVERT(CAST(CONVERT(name USING latin1) AS BINARY) USING utf8mb4);
+
+UPDATE mytable
+SET name = CONVERT(CAST(CONVERT(name USING latin1) AS BINARY) USING utf8mb4);UPDATE mytable
+SET name = CONVERT(CAST(CONVERT(name USING latin1) AS BINARY) USING utf8mb4);
