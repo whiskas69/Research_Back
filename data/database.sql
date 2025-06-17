@@ -36,7 +36,7 @@ CREATE TABLE Users (
     user_startwork DATE NOT NULL,
     user_year INT NOT NULL,
     user_confer boolean NOT NULL
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
 -- ตารางเอกสารขออนุมัติค่าเดินทาง (Conference) CHECK
 CREATE TABLE Conference (
@@ -85,6 +85,7 @@ CREATE TABLE Conference (
     doc_submit_date DATE DEFAULT (CURRENT_DATE),
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
+ALTER TABLE Conference CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 -- ตารางคำนวณคะแนนคุณภาพการประชุมวิชาการ (Score) CHECK
 CREATE TABLE Score (
     sc_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -140,6 +141,7 @@ CREATE TABLE Page_Charge (
     doc_submit_date DATE DEFAULT (CURRENT_DATE),
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
+ALTER TABLE Page_Charge CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 -- Table for Research_KRIS CHECK
 CREATE TABLE Research_KRIS (
 	kris_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -180,6 +182,7 @@ CREATE TABLE Form (
 	FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id),
 	FOREIGN KEY (kris_id) REFERENCES Research_KRIS(kris_id)
 );
+ALTER TABLE Form CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 -- ตารางเก็บเอกสาร PDF (File_pdf) CHECK
 CREATE TABLE File_pdf (
 	file_id INT PRIMARY KEY AUTO_INCREMENT UNIQUE,
@@ -227,6 +230,7 @@ CREATE TABLE officers_opinion_pc (
     FOREIGN KEY (dean_id) REFERENCES Users(user_id),
     FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id)
 );
+ALTER TABLE officers_opinion_pc CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 -- Table: officer's_opinion_conf CHECK
 CREATE TABLE officers_opinion_conf (
 	c_office_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -252,6 +256,7 @@ CREATE TABLE officers_opinion_conf (
     FOREIGN KEY (dean_id) REFERENCES Users(user_id),
 	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id)
 );
+ALTER TABLE officers_opinion_conf CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 -- Table: officer's_opinion_kris CHECK
 CREATE TABLE officers_opinion_kris (
 	k_office_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -262,6 +267,7 @@ CREATE TABLE officers_opinion_kris (
     FOREIGN KEY (user_id) REFERENCES Users(user_id),
 	FOREIGN KEY (kris_id) REFERENCES Research_KRIS(kris_id)
 );
+ALTER TABLE officers_opinion_kris CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 -- Table: Budget CHECK
 CREATE TABLE Budget (
 	budget_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -383,5 +389,13 @@ INSERT INTO ConditionCF (
     expense50ASEAN, expense50Asia, expense50EuropeAmericaAustraliaAfrica
 ) VALUES
 (1, 2, 3, 2, 4, 9.38, 'A', 20000, 40000, 60000, 10000, 20000, 30000);
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+-- ปิด safe mode ชั่วคราว
+SET SQL_SAFE_UPDATES = 0;
+>>>>>>> d0f775f (save local changes)
 
 
+=======
+>>>>>>> cd9f0c0 (save local changes)

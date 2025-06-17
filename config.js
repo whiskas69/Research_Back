@@ -4,7 +4,7 @@ const pool = mysql.createPool({
   // host: 'mysql', password: 'wine1234', //server
   host: 'mysql',
   user: 'root',
-  password: 'wine1234',//อย่าลืมแก้
+  password: 'root',//อย่าลืมแก้
   database: 'ResearchAdministration',
   waitForConnections: true,
   connectionLimit: 10,
