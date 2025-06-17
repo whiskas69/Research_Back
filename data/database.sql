@@ -389,13 +389,3 @@ INSERT INTO ConditionCF (
     expense50ASEAN, expense50Asia, expense50EuropeAmericaAustraliaAfrica
 ) VALUES
 (1, 2, 3, 2, 4, 9.38, 'A', 20000, 40000, 60000, 10000, 20000, 30000);
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
--- ปิด safe mode ชั่วคราว
-SET SQL_SAFE_UPDATES = 0;
->>>>>>> d0f775f (save local changes)
-
-
-=======
->>>>>>> cd9f0c0 (save local changes)
