@@ -649,13 +649,15 @@ router.put("/editedFormPageChage/:id", async (req, res) => {
     console.log("in pageC_id")
     const editDataJson = updates.edit_data
     console.log("12345 editDataJson", editDataJson)
+    const setClause = editDataJson.map(item => {
+        const value = Array.isArray(item.newValue)
+          ? JSON.stringify(item.newValue)
+          : item.newValue;
+        // escape single quotes เพื่อกัน syntax error ใน SQL
+        const safeValue = typeof value === 'string' ? value.replace(/'/g, "''") : value;
 
-    const setClause = editDataJson
-      .map(item => {
-        const value = Array.isArray(item.newValue) ? JSON.stringify(item.newValue) : item.newValue;
-        return `${item.field} = '${value}'`;
-      })
-      .join(", ");
+        return `${item.field} = '${safeValue}'`;
+      }).join(", ");
     console.log("in pageC_id setClause", setClause)
     const sql = await db.query(`UPDATE Page_Charge SET ${setClause} WHERE pageC_id = ${id};`)
 

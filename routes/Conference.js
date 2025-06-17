@@ -463,7 +463,16 @@ router.put("/editedFormConfer/:id", async (req, res) => {
     console.log("12345 editDataJsonScore", editDataJsonScore)
 
     if (editDataJson && editDataJson.length > 0) {
-      const setClause = editDataJson.map(item => `${item.field} = '${item.newValue}'`).join(", ")
+      const setClause = editDataJson.map(item => {
+        const value = Array.isArray(item.newValue)
+          ? JSON.stringify(item.newValue)
+          : item.newValue;
+
+        // escape single quotes เพื่อกัน syntax error ใน SQL
+        const safeValue = typeof value === 'string' ? value.replace(/'/g, "''") : value;
+
+        return `${item.field} = '${safeValue}'`;
+      }).join(", ");
       console.log("in conf_id setClause", setClause)
       const sql = await db.query(`UPDATE Conference SET ${setClause} WHERE conf_id = ${id};`)
       console.log("789", sql);
@@ -493,14 +502,15 @@ router.put("/editedFormConfer/:id", async (req, res) => {
     )
     console.log("findID", findID[0].form_id)
     const [updateNoti_result] = await db.query(
-      `UPDATE Notification SET date_update = CURRENT_DATE  WHERE form_id = ?`, 
+      `UPDATE Notification SET date_update = CURRENT_DATE  WHERE form_id = ?`,
       [findID[0].form_id]
     )
     console.log("updateNoti_result : ", updateNoti_result)
-    
+
     res.status(200).json({ success: true, message: "Success" });
 
   } catch (err) {
+    console.log(err)
     res.status(500).json({ error: err.message });
   }
 })
