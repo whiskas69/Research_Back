@@ -217,7 +217,7 @@ CREATE TABLE officers_opinion_pc (
     pageC_id INT NOT NULL UNIQUE,
     p_research_admin ENUM('approve', 'waiting letter', 'other'),
     p_reason VARCHAR(255),
-    p_deputy_dean VARCHAR(255),
+    p_deputy_dean ENUM('agree', 'disagree'),
     p_date_accepted_approve DATE, -- วันที่เอกสารได้รับการอนุมัติ
     p_acknowledge ENUM('acknowledge', 'notApproved'),
     p_approve_result ENUM('acknowledge', 'approve', 'notApproved', 'other'),
@@ -244,7 +244,7 @@ CREATE TABLE officers_opinion_conf (
     c_noteOther VARCHAR(255),
 	c_meet_quality ENUM('correct', 'notCorrect'),
 	c_quality_reason VARCHAR(255),
-	c_deputy_dean VARCHAR(255),
+	c_deputy_dean ENUM('agree', 'Disagree'),
 	c_approve_result ENUM('acknowledge', 'notApproved'),
     hr_doc_submit_date DATE DEFAULT (CURRENT_DATE),
     research_doc_submit_date DATE DEFAULT (CURRENT_DATE),
@@ -310,7 +310,8 @@ CREATE TABLE ConditionPC (
 );
 CREATE TABLE ConditionCF (
     condition_id INT AUTO_INCREMENT PRIMARY KEY,
-    maxLeave DECIMAL(10,2),
+    maxLeaveinThai DECIMAL(10,2),
+    maxLeaveoutThai DECIMAL(10,2),
     workTimeYears DECIMAL(10,2),
     journalYears DECIMAL(10,2),
     qualityScoreSJR DECIMAL(10,2),
@@ -384,8 +385,8 @@ INSERT INTO ConditionPC (
 (1, 70000, 60000, 40000, 60000, 40000, 30000, 20000);
 
 INSERT INTO ConditionCF (
-    condition_id, maxLeave, workTimeYears, journalYears, qualityScoreSJR, qualityScoreCIF, qualityScoreCORE,
+    condition_id, maxLeaveinThai, maxLeaveoutThai, workTimeYears, journalYears, qualityScoreSJR, qualityScoreCIF, qualityScoreCORE,
     expense100ASEAN, expense100Asia, expense100EuropeAmericaAustraliaAfrica,
     expense50ASEAN, expense50Asia, expense50EuropeAmericaAustraliaAfrica
 ) VALUES
-(1, 2, 3, 2, 4, 9.38, 'A', 20000, 40000, 60000, 10000, 20000, 30000);
+(1, 1, 2, 3, 2, 4, 9.38, 'A', 20000, 40000, 60000, 10000, 20000, 30000);

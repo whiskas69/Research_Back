@@ -10,14 +10,15 @@ router.get("/all_summary_conference", async (req, res) => {
     u.user_nameth,
     c.conf_research,
     c.conf_name,
+    c.name_co_researchers,
     c.location,
     c.meeting_type,
     c.quality_meeting,
     c.time_of_leave,
     c.trav_dateStart,
     c.trav_dateEnd,
-    c.withdraw,
     f.form_status,
+    b.withdraw,
     COALESCE(c.total_amount, 0) AS total_amount,
     COALESCE(c.inter_expenses, 0) AS inter_expenses,
     COALESCE(c.total_room, 0) AS total_room,
@@ -29,10 +30,10 @@ router.get("/all_summary_conference", async (req, res) => {
     JOIN Users u ON c.user_id = u.user_id
     LEFT JOIN Form f ON c.conf_id = f.conf_id
     LEFT JOIN Budget b ON f.form_id = b.form_id
-    WHERE f.form_status = "approval"
+    WHERE f.form_status = "approve"
     AND b.budget_year = YEAR(CURDATE()) + 543;`
     );
-
+console.log("Summary confer", Summary)
     res.status(200).json(Summary);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -45,6 +46,7 @@ router.get("/all_summary_page_charge", async (req, res) => {
       `SELECT
     p.pageC_id,
     u.user_nameth,
+    p.name_co_researchers,
     p.article_title,
     p.journal_name,
     p.quality_journal,
@@ -54,14 +56,14 @@ router.get("/all_summary_page_charge", async (req, res) => {
     p.month,
     p.year,
     p.date_review_announce,
-    p.request_support,
     f.form_status,
+    b.withdraw,
     b.budget_year
 FROM Page_Charge p
 JOIN Users u ON p.user_id = u.user_id
 LEFT JOIN Form f ON p.pageC_id = f.pageC_id
 LEFT JOIN Budget b ON f.form_id = b.form_id
-WHERE f.form_status = "approval";
+WHERE f.form_status = "approve";
 `
     );
 
@@ -124,12 +126,12 @@ WHERE f.form_status = "approval";
       FROM Page_Charge p
       JOIN Form f ON p.pageC_id = f.pageC_id
       JOIN Budget b ON f.form_id = b.form_id
-      WHERE f.form_status = 'approval'
+      WHERE f.form_status = 'approve'
       GROUP BY b.budget_year
       ORDER BY b.budget_year DESC;`
     );
     console.log("count", count);
-    console.log("Summary", Summary);
+    console.log("Summary pc", Summary);
     res.status(200).json([Summary, count]);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -154,8 +156,9 @@ router.get("/all_summary_kris", async (req, res) => {
         FROM Research_KRIS k
         JOIN Users u ON k.user_id = u.user_id
         LEFT JOIN Form f ON k.kris_id = f.kris_id
-        WHERE f.form_status = "approval";`
+        WHERE f.form_status = "approve";`
     );
+    console.log("Summary krid", Summary)
     res.status(200).json(Summary);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -173,11 +176,12 @@ router.get("/remainingConference", async (req, res) => {
       f.form_type
       FROM Budget b
       JOIN Form f ON b.form_id = f.form_id
-      WHERE f.form_status = "approval"
+      WHERE f.form_status = "approve"
       AND f.form_type = "Conference"
       ORDER BY b.budget_id DESC
       LIMIT 1;`
     );
+    console.log("remainingConference", Summary)
     res.status(200).json(Summary);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -195,11 +199,12 @@ router.get("/remainingPc", async (req, res) => {
       f.form_type
       FROM Budget b
       JOIN Form f ON b.form_id = f.form_id
-      WHERE f.form_status = "approval"
+      WHERE f.form_status = "approve"
       AND f.form_type = "Page_Charge"
       ORDER BY b.budget_id DESC
       LIMIT 1;`
     );
+    console.log("remainingPc", Summary)
     res.status(200).json(Summary);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -211,10 +216,11 @@ router.get("/count", async (req, res) => {
     const [Summary] = await db.query(
       `SELECT form_type, COUNT(*) AS total_count
       FROM Form
-      WHERE form_status = 'approval'
+      WHERE form_status = 'approve'
       AND form_type IN ('Conference', 'Page_Charge', 'Research_KRIS')
       GROUP BY form_type;`
     );
+    console.log("count", Summary)
     res.status(200).json(Summary);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -247,11 +253,12 @@ router.get("/count_confer_withdraw", async (req, res) => {
       ) AS all_total
 FROM Conference c
 JOIN Form f ON c.conf_id = f.conf_id
-WHERE f.form_status = 'approval'
+WHERE f.form_status = 'approve'
 AND c.country_conf = 'abroad'
 GROUP BY c.withdraw
 ORDER BY c.withdraw;`
     );
+    console.log("count_confer_withdraw", Summary)
     res.status(200).json(Summary);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -291,7 +298,7 @@ router.get("/count_confer_country", async (req, res) => {
       FROM Conference c
       JOIN Form f ON c.conf_id = f.conf_id
       LEFT JOIN Budget b ON f.form_id = b.form_id
-      WHERE f.form_status = "approval"
+      WHERE f.form_status = "approve"
       GROUP BY region_category, c.location, c.withdraw, c.country_conf
       ORDER BY region_category ASC, c.location ASC;`
     );
@@ -309,6 +316,7 @@ router.get("/count_confer_country", async (req, res) => {
 
       return acc;
     }, {});
+    console.log("count_confer_country", Summary)
     res.status(200).json(groupedSummary);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -340,12 +348,12 @@ router.get("/count_confer_thai", async (req, res) => {
     FROM Conference c
     JOIN Form f ON c.conf_id = f.conf_id
     LEFT JOIN Budget b ON f.form_id = b.form_id
-    WHERE f.form_status = "approval" and c.country_conf = "domestic"
+    WHERE f.form_status = "approve" and c.country_conf = "domestic"
     GROUP BY c.location, c.country_conf
     ORDER BY c.location ASC;
 `
     );
-
+console.log("count_confer_thai", Summary)
     res.status(200).json(Summary);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -363,12 +371,12 @@ router.get("/eachyears", async (req, res) => {
 FROM Budget b
 LEFT JOIN Form f ON b.form_id = f.form_id
 WHERE b.budget_year >= (YEAR(CURRENT_DATE) - 3) 
-AND f.form_status = "approval"
+AND f.form_status = "approve"
 GROUP BY b.budget_year
 ORDER BY b.budget_year DESC;
 `
   );
-
+console.log("eachyears", Summary)
   res.status(200).json(Summary);
 });
 
@@ -383,12 +391,12 @@ router.get("/money_user", async (req, res) => {
     COALESCE(SUM(CASE WHEN f.form_type = 'Page_Charge' THEN b.amount_approval ELSE 0 END), 0) AS total_pc
 FROM Users u
 LEFT JOIN Budget b ON b.user_id = u.user_id AND b.budget_year = YEAR(CURDATE()) + 543
-LEFT JOIN Form f ON f.form_id = b.form_id AND f.form_status = 'approval'
+LEFT JOIN Form f ON f.form_id = b.form_id AND f.form_status = 'approve'
 GROUP BY u.user_id
 ORDER BY u.user_nameth;
 `
   );
-
+console.log("money_user", Summary)
   res.status(200).json(Summary);
 });
 
@@ -405,7 +413,7 @@ FROM
   CROSS JOIN
   (SELECT DISTINCT form_type FROM form) AS t
   LEFT JOIN (
-    SELECT * FROM form WHERE form_status = 'approval'
+    SELECT * FROM form WHERE form_status = 'approve'
   ) AS f ON f.form_type = t.form_type
   LEFT JOIN budget b ON b.form_id = f.form_id AND b.budget_year = y.budget_year
 GROUP BY
@@ -458,7 +466,8 @@ ORDER BY
   });
 
   const finalResult = Object.values(grouped);
-
+  
+  console.log("all_sum", finalResult);
   res.status(200).json(finalResult);
 });
 

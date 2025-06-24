@@ -90,11 +90,12 @@ router.post("/ConditionCF", async (req, res) => {
   try {
     const result = await db.query(
       `INSERT INTO ConditionCF (
-            maxLeave, workTimeYears, journalYears, qualityScoreSJR, qualityScoreCIF, qualityScoreCORE, expense100ASEAN
+            maxLeaveinThai, maxLeaveoutThai, workTimeYears, journalYears, qualityScoreSJR, qualityScoreCIF, qualityScoreCORE, expense100ASEAN
             ,expense100Asia, expense100EuropeAmericaAustraliaAfrica, expense50ASEAN, expense50Asia, expense50EuropeAmericaAustraliaAfrica)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        condition.maxLeave || null,
+        condition.maxLeaveinThai || null,
+        condition.maxLeaveoutThai || null,
         condition.workTimeYears || null,
         condition.journalYears || null,
         condition.qualityScoreSJR || null,
@@ -278,7 +279,7 @@ const getMaxExpense = async (place, In_Out_Country) => {
 
 router.get("/confer/calc/:id", async (req, res) => {
     const conditionCF = await getConditionCF();
-    const { maxLeave, workTimeYears, journalYears } = conditionCF[0];
+    const { maxLeaveinThai, maxLeaveoutThai, workTimeYears, journalYears } = conditionCF[0];
     
     const { id } = req.params;
     
@@ -354,7 +355,7 @@ router.get("/confer/calc/:id", async (req, res) => {
                     //ระดับไหน => คิดจังหวัด
                     
                     //ลาได้มากสุด 2 ครั้ง
-                    if (Leave <= maxLeave && Leave != 0) {
+                    if (Leave <= maxLeaveinThai && Leave != 0) {
                         console.log("สมมติว่ามีเรื่องตีพิม ตีพิมพ์เรื่องเต็มใน Proceeding");
                         
                         return res.status(200).json({
@@ -409,7 +410,7 @@ router.get("/confer/calc/:id", async (req, res) => {
                     console.log(In_Out_Scopus);
                     
                     //ลาตามเกณฑ์ปกติ
-                    if (Leave == 1) {
+                    if (Leave < maxLeaveoutThai) {
                         console.log("Leave", Leave);
                         
                         //เข้า loop ดูว่าเบิกได้เท่าไหร่
@@ -437,7 +438,7 @@ router.get("/confer/calc/:id", async (req, res) => {
                         }
                     }
                     //ลาเกินเกณฑ์
-                    else if (Leave == maxLeave) {
+                    else if (Leave == maxLeaveoutThai) {
                         console.log("Leave", Leave);
 
                         //มีบทความขอเพิ่ม
@@ -478,12 +479,12 @@ router.get("/confer/calc/:id", async (req, res) => {
 router.get("/page_charge/calc/:id", async (req, res) => {
     const conditionPC = await getConditionPC();
     const {
-        natureAmount, 
-        mdpiQuartile1, 
-        mdpiQuartile2, 
-        otherQuartile1, 
-        otherQuartile2, 
-        otherQuartile3, 
+        natureAmount,
+        mdpiQuartile1,
+        mdpiQuartile2,
+        otherQuartile1,
+        otherQuartile2,
+        otherQuartile3,
         otherQuartile4
     } = conditionPC[0];
     
