@@ -267,8 +267,8 @@ router.put("/confirmEditedForm/:id", async (req, res) => {
     }
     if (targetField) {
       const [updateConfirmEditetForm] = await db.query(
-        `UPDATE Form SET edit_data = ?, form_status = ?, editor = ?, professor_reedit = ? WHERE ${targetField} = ?`,
-        [null, updates.form_status, null, false, updates[targetField]]
+        `UPDATE Form SET edit_data = ?, editor = ?, professor_reedit = ? WHERE ${targetField} = ?`,
+        [null, null, false, updates[targetField]]
       );
       console.log("updateOpi_result :", updateConfirmEditetForm);
     } else {
