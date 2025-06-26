@@ -3,11 +3,7 @@ require('dotenv').config();
 const nodemailer = require('nodemailer');
 const { Resend }  = require('resend');
 
-const Transporter = nodemailer.createTransport(
-  new Resend({
-    apiKey: process.env.RESEND_API_KEY,
-  })
-);
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 /**
  * ส่งอีเมล
@@ -20,12 +16,12 @@ const Transporter = nodemailer.createTransport(
 
 async function sendEmail({ to, subject, html, from }) {
   try {
-    const mailOptions = {
+    const result = await resend.emails.send({
       from: from || process.env.EMAIL_FROM, // ใช้ default จาก .env
       to,
       subject,
       html,
-    };
+    });
 
     const info = await Transporter.sendMail(mailOptions);
     console.log('Email sent to:', to);
