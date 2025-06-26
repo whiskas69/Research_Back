@@ -141,7 +141,7 @@ router.get("/sumBudgets/:id", async (req, res) => {
 
     for (let i = 0; i < form.length; i++) {
       const matchedConf = conf.find(c => c.conf_id === form[i].conf_id);
-      if (matchedConf && form[i].form_status === "approval") {
+      if (matchedConf && form[i].form_status === "approve") {
         let [budgets] = await database.query(`SELECT withdraw FROM Budget WHERE form_id = ?`, [form[i].form_id]);
 
         budgets.forEach(budget => {
@@ -154,7 +154,7 @@ router.get("/sumBudgets/:id", async (req, res) => {
       }
       const matchedPC = pc.find(p => p.pageC_id === form[i].pageC_id);
 
-      if (matchedPC && form[i].form_status === "approval") {
+      if (matchedPC && form[i].form_status === "approve") {
         let [budgets] = await database.query(`SELECT withdraw FROM Budget WHERE form_id = ?`, [form[i].form_id]);
 
 

@@ -410,15 +410,24 @@ router.post(
   }
 );
 
-//get all data from database conference
-router.get("/conferences", async (req, res) => {
+//get data by user id
+router.get("/conference/:id", async (req, res) => {
+  const { id } = req.params;
   try {
-    const [conferences] = await db.query("SELECT * FROM Conference");
-    res.status(200).json(conferences);
+    const [conference] = await db.query(
+      "SELECT * FROM Conference WHERE user_id = ?",
+      [id]
+    );
+    if (conference.length === 0) {
+      return res.status(404).json({ message: "conference not found" });
+    }
+    console.log("Get conference userid: ", conference);
+    res.status(200).json(conference);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 //get data by id
 router.get("/conference/:id", async (req, res) => {
