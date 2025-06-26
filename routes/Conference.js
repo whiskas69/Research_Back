@@ -7,7 +7,7 @@ const { DateTime } = require("luxon");
 const baseURL = require("dotenv").config();
 
 const db = require("../config.js");
-const createTransporter = require("../middleware/mailer.js");
+const sendEmail = require("../middleware/mailer.js");
 
 const router = express.Router();
 
@@ -92,9 +92,7 @@ const ConferSchema = Joi.object({
     .greater(today.toISODate())
     .required(),
 
-  meeting_type: Joi.any()
-    .valid("facultyHost", "inScopus")
-    .required(),
+  meeting_type: Joi.any().valid("facultyHost", "inScopus").required(),
   quality_meeting: Joi.any().when("meeting_type", {
     is: "inScopus",
     then: Joi.any().valid("standard", "good").required(),
@@ -392,23 +390,16 @@ router.post(
       await database.commit(); //commit transaction
 
       //send email to user
-      const transporter = createTransporter();
-      const mailOptions = {
-        form: `"ระบบสนับสนุนงานบริหารงานวิจัย" <${process.env.EMAIL_USER}>`,
-        to: "64070075@kmitl.ac.th", //edit mail
-        subject: "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการส่งแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุม",
-        text: `มีการส่งแบบฟอร์มขอรับการสนับสนุนจาก ${getuser[0][0].user_nameth} งานวิจัย: ${conferenceData.conf_name} กำลังรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
-        กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`,
-      };
-
-      try {
-        const info = await transporter.sendMail(mailOptions);
-        console.log("Email sent:", info.response);
-      } catch (error) {
-        console.error("Error sending email:", error);
-      }
-
-      res.status(200).json({ success: true, message: "Success" });
+      await sendEmail({
+        to: "64070075@kmitl.ac.th",
+        subject:
+          "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการส่งแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุม",
+        html: `
+            <p>มีการส่งแบบฟอร์มขอรับการสนับสนุนจาก ${getuser[0][0].user_nameth} งานวิจัย: ${conferenceData.conf_name} กำลังรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล</p>
+            <p>กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้</p>
+          `,
+      });
+      console.log("Email sent successfully");
     } catch (error) {
       database.rollback(); //rollback transaction
       console.error("Error inserting into database:", error);
@@ -451,70 +442,111 @@ router.get("/conference/:id", async (req, res) => {
 });
 
 router.put("/editedFormConfer/:id", async (req, res) => {
-  console.log("editedFormConfer in id:", req.params)
   const { id } = req.params;
   const updates = req.body;
-  console.log("12345", updates)
 
   try {
-    console.log("in conf_id")
-    const editDataJson = updates.edit_data
-    const editDataJsonScore = updates.score
-    console.log("12345 editDataJson", editDataJson)
-    console.log("12345 editDataJsonScore", editDataJsonScore)
+    const editDataJson = updates.edit_data;
+    const editDataJsonScore = updates.score;
 
+    //เช็คว่ามีข้อมูลในส่วนของการกรอกฟอร์มไหม
     if (editDataJson && editDataJson.length > 0) {
-      const setClause = editDataJson.map(item => {
-        const value = Array.isArray(item.newValue)
-          ? JSON.stringify(item.newValue)
-          : item.newValue;
+      //Set ข้อมูลใน Array ก่อนเข้า database
+      const setClause = editDataJson
+        .map((item) => {
+          const value = Array.isArray(item.newValue)
+            ? JSON.stringify(item.newValue)
+            : item.newValue;
 
-        // escape single quotes เพื่อกัน syntax error ใน SQL
-        const safeValue = typeof value === 'string' ? value.replace(/'/g, "''") : value;
+          // escape single quotes เพื่อกัน syntax error ใน SQL
+          const safeValue =
+            typeof value === "string" ? value.replace(/'/g, "''") : value;
+          return `${item.field} = '${safeValue}'`;
+        })
+        .join(", ");
 
-        return `${item.field} = '${safeValue}'`;
-      }).join(", ");
-      console.log("in conf_id setClause", setClause)
-      const sql = await db.query(`UPDATE Conference SET ${setClause} WHERE conf_id = ${id};`)
-      console.log("789", sql);
+      //นำเข้า database
+      const sql = await db.query(
+        `UPDATE Conference SET ${setClause} WHERE conf_id = ${id};`
+      );
     }
+
+    //เช็คว่ามีข้อมูลในส่วนของการกรอกคะแนนไหม
     if (editDataJsonScore && editDataJsonScore.length > 0) {
-      const setClauseScore = editDataJsonScore.map(item => `${item.field} = '${item.newValue}'`).join(", ")
-      console.log("in conf_id setClause", setClauseScore)
-      const sore = await db.query(`UPDATE Score SET ${setClauseScore} WHERE conf_id = ${id};`)
+      //Set ข้อมูลใน Array ก่อนเข้า database
+      const setClauseScore = editDataJsonScore
+        .map((item) => `${item.field} = '${item.newValue}'`)
+        .join(", ");
 
-      console.log("789 sore", sore);
+      //นำเข้า database
+      const sore = await db.query(
+        `UPDATE Score SET ${setClauseScore} WHERE conf_id = ${id};`
+      );
     }
+
     const allEdit = {
       edit_data: updates.edit_data,
-      score: updates.score
+      score: updates.score,
     };
+
     const allEditString = JSON.stringify(allEdit);
+
     const [updateOfficeEditetForm] = await db.query(
       `UPDATE Form SET edit_data = ?, editor = ?, professor_reedit = ? WHERE conf_id = ?`,
       [allEditString, updates.editor, updates.professor_reedit, id]
-    )
-    console.log("updateOpi_result :", updateOfficeEditetForm);
+    );
 
-    console.log("in conf_id find conf_id")
     const [findID] = await db.query(
       `SELECT form_id FROM Form  WHERE conf_id = ?`,
       [id]
-    )
-    console.log("findID", findID[0].form_id)
+    );
+
     const [updateNoti_result] = await db.query(
       `UPDATE Notification SET date_update = CURRENT_DATE  WHERE form_id = ?`,
       [findID[0].form_id]
-    )
-    console.log("updateNoti_result : ", updateNoti_result)
+    );
+
+    const [getuser] = await db.query(
+      `
+      SELECT u.user_email, u.user_nameth, c.conf_name
+      FROM Conference c
+      JOIN Users u ON c.user_id = u.user_id
+      WHERE c.conf_id = ?`,
+      [id]
+    );
+
+    if (updates.professor_reedit === "false" || updates.professor_reedit === null || updates.professor_reedit === "") {
+      //send email to user
+      await sendEmail({
+        to: "64070075@kmitl.ac.th", //getuser[0].user_email
+        subject:
+          "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการแก้ไขแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมของคุณ",
+        html: `
+            <p>แบบฟอร์มงานวิจัย: ${getuser[0].conf_name} มีการแก้ไข กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลและยืนยันเพื่อดำเนินการต่อไป</p>
+            <p>กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้</p>
+          `,
+      });
+      console.log("Email sent successfully");
+
+    } else if (updates.professor_reedit === "true") {
+      //send email to user
+      await sendEmail({
+        to: "64070075@kmitl.ac.th", //getuser[0].user_email
+        subject:
+          "แจ้งเตือนจากระบบสนับสนุนงานวิจัย ผู้ขออนุมัติได้ทำการแก้ไขแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุม",
+        html: `
+            <p>แบบฟอร์มงานวิจัย: ${getuser[0].conf_name} มีการแก้ไข กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลและยืนยันเพื่อดำเนินการต่อไป</p>
+            <p>กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้</p>
+          `,
+      });
+    }
 
     res.status(200).json({ success: true, message: "Success" });
-
   } catch (err) {
-    console.log(err)
+    console.log(err);
     res.status(500).json({ error: err.message });
   }
-})
+});
 
 //status page
 router.get("/form/confer/:id", async (req, res) => {
@@ -618,7 +650,7 @@ router.get("/getFileConf", async (req, res) => {
   console.log("file", file);
 
   const url = baseURL.parsed.VITE_API_BASE_URL;
-  
+
   const file_full_page = `${url}/uploads/${file[0]?.[0]?.full_page}`;
   const date_published_journals = file[0][0].date_published_journals;
   const file_published_journals = `${url}/uploads/${file[0]?.[0]?.published_journals}`;
