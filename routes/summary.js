@@ -6,32 +6,33 @@ const router = express.Router();
 router.get("/all_summary_conference", async (req, res) => {
   try {
     const [Summary] = await db.query(
-      `SELECT
-    u.user_nameth,
-    c.conf_research,
-    c.conf_name,
-    c.name_co_researchers,
-    c.location,
-    c.meeting_type,
-    c.quality_meeting,
-    c.time_of_leave,
-    c.trav_dateStart,
-    c.trav_dateEnd,
-    f.form_status,
-    b.withdraw,
-    COALESCE(c.total_amount, 0) AS total_amount,
-    COALESCE(c.inter_expenses, 0) AS inter_expenses,
-    COALESCE(c.total_room, 0) AS total_room,
-    COALESCE(c.total_allowance, 0) AS total_allowance,
-    COALESCE(c.domestic_expenses, 0) + COALESCE(c.overseas_expenses, 0) + COALESCE(c.airplane_tax, 0) AS total_other, 
-    COALESCE(c.all_money, 0) AS all_money,
-    COALESCE(b.amount_approval, 0) AS amount_approval
-    FROM Conference c
-    JOIN Users u ON c.user_id = u.user_id
-    LEFT JOIN Form f ON c.conf_id = f.conf_id
-    LEFT JOIN Budget b ON f.form_id = b.form_id
-    WHERE f.form_status = "approve"
-    AND b.budget_year = YEAR(CURDATE()) + 543;`
+    `SELECT
+      u.user_nameth,
+      c.conf_research,
+      c.conf_name,
+      c.name_co_researchers,
+      c.course_co_researchers,
+      c.location,
+      c.meeting_type,
+      c.quality_meeting,
+      c.time_of_leave,
+      c.trav_dateStart,
+      c.trav_dateEnd,
+      f.form_status,
+      b.withdraw,
+      COALESCE(c.total_amount, 0) AS total_amount,
+      COALESCE(c.inter_expenses, 0) AS inter_expenses,
+      COALESCE(c.total_room, 0) AS total_room,
+      COALESCE(c.total_allowance, 0) AS total_allowance,
+      COALESCE(c.domestic_expenses, 0) + COALESCE(c.overseas_expenses, 0) + COALESCE(c.airplane_tax, 0) AS total_other, 
+      COALESCE(c.all_money, 0) AS all_money,
+      COALESCE(b.amount_approval, 0) AS amount_approval
+      FROM Conference c
+      JOIN Users u ON c.user_id = u.user_id
+      LEFT JOIN Form f ON c.conf_id = f.conf_id
+      LEFT JOIN Budget b ON f.form_id = b.form_id
+      WHERE f.form_status = "approve"
+      AND b.budget_year = YEAR(CURRENT_DATE()) + 543;`
     );
 console.log("Summary confer", Summary)
     res.status(200).json(Summary);
@@ -47,6 +48,7 @@ router.get("/all_summary_page_charge", async (req, res) => {
     p.pageC_id,
     u.user_nameth,
     p.name_co_researchers,
+    p.course_co_researchers,
     p.article_title,
     p.journal_name,
     p.quality_journal,
@@ -396,7 +398,6 @@ GROUP BY u.user_id
 ORDER BY u.user_nameth;
 `
   );
-console.log("money_user", Summary)
   res.status(200).json(Summary);
 });
 
