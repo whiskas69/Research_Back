@@ -3,6 +3,7 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 const jwt = require("jsonwebtoken");
+const baseURL = require("dotenv").config();
 
 const { DateTime } = require("luxon");
 
@@ -85,7 +86,8 @@ router.get("/mySignature", async (req, res) => {
 
   console.log("i", signature[0]?.[0]?.user_signature);
 
-  const fileUrl = `http://10.0.15.37:3002/uploads/${signature[0][0].user_signature}`;
+  const url = baseURL.parsed.VITE_API_BASE_URL;
+  const fileUrl = `${url}/uploads/${signature[0][0].user_signature}`;
 
   res.json({ message: "Get File successfully", fileUrl });
 });

@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const Joi = require("joi");
 const { DateTime } = require("luxon");
+const baseURL = require("dotenv").config();
 
 const db = require("../config.js");
 const createTransporter = require("../middleware/mailer.js");
@@ -698,11 +699,13 @@ router.get("/getFilepage_c", async (req, res) => {
     [pageC_id]
   );
 
-  const file_pc_proof = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.pc_proof}`;
-  const file_q_pc_proof = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.q_pc_proof}`;
-  const file_invoice_public = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.invoice_public}`;
-  const file_accepted = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.accepted}`;
-  const file_copy_article = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.copy_article}`;
+  const url = baseURL.parsed.VITE_API_BASE_URL;
+
+  const file_pc_proof = `${url}/uploads/${file[0]?.[0]?.pc_proof}`;
+  const file_q_pc_proof = `${url}/uploads/${file[0]?.[0]?.q_pc_proof}`;
+  const file_invoice_public = `${url}/uploads/${file[0]?.[0]?.invoice_public}`;
+  const file_accepted = `${url}/uploads/${file[0]?.[0]?.accepted}`;
+  const file_copy_article = `${url}/uploads/${file[0]?.[0]?.copy_article}`;
 
   res.json({
     message: "Get File Successfully",

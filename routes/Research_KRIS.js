@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const Joi = require("joi");
 const { DateTime } = require("luxon");
+const baseURL = require("dotenv").config();
 
 const db = require("../config.js");
 const createTransporter = require("../middleware/mailer.js");
@@ -263,7 +264,8 @@ router.get("/getFilekris", async (req, res) => {
     [kris_id]
   );
 
-  const fileUrl = `http://10.0.15.37:3002/uploads/${file[0]?.[0]?.kris_file}`;
+  const url = baseURL.parsed.VITE_API_BASE_URL;
+  const fileUrl = `${url}/uploads/${file[0]?.[0]?.kris_file}`;
 
   res.json({ message: "Get File successfully", fileUrl });
 });
