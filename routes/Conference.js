@@ -391,7 +391,7 @@ router.post(
 
       //send email to user
       await sendEmail({
-        to: "64070075@kmitl.ac.th",
+        to: "64070105@it.kmitl.ac.th",
         subject:
           "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการส่งแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุม",
         html: `
@@ -399,7 +399,7 @@ router.post(
             <p>กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้</p>
           `,
       });
-      console.log("Email sent successfully");
+      res.status(200).json({ success: true, message: "Success" });
     } catch (error) {
       database.rollback(); //rollback transaction
       console.error("Error inserting into database:", error);
@@ -515,10 +515,14 @@ router.put("/editedFormConfer/:id", async (req, res) => {
       [id]
     );
 
-    if (updates.professor_reedit === "false" || updates.professor_reedit === null || updates.professor_reedit === "") {
+    if (
+      updates.professor_reedit === "false" ||
+      updates.professor_reedit === null ||
+      updates.professor_reedit === ""
+    ) {
       //send email to user
       await sendEmail({
-        to: "64070075@kmitl.ac.th", //getuser[0].user_email
+        to: "64070105@it.kmitl.ac.th", //getuser[0].user_email
         subject:
           "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการแก้ไขแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมของคุณ",
         html: `
@@ -527,11 +531,10 @@ router.put("/editedFormConfer/:id", async (req, res) => {
           `,
       });
       console.log("Email sent successfully");
-
     } else if (updates.professor_reedit === "true") {
       //send email to user
       await sendEmail({
-        to: "64070075@kmitl.ac.th", //getuser[0].user_email
+        to: "64070105@it.kmitl.ac.th", //getuser[0].user_email
         subject:
           "แจ้งเตือนจากระบบสนับสนุนงานวิจัย ผู้ขออนุมัติได้ทำการแก้ไขแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุม",
         html: `

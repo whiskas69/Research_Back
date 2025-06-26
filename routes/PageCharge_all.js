@@ -7,7 +7,7 @@ const { DateTime } = require("luxon");
 const baseURL = require("dotenv").config();
 
 const db = require("../config.js");
-const createTransporter = require("../middleware/mailer.js");
+const sendEmail = require("../middleware/mailer.js");
 
 const router = express.Router();
 
@@ -344,22 +344,15 @@ router.post(
       await database.commit(); //commit transaction
 
       //send email to user
-      const transporter = createTransporter();
-      const mailOptions = {
-        form: `"ระบบสนับสนุนงานบริหารงานวิจัย" <${process.env.EMAIL_USER}>`,
-        to: "64070075@kmitl.ac.th", //edit mail
-        subject: "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการส่งแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ในวารสาร",
-        text: `มีการส่งแบบฟอร์มขอรับการสนับสนุนจาก ${getuser[0][0].user_nameth} วารสาร: ${pageChargeData.article_title} กำลังรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
-        กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`,
-      };
-
-      try {
-        const info = await transporter.sendMail(mailOptions);
-        console.log("Email sent:", info.response);
-      } catch (error) {
-        console.error("Error sending email:", error);
-      }
-
+      await sendEmail({
+        to: "64070105@it.kmitl.ac.th",
+        subject:
+          "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการส่งแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์บทความวิจัย",
+        html: `
+            <p>มีการส่งแบบฟอร์มขอรับการสนับสนุนจาก ${getuser[0][0].user_nameth} บทความ: ${conferenceData.conf_name} กำลังรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล</p>
+            <p>กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้</p>
+          `,
+      });
       res.status(200).json({ success: true, message: "Success" });
     } catch (error) {
       database.rollback(); //rollback transaction
@@ -367,146 +360,6 @@ router.post(
       res.status(500).json({ error: error.message });
     } finally {
       database.release(); //release connection
-    }
-  }
-);
-
-//insert to database
-router.post(
-  "/page",
-  uploadDocuments.fields([
-    { name: "pc_proof" },
-    { name: "q_pc_proof" },
-    { name: "invoice_public" },
-    { name: "accepted" },
-    { name: "copy_article" },
-  ]),
-  async (req, res) => {
-    const requiredFiles = ["pc_proof", "q_pc_proof", "copy_article"];
-    const missingFiles = requiredFiles.filter((field) => !req.files[field]);
-
-    if (missingFiles.length > 0) {
-      console.log(`กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`);
-      return res.status(400).json({
-        error: `กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`,
-      });
-    }
-
-    if (req.invalidFiles && req.invalidFiles.length > 0) {
-      return res.status(400).json({ errors: req.invalidFiles });
-    }
-
-    const { error } = pageChargeSchema.validate(req.body, {
-      abortEarly: false,
-    });
-
-    if (error) {
-      console.log(req.body);
-      console.log(error.details.map((err) => err.message));
-      return res.status(400).json({
-        error: error.details.map((err) => err.message),
-      });
-    }
-
-    try {
-      const data = req.body;
-
-      console.log(data);
-
-      const query = `INSERT INTO Page_Charge (
-        user_id, pageC_times, pageC_days, journal_name, quality_journal,
-        pc_isi_year, pc_sjr_year, pc_scopus_year, impact_factor, sjr_score,
-        cite_score, qt_isi, qt_sjr, qt_scopus, support_limit, article_title,
-        vol_journal, issue_journal, month, year, ISSN_ISBN, submission_date,
-        date_review_announce, final_date, article_research_ject, research_type,
-        research_type2, name_funding_source, budget_limit, annual, presenter_type,
-        request_support)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-      const [result] = await db.query(query, [
-        data.user_id,
-        data.pageC_times,
-        data.pageC_days,
-        data.journal_name,
-        JSON.stringify(data.quality_journal),
-        data.pc_isi_year || null,
-        data.pc_sjr_year || null,
-        data.pc_scopus_year || null,
-        data.impact_factor || null,
-        data.sjr_score || null,
-        data.cite_score || null,
-        data.qt_isi || null,
-        data.qt_sjr || null,
-        data.qt_scopus || null,
-        data.support_limit,
-        data.article_title,
-        data.vol_journal,
-        data.issue_journal,
-        data.month,
-        data.year,
-        data.ISSN_ISBN,
-        data.submission_date,
-        data.date_review_announce,
-        data.final_date,
-        data.article_research_ject || null,
-        data.research_type || null,
-        data.research_type2 || null,
-        data.name_funding_source || null,
-        data.budget_limit || null,
-        data.annual || null,
-        data.presenter_type,
-        data.request_support,
-      ]);
-
-      const pageCId = result.insertId;
-
-      // Insert uploaded file data into the database
-      const files = req.files;
-      console.log("filesss", req.files);
-      const fileData = {
-        type: "Page_Charge",
-        pageC_id: pageCId,
-        pc_proof: files?.pc_proof?.[0]?.filename,
-        q_pc_proof: files?.q_pc_proof?.[0]?.filename,
-        invoice_public: files?.invoice_public?.[0]?.filename || null,
-        accepted: files?.accepted?.[0]?.filename || null,
-        copy_article: files?.copy_article?.[0]?.filename,
-      };
-      console.log("File data to insert:", fileData);
-      await db.query("INSERT INTO File_pdf SET ?", fileData);
-
-      //ดพิ่มเข้าตาราง Form
-      const formData = {
-        form_type: "Page_Charge",
-        pageC_id: pageCId,
-        form_status: "research",
-      };
-      console.log("formData data to insert:", formData);
-      const [resultForm] = await db.query("INSERT INTO Form SET ?", formData);
-
-      const noti = {
-        user_id: data.user_id,
-        pageC_id: pageCId,
-        form_id: resultForm.insertId,
-        status_form: "research",
-        name_form: data.article_title,
-      };
-      console.log("noti", noti);
-      try {
-        const [resultNoti] = await db.query(
-          "INSERT INTO Notification SET ?",
-          noti
-        );
-        console.log("Notification Insert Result:", resultNoti);
-      } catch (error) {
-        console.error("Error inserting into Notification:", error);
-      }
-      res.status(201).json({
-        message: "Page Charge and files uploaded successfully",
-        pc_id: pageCId,
-      });
-    } catch (err) {
-      console.error(err.message);
-      res.status(500).json({ error: err.message });
     }
   }
 );
@@ -641,15 +494,12 @@ router.put(
 );
 
 router.put("/editedFormPageChage/:id", async (req, res) => {
-  console.log("editedFormPageChage in id:", req.params)
   const { id } = req.params;
   const updates = req.body;
-  console.log("12345", updates)
 
   try {
-    console.log("in pageC_id")
     const editDataJson = updates.edit_data
-    console.log("12345 editDataJson", editDataJson)
+
     const setClause = editDataJson.map(item => {
         const value = Array.isArray(item.newValue)
           ? JSON.stringify(item.newValue)
@@ -659,33 +509,55 @@ router.put("/editedFormPageChage/:id", async (req, res) => {
 
         return `${item.field} = '${safeValue}'`;
       }).join(", ");
-    console.log("in pageC_id setClause", setClause)
+      
     const sql = await db.query(`UPDATE Page_Charge SET ${setClause} WHERE pageC_id = ${id};`)
-
-    console.log("789", sql);
 
     const allEditString = JSON.stringify(updates.edit_data);
     const [updateOfficeEditetForm] = await db.query(
       `UPDATE Form SET edit_data = ?, editor = ?, professor_reedit = ? WHERE pageC_id = ?`,
       [allEditString, updates.editor, updates.professor_reedit, id]
     )
-    console.log("updateOpi_result :", updateOfficeEditetForm);
 
-    console.log("in pageC_id find pageC_id")
     const [findID] = await db.query(
       `SELECT form_id FROM Form  WHERE pageC_id = ?`,
       [id]
     )
-    console.log("findID", findID[0].form_id)
 
     const [updateNoti_result] = await db.query(
       `UPDATE Notification SET date_update = CURRENT_DATE  WHERE form_id = ?`, 
       [findID[0].form_id]
     )
-    console.log("updateNoti_result : ", updateNoti_result)
+
+    if (
+      updates.professor_reedit === "false" ||
+      updates.professor_reedit === null ||
+      updates.professor_reedit === ""
+    ) {
+      //send email to user
+      await sendEmail({
+        to: "64070105@it.kmitl.ac.th", //getuser[0].user_email
+        subject:
+          "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการแก้ไขแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ของคุณ",
+        html: `
+            <p>แบบฟอร์มบทความ: ${getuser[0].conf_name} มีการแก้ไข กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลและยืนยันเพื่อดำเนินการต่อไป</p>
+            <p>กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้</p>
+          `,
+      });
+      console.log("Email sent successfully");
+    } else if (updates.professor_reedit === "true") {
+      //send email to user
+      await sendEmail({
+        to: "64070105@it.kmitl.ac.th", //getuser[0].user_email
+        subject:
+          "แจ้งเตือนจากระบบสนับสนุนงานวิจัย ผู้ขออนุมัติได้ทำการแก้ไขแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์",
+        html: `
+            <p>แบบฟอร์มบทความ: ${getuser[0].conf_name} มีการแก้ไข กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลและยืนยันเพื่อดำเนินการต่อไป</p>
+            <p>กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้</p>
+          `,
+      });
+    }
 
     res.status(200).json({ success: true, message: "Success" });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

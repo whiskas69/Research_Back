@@ -7,7 +7,7 @@ const { DateTime } = require("luxon");
 const baseURL = require("dotenv").config();
 
 const db = require("../config.js");
-const createTransporter = require("../middleware/mailer.js");
+const sendEmail = require("../middleware/mailer.js");
 
 const router = express.Router();
 
@@ -175,21 +175,15 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     await database.commit(); //commit transaction
 
     //send email to user
-    const transporter = createTransporter();
-    const mailOptions = {
-      form: `"ระบบสนับสนุนงานบริหารงานวิจัย" <${process.env.EMAIL_USER}>`,
-      to: "64070075@kmitl.ac.th", //edit mail
-      subject: "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการส่งแบบฟอร์มงานวิจัย",
-      text: `มีการส่งแบบฟอร์มงานวิจัยจาก ${getuser[0][0].user_nameth} ชื่อโครงการ: ${kris_data.name_research_th}
-      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`
-    };
-
-    try {
-      const info = await transporter.sendMail(mailOptions);
-      console.log("Email sent:", info.response);
-    } catch (error) {
-      console.error("Error sending email:", error);
-    }
+      await sendEmail({
+        to: "64070105@it.kmitl.ac.th",
+        subject:
+          "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการส่งแบบฟอร์มงานวิจัย",
+        html: `
+            <p>มีการส่งแบบฟอร์มงานวิจัยจาก ${getuser[0][0].user_nameth} ชื่อโครงการ: ${conferenceData.conf_name} กำลังรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล</p>
+            <p>กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้</p>
+          `,
+      });
 
     res.status(200).json({ success: true, message: "Success",});
   } catch (error) {
