@@ -411,7 +411,7 @@ router.post(
 );
 
 //get data by user id
-router.get("/conference/:id", async (req, res) => {
+router.get("/conference/user/:id", async (req, res) => {
   const { id } = req.params;
   try {
     const [conference] = await db.query(

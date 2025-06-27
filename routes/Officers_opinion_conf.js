@@ -1,6 +1,6 @@
 const express = require("express");
 const db = require("../config.js");
-const createTransporter = require("../middleware/mailer.js");
+const sendEmail = require("../middleware/mailer.js");
 
 router = express.Router();
 
@@ -55,22 +55,16 @@ router.post("/opinionConf", async (req, res) => {
     await database.commit(); //commit transaction
 
     //send email to user
-    const transporter = createTransporter();
-    const mailOptions = {
-      form: `"ระบบสนับสนุนงานบริหารงานวิจัย" <${process.env.EMAIL_USER}>`,
-      to: "64070075@kmitl.ac.th", //edit mail
-      subject: "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมรอการอนุมัติและตรวจสอบ",
-      text: `มีแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
-      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`,
-    };
-
-    try {
-      const info = await transporter.sendMail(mailOptions);
-      console.log("Email sent:", info.response);
-    } catch (error) {
-      console.error("Error sending email:", error);
-    }
-    
+    await sendEmail({
+        to: "64070105@it.kmitl.ac.th", //getuser[0].user_email
+        subject:
+          "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมรอการอนุมัติและตรวจสอบ",
+        html: `
+            <p>มีแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
+      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้</p>
+          `,
+      });
+      console.log("Email sent successfully");
     res.status(200).json({ success: true, message: "Success" });
   } catch (error) {
     database.rollback(); //rollback transaction
@@ -135,21 +129,16 @@ router.put("/opinionConf/:id", async (req, res) => {
     await database.commit(); //commit transaction
 
     //send email to user
-    const transporter = createTransporter();
-    const mailOptions = {
-      form: `"ระบบสนับสนุนงานบริหารงานวิจัย" <${process.env.EMAIL_USER}>`,
-      to: "64070075@kmitl.ac.th", //edit mail
-      subject: "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมรอการอนุมัติและตรวจสอบ",
-      text: `มีแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
-      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`,
-    };
-
-    try {
-      const info = await transporter.sendMail(mailOptions);
-      console.log("Email sent:", info.response);
-    } catch (error) {
-      console.error("Error sending email:", error);
-    }
+    await sendEmail({
+        to: "64070105@it.kmitl.ac.th", //getuser[0].user_email
+        subject:
+          "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมรอการอนุมัติและตรวจสอบ",
+        html: `
+            <p>มีแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
+      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้</p>
+          `,
+      });
+      console.log("Email sent successfully");
     
     res.status(200).json({ success: true, message: "Success" });
   } catch (error) {

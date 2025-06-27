@@ -89,7 +89,7 @@ router.get("/mySignature", async (req, res) => {
   const url = baseURL.parsed.VITE_API_BASE_URL;
   const fileUrl = `${url}/uploads/${signature[0][0].user_signature}`;
 
-  res.json({ message: "Get File successfully", fileUrl });
+  res.status(200).json({ message: "Get File successfully", fileUrl });
 });
 
 router.post("/user", async (req, res) => {
