@@ -416,7 +416,7 @@ FROM
   LEFT JOIN (
     SELECT * FROM Form WHERE form_status = 'approve'
   ) AS f ON f.form_type = t.form_type
-  LEFT JOIN budget b ON b.form_id = f.form_id AND b.budget_year = y.budget_year
+  LEFT JOIN Budget b ON b.form_id = f.form_id AND b.budget_year = y.budget_year
 GROUP BY
   y.budget_year,
   t.form_type
