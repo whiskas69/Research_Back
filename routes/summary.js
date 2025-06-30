@@ -410,13 +410,13 @@ router.get("/all_sum", async (req, res) => {
   IFNULL(COUNT(DISTINCT b.user_id), 0) AS total_users_approved,
   IFNULL(FORMAT(SUM(b.amount_approval), 2), '0.00') AS total_amount_approved
 FROM
-  (SELECT DISTINCT budget_year FROM budget) AS y
+  (SELECT DISTINCT budget_year FROM Budget) AS y
   CROSS JOIN
   (SELECT DISTINCT form_type FROM form) AS t
   LEFT JOIN (
     SELECT * FROM form WHERE form_status = 'approve'
   ) AS f ON f.form_type = t.form_type
-  LEFT JOIN budget b ON b.form_id = f.form_id AND b.budget_year = y.budget_year
+  LEFT JOIN Budget b ON b.form_id = f.form_id AND b.budget_year = y.budget_year
 GROUP BY
   y.budget_year,
   t.form_type
