@@ -204,6 +204,7 @@ CREATE TABLE File_pdf (
 	invoice_public VARCHAR(255),
 	accepted VARCHAR(255), -- confer && pc
 	copy_article VARCHAR(255),
+    upload_article VARCHAR(255),
 	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id),
 	FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id),
 	FOREIGN KEY (kris_id) REFERENCES Research_KRIS(kris_id)

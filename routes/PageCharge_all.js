@@ -34,7 +34,8 @@ const uploadDocuments = multer({
       file.fieldname === "q_pc_proof" ||
       file.fieldname === "invoice_public" ||
       file.fieldname === "accepted" ||
-      file.fieldname === "copy_article"
+      file.fieldname === "copy_article" ||
+      file.fieldname === "upload_article"
     ) {
       if (file.mimetype === "application/pdf") {
         acceptedFile = true;
@@ -205,9 +206,10 @@ router.post(
     { name: "invoice_public" },
     { name: "accepted" },
     { name: "copy_article" },
+    { name: "upload_article" },
   ]),
   async (req, res) => {
-    const requiredFiles = ["pc_proof", "q_pc_proof", "copy_article"];
+    const requiredFiles = ["pc_proof", "q_pc_proof", "copy_article", "invoice_public", "upload_article"];
     const missingFiles = requiredFiles.filter((field) => !req.files[field]);
 
     console.log("all data", req.body)
@@ -299,6 +301,7 @@ router.post(
         invoice_public: pageChargeFiles.invoice_public?.[0]?.filename,
         accepted: pageChargeFiles.accepted?.[0]?.filename || null,
         copy_article: pageChargeFiles.copy_article?.[0]?.filename,
+        upload_article: pageChargeFiles.upload_article?.[0]?.filename
       };
 
       //insert to File_pdf
@@ -432,6 +435,7 @@ router.put(
     { name: "invoice_public" },
     { name: "accepted" },
     { name: "copy_article" },
+    { name: "upload_article" },
   ]),
   async (req, res) => {
     if (req.invalidFiles && req.invalidFiles.length > 0) {
@@ -455,17 +459,19 @@ router.put(
           files.invoice_public?.[0]?.filename || data.invoice_public,
         accepted: files.accepted?.[0]?.filename || data.accepted,
         copy_article: files.copy_article?.[0]?.filename || data.copy_article,
+        upload_article: files.upload_article?.[0]?.filename || data.upload_article,
       };
 
       console.log("ddd", fileData);
 
       const update = await db.query(
-        `UPDATE File_pdf SET q_pc_proof = ?, invoice_public = ?, accepted = ?, copy_article = ? WHERE pageC_id = ?`,
+        `UPDATE File_pdf SET q_pc_proof = ?, invoice_public = ?, accepted = ?, copy_article = ?, upload_article = ? WHERE pageC_id = ?`,
         [
           fileData.q_pc_proof,
           fileData.invoice_public,
           fileData.accepted,
           fileData.copy_article,
+          fileData.upload_article,
           data.pageC_id,
         ]
       );
@@ -567,7 +573,7 @@ router.get("/getFilepage_c", async (req, res) => {
   const { pageC_id } = req.query;
 
   const file = await db.query(
-    `SELECT pc_proof, q_pc_proof, invoice_public, accepted, copy_article FROM File_pdf WHERE pageC_id = ?`,
+    `SELECT pc_proof, q_pc_proof, invoice_public, accepted, copy_article, upload_article FROM File_pdf WHERE pageC_id = ?`,
     [pageC_id]
   );
 
@@ -578,6 +584,7 @@ router.get("/getFilepage_c", async (req, res) => {
   const file_invoice_public = `${url}/uploads/${file[0]?.[0]?.invoice_public}`;
   const file_accepted = `${url}/uploads/${file[0]?.[0]?.accepted}`;
   const file_copy_article = `${url}/uploads/${file[0]?.[0]?.copy_article}`;
+  const file_upload_article = `${url}/uploads/${file[0]?.[0]?.upload_article}`;
 
   res.json({
     message: "Get File Successfully",
@@ -586,6 +593,7 @@ router.get("/getFilepage_c", async (req, res) => {
     file_invoice_public,
     file_accepted,
     file_copy_article,
+    file_upload_article,
   });
 });
 exports.router = router;
