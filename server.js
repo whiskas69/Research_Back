@@ -13,7 +13,7 @@ app.use(cors({
     origin: [
         "http://10.0.15.37:5173",
         "http://localhost:5173",
-        "https://servicehub.it.kmitl.ac.th" // 👈 เพิ่ม origin จริงของ prod
+        "https://servicehub.it.kmitl.ac.th" //origin จริงของ prod
     ]
 }));
 
@@ -84,5 +84,5 @@ app.post('/api/data', (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server is running on PORT:${PORT}`);
 });
