@@ -6,7 +6,7 @@ const path = require('path');
 const app = express();
 const PORT = 3002;
 
-app.use(cors({ credentials: true, origin: ["http://10.0.15.37:5173", "http://localhost:5173"] }));
+app.use(cors({ credentials: true, origin: ["http://10.0.15.27:5173", "http://127.0.0.1:5173"] }));
 app.use(cookieParser())
 // Statics
 // app.use(express.static('static'))
