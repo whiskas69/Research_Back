@@ -167,7 +167,9 @@ router.get("/all_summary_kris", async (req, res) => {
   }
 });
 
-router.get("/remainingConference", async (req, res) => {
+router.get("/remainingConference/:year", async (req, res) => {
+  const { year } = req.params
+  console.log("year", year)
   try {
     const [Summary] = await db.query(
       `SELECT
@@ -180,8 +182,8 @@ router.get("/remainingConference", async (req, res) => {
       JOIN Form f ON b.form_id = f.form_id
       WHERE f.form_status = "approve"
       AND f.form_type = "Conference"
-      ORDER BY b.budget_id DESC
-      LIMIT 1;`
+      AND b.budget_year = ?
+      LIMIT 1;`, [year]
     );
     console.log("remainingConference", Summary)
     res.status(200).json(Summary);
@@ -190,7 +192,8 @@ router.get("/remainingConference", async (req, res) => {
   }
 });
 
-router.get("/remainingPc", async (req, res) => {
+router.get("/remainingPc/:year", async (req, res) => {
+  const { year } = req.params
   try {
     const [Summary] = await db.query(
       `SELECT
@@ -203,8 +206,8 @@ router.get("/remainingPc", async (req, res) => {
       JOIN Form f ON b.form_id = f.form_id
       WHERE f.form_status = "approve"
       AND f.form_type = "Page_Charge"
-      ORDER BY b.budget_id DESC
-      LIMIT 1;`
+      AND b.budget_year = ?
+      LIMIT 1;`, [year]
     );
     console.log("remainingPc", Summary)
     res.status(200).json(Summary);
@@ -213,14 +216,17 @@ router.get("/remainingPc", async (req, res) => {
   }
 });
 
-router.get("/count", async (req, res) => {
+router.get("/count/:year", async (req, res) => {
+  const { year } = req.params
   try {
     const [Summary] = await db.query(
-      `SELECT form_type, COUNT(*) AS total_count
-      FROM Form
-      WHERE form_status = 'approve'
-      AND form_type IN ('Conference', 'Page_Charge', 'Research_KRIS')
-      GROUP BY form_type;`
+      `SELECT f.form_type, COUNT(*) AS total_count
+      FROM Form f
+      JOIN Budget b ON f.form_id = b.form_id
+      WHERE f.form_status = 'approve'
+        AND f.form_type IN ('Conference', 'Page_Charge', 'Research_KRIS')
+        AND b.budget_year = ?
+      GROUP BY f.form_type;`, [year]
     );
     console.log("count", Summary)
     res.status(200).json(Summary);
