@@ -40,8 +40,12 @@ const upload = multer({ storage, fileFilter });
 //validation
 const researchSchema = Joi.object({
   user_id: Joi.number().integer().required(),
-  name_research_th: Joi.string().pattern(/^[ก-๙0-9\s!@#$%^&*()_+={}\[\]:;"'<>,.?/-]+$/).required(),
-  name_research_en: Joi.string().pattern(/^[A-Za-z0-9\s!@#$%^&*()_+={}\[\]:;"'<>,.?/-]+$/).required(),
+  name_research_th: Joi.string()
+    .pattern(/^[ก-๙0-9\s!@#$%^&*()_+={}\[\]:;"'<>,.?/-]+$/)
+    .required(),
+  name_research_en: Joi.string()
+    .pattern(/^[A-Za-z0-9\s!@#$%^&*()_+={}\[\]:;"'<>,.?/-]+$/)
+    .required(),
   research_cluster: Joi.alternatives().try(
     Joi.string().required(),
     Joi.array().items(Joi.string()).required()
@@ -92,7 +96,9 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     await researchSchema.validateAsync(req.body, { abortEarly: false });
   } catch (error) {
     console.log("error", error);
-    return res.status(400).json({ error: error.details.map((err) => err.message) });
+    return res
+      .status(400)
+      .json({ error: error.details.map((err) => err.message) });
   }
 
   const kris_data = req.body;
@@ -136,7 +142,8 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
 
     //insert data to File_pdf
     const [file_result] = await database.query(
-      "INSERT INTO File_pdf SET ?",fileData
+      "INSERT INTO File_pdf SET ?",
+      fileData
     );
     console.log("file_result", file_result);
 
@@ -144,12 +151,13 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     const formData = {
       form_type: "Research_KRIS",
       kris_id: krisID,
-      form_status: "research"
+      form_status: "research",
     };
 
     //insert data to Form
     const [form_result] = await database.query(
-      "INSERT INTO Form SET ?",formData
+      "INSERT INTO Form SET ?",
+      formData
     );
     console.log("form_result", form_result);
 
@@ -158,11 +166,7 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
       `INSERT INTO Notification (
       user_id, form_id, name_form)
       VALUES (?, ?, ?)`,
-      [
-        kris_data.user_id,
-        form_result.insertId,
-        kris_data.name_research_th
-      ]
+      [kris_data.user_id, form_result.insertId, kris_data.name_research_th]
     );
     console.log("notification_result", notification_result);
 
@@ -175,17 +179,14 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     await database.commit(); //commit transaction
 
     //send email to user
-      await sendEmail({
-        to: "64070105@it.kmitl.ac.th",
-        subject:
-          "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการส่งแบบฟอร์มงานวิจัย",
-        html: `
-            <p>มีการส่งแบบฟอร์มงานวิจัยจาก ${getuser[0][0].user_nameth} ชื่อโครงการ: ${kris_data.name_research_th} กำลังรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล</p>
-            <p>กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้</p>
-          `,
-      });
+    const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+    const subject = "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการส่งแบบฟอร์มงานวิจัย";
+    const message = `
+      มีการส่งแบบฟอร์มงานวิจัยจาก ${getuser[0][0].user_nameth} ชื่อโครงการ: ${kris_data.name_research_th} กำลังรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
+      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
 
-    res.status(200).json({ success: true, message: "Success",});
+    await sendEmail(recipients, subject, message);
+    res.status(200).json({ success: true, message: "Success" });
   } catch (error) {
     database.rollback(); //rollback transaction
     console.error("Error inserting into database:", error);
@@ -211,7 +212,8 @@ router.get("/kris/:id", async (req, res) => {
 
   try {
     const [kris] = await db.query(
-      "SELECT * FROM Research_KRIS WHERE kris_id = ?",[id]
+      "SELECT * FROM Research_KRIS WHERE kris_id = ?",
+      [id]
     );
 
     if (kris.length === 0) {
@@ -234,7 +236,10 @@ router.get("/form/kris/:id", async (req, res) => {
 
   try {
     const [form] = await db.query("SELECT * FROM Form WHERE kris_id = ?", [id]);
-    const [name] = await db.query("SELECT name_research_th FROM Research_KRIS WHERE kris_id = ?", [id]);
+    const [name] = await db.query(
+      "SELECT name_research_th FROM Research_KRIS WHERE kris_id = ?",
+      [id]
+    );
 
     if (!form.length && !name.length) {
       return res.status(404).json({ error: "ไม่พบข้อมูลฟอร์ม" });

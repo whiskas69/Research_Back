@@ -20,8 +20,8 @@ router.post("/opinionPC", async (req, res) => {
           associate_doc_submit_date, dean_doc_submit_date)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        data.research_id|| null, 
-        data.associate_id || null, 
+        data.research_id || null,
+        data.associate_id || null,
         data.dean_id || null,
         data.pageC_id,
         data.p_research_admin || null,
@@ -46,23 +46,24 @@ router.post("/opinionPC", async (req, res) => {
 
     //get pageC_id
     const [getID] = await database.query(
-      "SELECT form_id FROM Form WHERE pageC_id = ?", [data.pageC_id]
-    )
+      "SELECT form_id FROM Form WHERE pageC_id = ?",
+      [data.pageC_id]
+    );
     console.log("GetID : ", getID);
 
     await database.commit(); //commit transaction
 
     //send email to user
-    await sendEmail({
-        to: "64070105@it.kmitl.ac.th", //getuser[0].user_email
-        subject:
-          "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ในวารสารรอการอนุมัติและตรวจสอบ",
-        html: `
-            <p>มีแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ในวารสารรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
-      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้</p>
-          `,
-      });
-      console.log("Email sent successfully");
+    const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+    const subject =
+      "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ในวารสารรอการอนุมัติและตรวจสอบ";
+    const message = `
+      มีแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ในวารสารรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
+      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
+
+    await sendEmail(recipients, subject, message);
+
+    console.log("Email sent successfully");
     res.status(200).json({ success: true, message: "Success" });
   } catch (error) {
     database.rollback(); //rollback transaction
@@ -90,7 +91,7 @@ router.put("/opinionPC/:id", async (req, res) => {
           p_date_accepted_approve = ?, p_acknowledge = ?, p_approve_result = ?, p_reason_dean_approve = ?,
           research_doc_submit_date = ?, associate_doc_submit_date = ?, dean_doc_submit_date = ? WHERE pageC_id = ?`,
       [
-        data.research_id|| null, 
+        data.research_id || null,
         data.associate_id || null,
         data.dean_id || null,
         data.pageC_id,
@@ -118,23 +119,24 @@ router.put("/opinionPC/:id", async (req, res) => {
 
     //get pageC_id
     const [getID] = await database.query(
-      "SELECT form_id FROM Form WHERE pageC_id = ?", [id]
-    )
+      "SELECT form_id FROM Form WHERE pageC_id = ?",
+      [id]
+    );
     console.log("GetID : ", getID);
 
     await database.commit(); //commit transaction
 
     //send email to user
-    await sendEmail({
-        to: "64070105@it.kmitl.ac.th", //getuser[0].user_email
-        subject:
-          "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ในวารสารรอการอนุมัติและตรวจสอบ",
-        html: `
-            <p>มีแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ในวารสารรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
-      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้</p>
-          `,
-      });
-      console.log("Email sent successfully");
+    const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+    const subject =
+      "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ในวารสารรอการอนุมัติและตรวจสอบ";
+    const message = `
+      มีแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ในวารสารรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
+      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
+
+    await sendEmail(recipients, subject, message);
+
+    console.log("Email sent successfully");
 
     res.status(200).json({ success: true, message: "Success" });
   } catch (error) {

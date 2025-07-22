@@ -21,9 +21,9 @@ router.post("/opinionConf", async (req, res) => {
           research_doc_submit_date, associate_doc_submit_date, dean_doc_submit_date)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        data.hr_id || null, 
-        data.research_id|| null, 
-        data.associate_id || null, 
+        data.hr_id || null,
+        data.research_id || null,
+        data.associate_id || null,
         data.dean_id || null,
         data.conf_id,
         data.c_research_hr,
@@ -48,23 +48,24 @@ router.post("/opinionConf", async (req, res) => {
 
     //get form_id
     const [getID] = await database.query(
-      "SELECT form_id FROM Form WHERE conf_id = ?", [data.conf_id]
-    )
+      "SELECT form_id FROM Form WHERE conf_id = ?",
+      [data.conf_id]
+    );
     console.log("GetID : ", getID);
 
     await database.commit(); //commit transaction
 
     //send email to user
-    await sendEmail({
-        to: "64070105@it.kmitl.ac.th", //getuser[0].user_email
-        subject:
-          "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมรอการอนุมัติและตรวจสอบ",
-        html: `
-            <p>มีแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
-      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้</p>
-          `,
-      });
-      console.log("Email sent successfully");
+    const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+    const subject =
+      "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมรอการอนุมัติและตรวจสอบ";
+    const message = `
+      มีแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
+      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
+
+    await sendEmail(recipients, subject, message);
+
+    console.log("Email sent successfully");
     res.status(200).json({ success: true, message: "Success" });
   } catch (error) {
     database.rollback(); //rollback transaction
@@ -92,9 +93,9 @@ router.put("/opinionConf/:id", async (req, res) => {
       c_quality_reason = ?, c_deputy_dean = ?, c_approve_result = ?, hr_doc_submit_date = ?,
       research_doc_submit_date = ?, associate_doc_submit_date = ?, dean_doc_submit_date = ? WHERE conf_id = ?`,
       [
-        data.hr_id || null, 
-        data.research_id|| null, 
-        data.associate_id || null, 
+        data.hr_id || null,
+        data.research_id || null,
+        data.associate_id || null,
         data.dean_id || null,
         data.conf_id,
         data.c_research_hr,
@@ -122,24 +123,25 @@ router.put("/opinionConf/:id", async (req, res) => {
 
     //get form_id
     const [getID] = await database.query(
-      "SELECT form_id FROM Form WHERE conf_id = ?", [id]
-    )
+      "SELECT form_id FROM Form WHERE conf_id = ?",
+      [id]
+    );
     console.log("GetID : ", getID);
 
     await database.commit(); //commit transaction
 
     //send email to user
-    await sendEmail({
-        to: "64070105@it.kmitl.ac.th", //getuser[0].user_email
-        subject:
-          "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมรอการอนุมัติและตรวจสอบ",
-        html: `
-            <p>มีแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
-      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้</p>
-          `,
-      });
-      console.log("Email sent successfully");
-    
+    const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+    const subject =
+      "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมรอการอนุมัติและตรวจสอบ";
+    const message = `
+      มีแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
+      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
+
+    await sendEmail(recipients, subject, message);
+
+    console.log("Email sent successfully");
+
     res.status(200).json({ success: true, message: "Success" });
   } catch (error) {
     database.rollback(); //rollback transaction

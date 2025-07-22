@@ -31,11 +31,11 @@
 
 // module.exports = sendEmail;
 
-const nodemiler = require('nodemailer');
+const nodemiler = require("nodemailer");
 
 //create reusable transporter
 const transporter = nodemiler.createTransport({
-  service: 'gmail',
+  service: "gmail",
   auth: {
     user: process.env.EMAIL_USER, // your email address
     pass: process.env.EMAIL_PASS, // your email password or app password

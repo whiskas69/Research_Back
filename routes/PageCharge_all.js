@@ -346,16 +346,16 @@ router.post(
 
       await database.commit(); //commit transaction
 
-      //send email to user
-      await sendEmail({
-        to: "64070105@it.kmitl.ac.th",
-        subject:
-          "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการส่งแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์บทความวิจัย",
-        html: `
-            <p>มีการส่งแบบฟอร์มขอรับการสนับสนุนจาก ${getuser[0][0].user_nameth} บทความ: ${pageChargeData.journal_name} กำลังรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล</p>
-            <p>กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้</p>
-          `,
-      });
+       //send email to user
+    const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+    const subject =
+      "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการส่งแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์บทความวิจัย"
+    const message = `
+      มีการส่งแบบฟอร์มขอรับการสนับสนุนจาก ${getuser[0][0].user_nameth} บทความ: ${pageChargeData.journal_name} กำลังรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
+      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
+
+    await sendEmail(recipients, subject, message);
+
       res.status(200).json({ success: true, message: "Success" });
     } catch (error) {
       database.rollback(); //rollback transaction
@@ -540,27 +540,27 @@ router.put("/editedFormPageChage/:id", async (req, res) => {
       updates.professor_reedit === ""
     ) {
       //send email to user
-      await sendEmail({
-        to: "64070105@it.kmitl.ac.th", //getuser[0].user_email
-        subject:
-          "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการแก้ไขแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ของคุณ",
-        html: `
-            <p>แบบฟอร์มบทความ: ${getuser[0].journal_name} มีการแก้ไข กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลและยืนยันเพื่อดำเนินการต่อไป</p>
-            <p>กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้</p>
-          `,
-      });
+    const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+    const subject =
+      "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการแก้ไขแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ของคุณ"
+    const message = `
+      แบบฟอร์มบทความ: ${getuser[0].journal_name} มีการแก้ไข กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลและยืนยันเพื่อดำเนินการต่อไป
+      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
+
+    await sendEmail(recipients, subject, message);
+
       console.log("Email sent successfully");
     } else if (updates.professor_reedit === "true") {
+
       //send email to user
-      await sendEmail({
-        to: "64070105@it.kmitl.ac.th", //getuser[0].user_email
-        subject:
-          "แจ้งเตือนจากระบบสนับสนุนงานวิจัย ผู้ขออนุมัติได้ทำการแก้ไขแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์",
-        html: `
-            <p>แบบฟอร์มบทความ: ${getuser[0].journal_name} มีการแก้ไข กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลและยืนยันเพื่อดำเนินการต่อไป</p>
-            <p>กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้</p>
-          `,
-      });
+    const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+    const subject =
+      "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการแก้ไขแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ของคุณ"
+    const message = `
+      แบบฟอร์มบทความ: ${getuser[0].journal_name} มีการแก้ไข กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลและยืนยันเพื่อดำเนินการต่อไป
+      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
+
+    await sendEmail(recipients, subject, message);
     }
 
     res.status(200).json({ success: true, message: "Success" });
