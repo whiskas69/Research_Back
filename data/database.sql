@@ -391,3 +391,8 @@ INSERT INTO ConditionCF (
     expense50ASEAN, expense50Asia, expense50EuropeAmericaAustraliaAfrica
 ) VALUES
 (1, 1, 2, 3, 2, 4, 9.38, 'A', 20000, 40000, 60000, 10000, 20000, 30000);
+
+UPDATE Users
+SET user_nameth = CONVERT(CAST(CONVERT(user_nameth USING latin1) AS BINARY) USING utf8mb4);
+UPDATE Users
+SET user_positionth = CONVERT(CAST(CONVERT(user_positionth USING latin1) AS BINARY) USING utf8mb4);
