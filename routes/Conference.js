@@ -515,15 +515,17 @@ router.put("/editedFormConfer/:id", async (req, res) => {
 
     const [getuser] = await db.query(
       `
-      SELECT u.user_email, u.user_nameth, c.conf_name
+      SELECT u.user_email, u.user_nameth, c.conf_research
       FROM Conference c
       JOIN Users u ON c.user_id = u.user_id
       WHERE c.conf_id = ?`,
       [id]
     );
 
+    console.log("getuser", getuser);
+
     if (
-      updates.professor_reedit === "false" ||
+      updates.professor_reedit === false ||
       updates.professor_reedit === null ||
       updates.professor_reedit === ""
     ) {
@@ -531,17 +533,17 @@ router.put("/editedFormConfer/:id", async (req, res) => {
       const subject =
         "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการแก้ไขแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมของคุณ";
       const message = `
-      แบบฟอร์มงานวิจัย: ${getuser[0].conf_name} มีการแก้ไข กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลและยืนยันเพื่อดำเนินการต่อไป
+      แบบฟอร์มงานวิจัย: ${getuser[0].conf_research} มีการแก้ไข กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลและยืนยันเพื่อดำเนินการต่อไป
       กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
 
       await sendEmail(recipients, subject, message);
-    } else if (updates.professor_reedit === "true") {
+    } else if (updates.professor_reedit === true) {
       //send email to user
       const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
       const subject =
         "แจ้งเตือนจากระบบสนับสนุนงานวิจัย ผู้ขออนุมัติได้ทำการแก้ไขแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุม";
       const message = `
-      แบบฟอร์มงานวิจัย: ${getuser[0].conf_name} มีการแก้ไข กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลและยืนยันเพื่อดำเนินการต่อไป
+      แบบฟอร์มงานวิจัย: ${getuser[0].conf_research} มีการแก้ไข กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลและยืนยันเพื่อดำเนินการต่อไป
       กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
 
       await sendEmail(recipients, subject, message);

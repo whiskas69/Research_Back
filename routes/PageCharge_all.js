@@ -529,13 +529,18 @@ router.put("/editedFormPageChage/:id", async (req, res) => {
       [id]
     )
 
+    const [getData] = await db.query(
+      `SELECT article_title FROM Page_Charge WHERE pageC_id = ?`, [id]
+    )
+    console.log("article_title",getData[0].article_title)
     const [updateNoti_result] = await db.query(
       `UPDATE Notification SET date_update = CURRENT_DATE  WHERE form_id = ?`, 
       [findID[0].form_id]
     )
-
+    console.log("updates.professor_reedit", updates.professor_reedit)
+    console.log("enter mail edit")
     if (
-      updates.professor_reedit === "false" ||
+      updates.professor_reedit === false ||
       updates.professor_reedit === null ||
       updates.professor_reedit === ""
     ) {
@@ -543,21 +548,21 @@ router.put("/editedFormPageChage/:id", async (req, res) => {
     const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
     const subject =
       "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการแก้ไขแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ของคุณ"
-    const message = `
-      แบบฟอร์มบทความ: ${getuser[0].journal_name} มีการแก้ไข กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลและยืนยันเพื่อดำเนินการต่อไป
+      const message = `
+      แบบฟอร์มบทความ: ${getData[0].article_title} มีการแก้ไข กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลและยืนยันเพื่อดำเนินการต่อไป
       กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
 
     await sendEmail(recipients, subject, message);
 
       console.log("Email sent successfully");
-    } else if (updates.professor_reedit === "true") {
+    } else if (updates.professor_reedit === true) {
 
       //send email to user
     const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
     const subject =
       "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการแก้ไขแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ของคุณ"
     const message = `
-      แบบฟอร์มบทความ: ${getuser[0].journal_name} มีการแก้ไข กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลและยืนยันเพื่อดำเนินการต่อไป
+      แบบฟอร์มบทความ: ${getData[0].article_title} มีการแก้ไข กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลและยืนยันเพื่อดำเนินการต่อไป
       กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
 
     await sendEmail(recipients, subject, message);
@@ -570,6 +575,7 @@ router.put("/editedFormPageChage/:id", async (req, res) => {
 })
 
 router.get("/getFilepage_c", async (req, res) => {
+  console.log("getFilepage_c")
   const { pageC_id } = req.query;
 
   const file = await db.query(
@@ -578,6 +584,7 @@ router.get("/getFilepage_c", async (req, res) => {
   );
 
   const url = baseURL.parsed.VITE_API_BASE_URL;
+  console.log("url",url)
 
   const file_pc_proof = `${url}/uploads/${file[0]?.[0]?.pc_proof}`;
   const file_q_pc_proof = `${url}/uploads/${file[0]?.[0]?.q_pc_proof}`;

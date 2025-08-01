@@ -3,7 +3,8 @@ const db = require("../config.js");
 
 const router = express.Router();
 
-router.get("/all_summary_conference", async (req, res) => {
+router.get("/all_summary_conference/:year", async (req, res) => {
+  const { year } = req.params
   try {
     const [Summary] = await db.query(
     `SELECT
@@ -32,109 +33,48 @@ router.get("/all_summary_conference", async (req, res) => {
       LEFT JOIN Form f ON c.conf_id = f.conf_id
       LEFT JOIN Budget b ON f.form_id = b.form_id
       WHERE f.form_status = "approve"
-      AND b.budget_year = YEAR(CURRENT_DATE()) + 543;`
+      AND b.budget_year = ?;`, [year]
     );
-console.log("Summary confer", Summary)
+    
+    console.log("Summary confer", Summary)
+    
     res.status(200).json(Summary);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.get("/all_summary_page_charge", async (req, res) => {
+router.get("/all_summary_page_charge/:year", async (req, res) => {
+  const { year } = req.params
   try {
     const [Summary] = await db.query(
-      `SELECT
-    p.pageC_id,
-    u.user_nameth,
-    p.name_co_researchers,
-    p.course_co_researchers,
-    p.article_title,
-    p.journal_name,
-    p.quality_journal,
-    p.qt_isi,
-    p.qt_sjr,
-    p.qt_scopus,
-    p.month,
-    p.year,
-    p.date_review_announce,
-    f.form_status,
-    b.withdraw,
-    b.budget_year
-FROM Page_Charge p
-JOIN Users u ON p.user_id = u.user_id
-LEFT JOIN Form f ON p.pageC_id = f.pageC_id
-LEFT JOIN Budget b ON f.form_id = b.form_id
-WHERE f.form_status = "approve";
-`
-    );
-
-    const [count] = await db.query(
-      `SELECT b.budget_year,
-      COUNT(CASE
-        WHEN p.quality_journal LIKE '%Nature%' THEN 1 
-        END) AS count_nature,
-      SUM(CASE 
-        WHEN p.quality_journal LIKE '%Nature%' THEN b.amount_approval 
-        ELSE 0 
-        END) AS money_nature,
-
-      COUNT(CASE 
-        WHEN p.quality_journal NOT LIKE '%Nature%' 
-        AND (p.qt_isi = 1 OR p.qt_sjr = 1 OR p.qt_scopus = 1) THEN 1 
-        END) AS count_qt_1,
-      SUM(CASE 
-        WHEN p.quality_journal NOT LIKE '%Nature%' 
-        AND (p.qt_isi = 1 OR p.qt_sjr = 1 OR p.qt_scopus = 1) THEN b.amount_approval 
-        ELSE 0 
-        END) AS money_qt_1,
-
-      COUNT(CASE 
-        WHEN p.quality_journal NOT LIKE '%Nature%' 
-        AND (p.qt_isi = 2 OR p.qt_sjr = 2 OR p.qt_scopus = 2) 
-        AND NOT (p.qt_isi = 1 OR p.qt_sjr = 1 OR p.qt_scopus = 1) THEN 1 
-        END) AS count_qt_2,
-      SUM(CASE 
-        WHEN p.quality_journal NOT LIKE '%Nature%' 
-        AND (p.qt_isi = 2 OR p.qt_sjr = 2 OR p.qt_scopus = 2) 
-        AND NOT (p.qt_isi = 1 OR p.qt_sjr = 1 OR p.qt_scopus = 1) THEN b.amount_approval 
-        ELSE 0 
-        END) AS money_qt_2,
-
-      COUNT(CASE 
-        WHEN p.quality_journal NOT LIKE '%Nature%' 
-        AND (p.qt_isi = 3 OR p.qt_sjr = 3 OR p.qt_scopus = 3) 
-        AND NOT (p.qt_isi IN (1,2) OR p.qt_sjr IN (1,2) OR p.qt_scopus IN (1,2)) THEN 1 
-        END) AS count_qt_3,
-      SUM(CASE 
-        WHEN p.quality_journal NOT LIKE '%Nature%' 
-        AND (p.qt_isi = 3 OR p.qt_sjr = 3 OR p.qt_scopus = 3) 
-        AND NOT (p.qt_isi IN (1,2) OR p.qt_sjr IN (1,2) OR p.qt_scopus IN (1,2)) THEN b.amount_approval 
-        ELSE 0 
-        END) AS money_qt_3,
-
-      COUNT(CASE 
-        WHEN p.quality_journal NOT LIKE '%Nature%' 
-        AND (p.qt_isi = 4 OR p.qt_sjr = 4 OR p.qt_scopus = 4) 
-        AND NOT (p.qt_isi IN (1,2,3) OR p.qt_sjr IN (1,2,3) OR p.qt_scopus IN (1,2,3)) THEN 1 
-        END) AS count_qt_4,
-      SUM(CASE 
-        WHEN p.quality_journal NOT LIKE '%Nature%' 
-        AND (p.qt_isi = 4 OR p.qt_sjr = 4 OR p.qt_scopus = 4) 
-        AND NOT (p.qt_isi IN (1,2,3) OR p.qt_sjr IN (1,2,3) OR p.qt_scopus IN (1,2,3)) THEN b.amount_approval 
-        ELSE 0 
-        END) AS money_qt_4
-    
+    `SELECT
+      p.pageC_id,
+      u.user_nameth,
+      p.name_co_researchers,
+      p.course_co_researchers,
+      p.article_title,
+      p.journal_name,
+      p.quality_journal,
+      p.qt_isi,
+      p.qt_sjr,
+      p.qt_scopus,
+      p.month,
+      p.year,
+      p.date_review_announce,
+      f.form_status,
+      b.withdraw,
+      b.budget_year
       FROM Page_Charge p
-      JOIN Form f ON p.pageC_id = f.pageC_id
-      JOIN Budget b ON f.form_id = b.form_id
-      WHERE f.form_status = 'approve'
-      GROUP BY b.budget_year
-      ORDER BY b.budget_year DESC;`
+      JOIN Users u ON p.user_id = u.user_id
+      LEFT JOIN Form f ON p.pageC_id = f.pageC_id
+      LEFT JOIN Budget b ON f.form_id = b.form_id
+      WHERE f.form_status = "approve"
+      AND b.budget_year = ?;`, [year]
     );
-    console.log("count", count);
+
     console.log("Summary pc", Summary);
-    res.status(200).json([Summary, count]);
+    res.status(200).json([Summary]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -173,17 +113,17 @@ router.get("/remainingConference/:year", async (req, res) => {
   try {
     const [Summary] = await db.query(
       `SELECT
-      b.budget_id,
-      f.form_id,
-      b.Conference_amount,
-      b.total_remaining_credit_limit,
-      f.form_type
-      FROM Budget b
-      JOIN Form f ON b.form_id = f.form_id
-      WHERE f.form_status = "approve"
-      AND f.form_type = "Conference"
-      AND b.budget_year = ?
-      LIMIT 1;`, [year]
+        b.budget_id,
+        f.form_id,
+        b.Conference_amount,
+        b.total_remaining_credit_limit,
+        f.form_type
+        FROM Budget b
+        JOIN Form f ON b.form_id = f.form_id
+        WHERE f.form_status = "approve"
+        AND f.form_type = "Conference"
+        AND b.budget_year = ?
+        LIMIT 1;`, [year]
     );
     console.log("remainingConference", Summary)
     res.status(200).json(Summary);
@@ -197,17 +137,17 @@ router.get("/remainingPc/:year", async (req, res) => {
   try {
     const [Summary] = await db.query(
       `SELECT
-      b.budget_id,
-      f.form_id,
-      b.Page_Charge_amount,
-      b.total_remaining_credit_limit,
-      f.form_type
-      FROM Budget b
-      JOIN Form f ON b.form_id = f.form_id
-      WHERE f.form_status = "approve"
-      AND f.form_type = "Page_Charge"
-      AND b.budget_year = ?
-      LIMIT 1;`, [year]
+        b.budget_id,
+        f.form_id,
+        b.Page_Charge_amount,
+        b.total_remaining_credit_limit,
+        f.form_type
+        FROM Budget b
+        JOIN Form f ON b.form_id = f.form_id
+        WHERE f.form_status = "approve"
+        AND f.form_type = "Page_Charge"
+        AND b.budget_year = ?
+        LIMIT 1;`, [year]
     );
     console.log("remainingPc", Summary)
     res.status(200).json(Summary);
@@ -221,12 +161,12 @@ router.get("/count/:year", async (req, res) => {
   try {
     const [Summary] = await db.query(
       `SELECT f.form_type, COUNT(*) AS total_count
-      FROM Form f
-      JOIN Budget b ON f.form_id = b.form_id
-      WHERE f.form_status = 'approve'
-        AND f.form_type IN ('Conference', 'Page_Charge', 'Research_KRIS')
-        AND b.budget_year = ?
-      GROUP BY f.form_type;`, [year]
+        FROM Form f
+        JOIN Budget b ON f.form_id = b.form_id
+        WHERE f.form_status = 'approve'
+          AND f.form_type IN ('Conference', 'Page_Charge', 'Research_KRIS')
+          AND b.budget_year = ?
+        GROUP BY f.form_type;`, [year]
     );
     console.log("count", Summary)
     res.status(200).json(Summary);
@@ -235,36 +175,39 @@ router.get("/count/:year", async (req, res) => {
   }
 });
 
-router.get("/count_confer_withdraw", async (req, res) => {
+router.get("/count_confer_withdraw/:year", async (req, res) => {
+  const { year } = req.params
   try {
     const [Summary] = await db.query(
       `SELECT
-      c.withdraw,
-      COUNT(c.conf_id) AS total_withdraws,
-      SUM(COALESCE(c.total_amount, 0)) AS total_registration,
-      SUM(
-        COALESCE(c.domestic_expenses, 0) +
-        COALESCE(c.overseas_expenses, 0) +
-        COALESCE(c.airplane_tax, 0)
-      ) AS total_other,
-      SUM(COALESCE(c.inter_expenses, 0)) AS total_ticket,  -- Fixed here
-      SUM(COALESCE(c.total_room, 0)) AS total_room,
-      SUM(COALESCE(c.total_allowance, 0)) AS total_allowance,
-      SUM(
-        COALESCE(c.total_amount, 0) +
-        COALESCE(c.domestic_expenses, 0) +
-        COALESCE(c.overseas_expenses, 0) +
-        COALESCE(c.airplane_tax, 0) +
-        COALESCE(c.inter_expenses, 0) +
-        COALESCE(c.total_room, 0) +
-        COALESCE(c.total_allowance, 0)
-      ) AS all_total
-FROM Conference c
-JOIN Form f ON c.conf_id = f.conf_id
-WHERE f.form_status = 'approve'
-AND c.country_conf = 'abroad'
-GROUP BY c.withdraw
-ORDER BY c.withdraw;`
+        c.withdraw,
+        COUNT(c.conf_id) AS total_withdraws,
+        SUM(COALESCE(c.total_amount, 0)) AS total_registration,
+        SUM(
+          COALESCE(c.domestic_expenses, 0) +
+          COALESCE(c.overseas_expenses, 0) +
+          COALESCE(c.airplane_tax, 0)
+        ) AS total_other,
+        SUM(COALESCE(c.inter_expenses, 0)) AS total_ticket,  -- Fixed here
+        SUM(COALESCE(c.total_room, 0)) AS total_room,
+        SUM(COALESCE(c.total_allowance, 0)) AS total_allowance,
+        SUM(
+          COALESCE(c.total_amount, 0) +
+          COALESCE(c.domestic_expenses, 0) +
+          COALESCE(c.overseas_expenses, 0) +
+          COALESCE(c.airplane_tax, 0) +
+          COALESCE(c.inter_expenses, 0) +
+          COALESCE(c.total_room, 0) +
+          COALESCE(c.total_allowance, 0)
+        ) AS all_total
+        FROM Conference c
+        JOIN Form f ON c.conf_id = f.conf_id
+        LEFT JOIN Budget b ON f.form_id = b.form_id
+        WHERE f.form_status = 'approve'
+        AND c.country_conf = 'abroad'
+        AND b.budget_year = ?
+        GROUP BY c.withdraw
+        ORDER BY c.withdraw;`, [year]
     );
     console.log("count_confer_withdraw", Summary)
     res.status(200).json(Summary);
@@ -273,42 +216,44 @@ ORDER BY c.withdraw;`
   }
 });
 
-router.get("/count_confer_country", async (req, res) => {
+router.get("/count_confer_country/:year", async (req, res) => {
+  const { year } = req.params
   try {
     const [Summary] = await db.query(
       `SELECT c.location, c.withdraw, c.country_conf,
-      SUM(COALESCE(c.total_amount, 0)) AS total_registration,
-      SUM(
-        COALESCE(c.domestic_expenses, 0) +
-        COALESCE(c.overseas_expenses, 0) +
-        COALESCE(c.airplane_tax, 0)) AS total_other,
-      SUM(COALESCE(c.inter_expenses, 0)) AS total_ticket,
-      SUM(COALESCE(c.total_room, 0)) AS total_room,
-      SUM(COALESCE(c.total_allowance, 0)) AS total_allowance,
-      SUM(
-        COALESCE(c.total_amount, 0) + COALESCE(c.domestic_expenses, 0) +
-        COALESCE(c.overseas_expenses, 0) + COALESCE(c.airplane_tax, 0) +
-        COALESCE(c.inter_expenses, 0) + COALESCE(c.total_room, 0) +
-        COALESCE(c.total_allowance, 0)) AS all_total,
-      SUM(COALESCE(b.amount_approval, 0)) AS total_amount_approval,
-      COUNT(*) AS total_count,
-    
-      CASE 
-        WHEN c.country_conf = "abroad" THEN 
-            CASE 
-                WHEN c.location IN ('ลาว', 'กัมพูชา', 'อินโดนีเซีย', 'เมียนมาร์', 'มาเลเซีย', 'เวียดนาม', 'ฟิลิปปินส์') THEN 'SEA'
-                WHEN c.location IN ('บรูไน', 'สิงคโปร์', 'ญี่ปุ่น', 'เกาหลีใต้', 'ไต้หวัน', 'จีน', 'ฮ่องกง', 'อินเดีย', 'ศรีลังกา', 'ปากีสถาน', 'บังกลาเทศ', 'เนปาล', 'ภูฏาน', 'มัลดีฟส์', 'มองโกเลีย', 'คาซัคสถาน', 'อุซเบกิสถาน', 'เติร์กเมนิสถาน', 'คีร์กีซสถาน', 'ทาจิกิสถาน') THEN 'ASIA'
-                ELSE 'EUA'
-            END
-        ELSE 'ในประเทศ'
-      END AS region_category
-    
-      FROM Conference c
-      JOIN Form f ON c.conf_id = f.conf_id
-      LEFT JOIN Budget b ON f.form_id = b.form_id
-      WHERE f.form_status = "approve"
-      GROUP BY region_category, c.location, c.withdraw, c.country_conf
-      ORDER BY region_category ASC, c.location ASC;`
+        SUM(COALESCE(c.total_amount, 0)) AS total_registration,
+        SUM(
+          COALESCE(c.domestic_expenses, 0) +
+          COALESCE(c.overseas_expenses, 0) +
+          COALESCE(c.airplane_tax, 0)) AS total_other,
+        SUM(COALESCE(c.inter_expenses, 0)) AS total_ticket,
+        SUM(COALESCE(c.total_room, 0)) AS total_room,
+        SUM(COALESCE(c.total_allowance, 0)) AS total_allowance,
+        SUM(
+          COALESCE(c.total_amount, 0) + COALESCE(c.domestic_expenses, 0) +
+          COALESCE(c.overseas_expenses, 0) + COALESCE(c.airplane_tax, 0) +
+          COALESCE(c.inter_expenses, 0) + COALESCE(c.total_room, 0) +
+          COALESCE(c.total_allowance, 0)) AS all_total,
+        SUM(COALESCE(b.amount_approval, 0)) AS total_amount_approval,
+        COUNT(*) AS total_count,
+      
+        CASE 
+          WHEN c.country_conf = "abroad" THEN 
+              CASE 
+                  WHEN c.location IN ('ลาว', 'กัมพูชา', 'อินโดนีเซีย', 'เมียนมาร์', 'มาเลเซีย', 'เวียดนาม', 'ฟิลิปปินส์') THEN 'SEA'
+                  WHEN c.location IN ('บรูไน', 'สิงคโปร์', 'ญี่ปุ่น', 'เกาหลีใต้', 'ไต้หวัน', 'จีน', 'ฮ่องกง', 'อินเดีย', 'ศรีลังกา', 'ปากีสถาน', 'บังกลาเทศ', 'เนปาล', 'ภูฏาน', 'มัลดีฟส์', 'มองโกเลีย', 'คาซัคสถาน', 'อุซเบกิสถาน', 'เติร์กเมนิสถาน', 'คีร์กีซสถาน', 'ทาจิกิสถาน') THEN 'ASIA'
+                  ELSE 'EUA'
+              END
+          ELSE 'ในประเทศ'
+        END AS region_category
+      
+        FROM Conference c
+        JOIN Form f ON c.conf_id = f.conf_id
+        LEFT JOIN Budget b ON f.form_id = b.form_id
+        WHERE f.form_status = "approve"
+        AND b.budget_year = ?
+        GROUP BY region_category, c.location, c.withdraw, c.country_conf
+        ORDER BY region_category ASC, c.location ASC;`, [year]
     );
 
     // จัดกลุ่มข้อมูลตาม region_category
@@ -331,7 +276,9 @@ router.get("/count_confer_country", async (req, res) => {
   }
 });
 
-router.get("/count_confer_thai", async (req, res) => {
+router.get("/count_confer_thai/:year", async (req, res) => {
+  const { year } = req.params
+  console.log("y in count cf ct", year)
   try {
     const [Summary] = await db.query(
       `SELECT c.location, c.country_conf,
@@ -357,9 +304,10 @@ router.get("/count_confer_thai", async (req, res) => {
     JOIN Form f ON c.conf_id = f.conf_id
     LEFT JOIN Budget b ON f.form_id = b.form_id
     WHERE f.form_status = "approve" and c.country_conf = "domestic"
+    AND b.budget_year = ?
     GROUP BY c.location, c.country_conf
     ORDER BY c.location ASC;
-`
+`, [year]
     );
 console.log("count_confer_thai", Summary)
     res.status(200).json(Summary);
@@ -376,7 +324,7 @@ router.get("/eachyears", async (req, res) => {
     SUM(CASE WHEN f.form_type = 'Page_Charge' THEN 1 ELSE 0 END) AS total_pagecharge,
     SUM(CASE WHEN f.form_type = 'Page_Charge' THEN b.amount_approval ELSE 0 END) AS total_pagecharge_amount, 
     SUM(CASE WHEN f.form_type = 'Conference' THEN b.amount_approval ELSE 0 END) AS total_conference_amount 
-FROM Budget b
+    FROM Budget b
 LEFT JOIN Form f ON b.form_id = f.form_id
 WHERE b.budget_year >= (YEAR(CURRENT_DATE) - 3) 
 AND f.form_status = "approve"
@@ -385,25 +333,6 @@ ORDER BY b.budget_year DESC;
 `
   );
 console.log("eachyears", Summary)
-  res.status(200).json(Summary);
-});
-
-router.get("/money_user", async (req, res) => {
-  const [Summary] = await db.query(
-    `SELECT 
-    u.user_nameth,
-    u.user_role,
-    u.user_moneyPC,
-    u.user_moneyCF,
-    COALESCE(SUM(CASE WHEN f.form_type = 'Conference' THEN b.amount_approval ELSE 0 END), 0) AS total_conference,
-    COALESCE(SUM(CASE WHEN f.form_type = 'Page_Charge' THEN b.amount_approval ELSE 0 END), 0) AS total_pc
-FROM Users u
-LEFT JOIN Budget b ON b.user_id = u.user_id AND b.budget_year = YEAR(CURDATE()) + 543
-LEFT JOIN Form f ON f.form_id = b.form_id AND f.form_status = 'approve'
-GROUP BY u.user_id
-ORDER BY u.user_nameth;
-`
-  );
   res.status(200).json(Summary);
 });
 

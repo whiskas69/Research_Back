@@ -158,7 +158,7 @@ router.get("/allForms", async (req, res) => {
   }
 });
 
-router.get("/formPC/:id", async (req, res) => {
+router.get("/formPageCharge/:id", async (req, res) => {
   console.log("get id pc in form")
   const { id } = req.params;
   console.log("form id: ", id);
@@ -173,7 +173,7 @@ router.get("/formPC/:id", async (req, res) => {
   }
 })
 
-router.get("/formConfer/:id", async (req, res) => {
+router.get("/formConference/:id", async (req, res) => {
   console.log("get id confer in form")
   const { id } = req.params;
   console.log("form id: ", id);
