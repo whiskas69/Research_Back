@@ -62,7 +62,7 @@ const today = DateTime.now();
 //validation
 const ConferSchema = Joi.object({
   user_id: Joi.number().integer().required(),
-  conf_times: Joi.number().integer().greater(0).required(),
+  conf_times: Joi.string().required(),
   conf_days: Joi.date().iso().max(today.toISODate()).required(),
 
   trav_dateStart: Joi.date().iso().greater(today.toISODate()).required(),

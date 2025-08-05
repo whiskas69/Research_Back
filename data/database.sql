@@ -42,7 +42,7 @@ CREATE TABLE Users (
 CREATE TABLE Conference (
     conf_id INT PRIMARY KEY AUTO_INCREMENT UNIQUE,
     user_id INT NOT NULL,
-    conf_times INT NOT NULL,
+    conf_times VARCHAR(255) NOT NULL,
     conf_days DATE NOT NULL,
     trav_dateStart DATE NOT NULL,
     trav_dateEnd DATE NOT NULL,
@@ -104,7 +104,7 @@ CREATE TABLE Score (
 CREATE TABLE Page_Charge (
     pageC_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
-    pageC_times INT NOT NULL,
+    pageC_times VARCHAR(255) NOT NULL,
     pageC_days DATE NOT NULL,
     journal_name VARCHAR(255) NOT NULL,
     quality_journal JSON NOT NULL,

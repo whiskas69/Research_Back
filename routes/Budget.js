@@ -1,5 +1,6 @@
 const express = require("express");
 const db = require("../config.js");
+const sendEmail = require("../middleware/mailer.js");
 
 router = express.Router();
 
@@ -35,38 +36,18 @@ router.post('/budget', async (req, res) => {
     console.log("formType : ", formType)
 
     await database.commit(); //commit transaction
-    // if (formType[0].pageC_id) {
-    //   const [pc] = await db.query(
-    //     `SELECT user_id FROM Page_Charge WHERE pageC_id = ?`,
-    //     [formType[0].pageC_id]
-    //   );
-    //   const [user] = await db.query(
-    //     `SELECT user_moneyPC FROM Users WHERE user_id = ?`,
-    //     [pc[0].user_id]
-    //   );
-    //   const moneyPC = parseFloat(user[0].user_moneyPC) + parseFloat(data.amount_approval)
-    //   const [updateMoneyPC] = await db.query(
-    //     `UPDATE Users SET user_moneyPC = ? WHERE user_id = ?`,
-    //     [moneyPC, pc[0].user_id]
-    //   );
-    //   console.log("success ja", updateMoneyPC)
-    // } else if (formType[0].conf_id) {
-    //   console.log('in if confer')
-    //   const [confer] = await db.query(
-    //     `SELECT user_id, quality_meeting, total_amount FROM Conference WHERE conf_id = ?`,
-    //     [formType[0].conf_id]
-    //   );
-    //   const [user] = await db.query(
-    //     `SELECT user_moneyCF FROM Users WHERE user_id = ?`,
-    //     [confer[0].user_id]
-    //   );
-    //   const moneyConfer = confer[0].quality_meeting == "ดีมาก" ? parseFloat(user[0].user_moneyCF) - parseFloat(data.amount_approval) : parseFloat(user[0].user_moneyCF) - parseFloat(data.amount_approval) - parseFloat(confer[0].total_amount)
-    //   const [updateMoneyConfer] = await db.query(
-    //     `UPDATE Users SET user_moneyCF = ? WHERE user_id = ?`,
-    //     [moneyConfer, confer[0].user_id]
-    //   );
-    //   console.log("success ja", updateMoneyConfer)
-    // }
+
+    //send email to user
+    const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+    const subject =
+      "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มรอการอนุมัติและตรวจสอบ";
+    const message = `
+       โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
+      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
+
+    await sendEmail(recipients, subject, message);
+
+    console.log("Email sent successfully");
     res.status(201).json({ message: "Budget created successfully!", id: Budget_result.insertId });
   } catch (error) {
     database.rollback(); //rollback transaction
@@ -93,6 +74,16 @@ router.put("/withdraw/conference/:id", async (req, res) => {
       [updates.travelExpenses, updates.allowance, updates.withdraw, findID[0].form_id]
     )
     console.log("updateresult :", updateWithdrawMoney);
+
+    //send email to user
+    const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+    const subject =
+      "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการตั้งเบิกแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมเรียบร้อย";
+    const message = `
+       โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
+      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
+
+    await sendEmail(recipients, subject, message);
     res.status(200).json({ success: true, message: "Success", data: updateWithdrawMoney });
 
   } catch (err) {
@@ -117,6 +108,15 @@ router.put("/withdraw/pageCharge/:id", async (req, res) => {
       [updates.withdraw, findID[0].form_id]
     )
     console.log("updateresult :", updateWithdrawMoney);
+    //send email to user
+    const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+    const subject =
+      "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการตั้งเบิกแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ในวารสารเรียบร้อย";
+    const message = `
+       โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
+      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
+
+    await sendEmail(recipients, subject, message);
     res.status(200).json({ success: true, message: "Success", data: updateWithdrawMoney });
 
   } catch (err) {

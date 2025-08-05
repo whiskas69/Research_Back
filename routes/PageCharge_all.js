@@ -73,7 +73,7 @@ const parseJsonArray = (value, helpers) => {
 
 const pageChargeSchema = Joi.object({
   user_id: Joi.number().integer().required(),
-  pageC_times: Joi.number().integer().greater(0).required(),
+  pageC_times: Joi.string().required(),
   conf_days: Joi.date().iso().max(today.toISODate()).required(),
 
   journal_name: Joi.string().required(),
