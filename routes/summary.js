@@ -111,20 +111,24 @@ router.get("/remainingConference/:year", async (req, res) => {
   const { year } = req.params
   console.log("year", year)
   try {
-    const [Summary] = await db.query(
-      `SELECT
-        b.budget_id,
-        f.form_id,
-        b.Conference_amount,
-        b.total_remaining_credit_limit,
-        f.form_type
-        FROM Budget b
-        JOIN Form f ON b.form_id = f.form_id
-        WHERE f.form_status = "approve"
-        AND f.form_type = "Conference"
-        AND b.budget_year = ?
-        LIMIT 1;`, [year]
-    );
+   const [Summary] = await db.query(
+  `SELECT
+    SUM(b.withdraw) AS total_withdraw,
+    b.budget_year,
+    b.Conference_amount,
+    b.total_remaining_credit_limit,
+    f.form_type
+  FROM Budget b
+  JOIN Form f ON b.form_id = f.form_id
+  WHERE f.form_status = "approve"
+    AND f.form_type = "Conference"
+    AND b.budget_year = ?
+  GROUP BY b.budget_year, b.Conference_amount, b.total_remaining_credit_limit, f.form_type
+  LIMIT 1;`,
+  [year]
+);
+
+
     console.log("remainingConference", Summary)
     res.status(200).json(Summary);
   } catch (error) {
@@ -137,16 +141,17 @@ router.get("/remainingPc/:year", async (req, res) => {
   try {
     const [Summary] = await db.query(
       `SELECT
-        b.budget_id,
-        f.form_id,
+       SUM(b.withdraw) AS total_withdraw,
+       b.budget_year,
         b.Page_Charge_amount,
         b.total_remaining_credit_limit,
         f.form_type
         FROM Budget b
         JOIN Form f ON b.form_id = f.form_id
         WHERE f.form_status = "approve"
-        AND f.form_type = "Page_Charge"
-        AND b.budget_year = ?
+          AND f.form_type = "Page_Charge"
+          AND b.budget_year = ?
+        GROUP BY b.budget_year, b.Page_Charge_amount, b.total_remaining_credit_limit, f.form_type
         LIMIT 1;`, [year]
     );
     console.log("remainingPc", Summary)
@@ -320,10 +325,11 @@ router.get("/eachyears", async (req, res) => {
   const [Summary] = await db.query(
     `SELECT 
     b.budget_year,
+     SUM(b.withdraw) AS total_withdraw,
     SUM(CASE WHEN f.form_type = 'Conference' THEN 1 ELSE 0 END) AS total_conferences,
     SUM(CASE WHEN f.form_type = 'Page_Charge' THEN 1 ELSE 0 END) AS total_pagecharge,
-    SUM(CASE WHEN f.form_type = 'Page_Charge' THEN b.amount_approval ELSE 0 END) AS total_pagecharge_amount, 
-    SUM(CASE WHEN f.form_type = 'Conference' THEN b.amount_approval ELSE 0 END) AS total_conference_amount 
+    SUM(CASE WHEN f.form_type = 'Conference' THEN b.withdraw ELSE 0 END) AS total_withdraw_conference,
+    SUM(CASE WHEN f.form_type = 'Page_Charge' THEN b.withdraw ELSE 0 END) AS total_withdraw_pagecharge
     FROM Budget b
 LEFT JOIN Form f ON b.form_id = f.form_id
 WHERE b.budget_year >= (YEAR(CURRENT_DATE) - 3) 
