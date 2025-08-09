@@ -417,9 +417,6 @@ router.get("/conference/user/:id", async (req, res) => {
       "SELECT * FROM Conference WHERE user_id = ?",
       [id]
     );
-    if (conference.length === 0) {
-      return res.status(404).json({ message: "conference not found" });
-    }
     console.log("Get conference userid: ", conference);
     res.status(200).json(conference);
   } catch (err) {
