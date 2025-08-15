@@ -73,7 +73,7 @@ const researchSchema = Joi.object({
   h_index: Joi.number().required(),
   his_invention: Joi.string().required(),
   participation_percent: Joi.number().greater(0).max(100).required(),
-  proposed_budget: Joi.number().required(),
+  Research_kris_amout: Joi.number().required(),
   year: Joi.number().integer().required(),
   project_periodStart: Joi.date().required(),
   project_periodEnd: Joi.date()
@@ -110,8 +110,8 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     //insert data to Research_KRIS
     const [kris_result] = await database.query(
       `INSERT INTO Research_KRIS (
-      user_id, name_research_th, name_research_en, research_cluster, res_cluster_other, res_standard, res_standard_trade, h_index, his_invention, participation_percent, proposed_budget, year, project_periodStart, project_periodEnd)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      user_id, name_research_th, name_research_en, research_cluster, res_cluster_other, res_standard, res_standard_trade, h_index, his_invention, participation_percent, year, project_periodStart, project_periodEnd)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         kris_data.user_id,
         kris_data.name_research_th,
@@ -123,7 +123,6 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
         kris_data.h_index,
         kris_data.his_invention,
         kris_data.participation_percent || null,
-        kris_data.proposed_budget,
         kris_data.year,
         kris_data.project_periodStart,
         kris_data.project_periodEnd,
@@ -161,6 +160,31 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     );
     console.log("form_result", form_result);
 
+    const formID = form_result.insertId;
+    console.log("formID", formID)
+
+    const dateStr = kris_data.project_periodStart; // "10/02/2568"
+    const year = parseInt(dateStr.split("-")[0], 10) + 543;
+    console.log(year);
+
+    //data for budget
+    const budget = {
+      form_id: formID,
+      user_id: kris_data.user_id,
+      budget_year: year,
+      Research_kris_amout: kris_data.Research_kris_amout,
+      num_expenses_approved: 0,
+      total_amount_approved: 0,
+      remaining_credit_limit: 0,
+      amount_approval: 0,
+      total_remaining_credit_limit: 0,
+    };
+    const [budget_result] = await database.query(
+      "INSERT INTO Budget SET ?",
+      budget
+    );
+    console.log("budget_result", budget_result);
+
     //insert data to Notification
     const [notification_result] = await database.query(
       `INSERT INTO Notification (
@@ -179,7 +203,7 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     await database.commit(); //commit transaction
 
     //send email to user
-    const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+    const recipients = ["64070075@kmitl.ac.th"]; //getuser[0].user_email
     const subject = "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการส่งแบบฟอร์มงานวิจัย";
     const message = `
       มีการส่งแบบฟอร์มงานวิจัยจาก ${getuser[0][0].user_nameth} ชื่อโครงการ: ${kris_data.name_research_th} กำลังรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล

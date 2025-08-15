@@ -211,18 +211,17 @@ router.post(
   async (req, res) => {
     const requiredFiles = ["pc_proof", "q_pc_proof", "copy_article", "invoice_public", "upload_article"];
     const missingFiles = requiredFiles.filter((field) => !req.files[field]);
-
     console.log("all data", req.body)
     //check dataError and missingFiles
-    try {
-      //check missingFiles
+
+    //เช็คไฟล์ก่อนเริ่ม transaction
       if (missingFiles.length > 0) {
         console.log(`กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`);
         return res.status(400).json({
           error: `กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`,
         });
       }
-
+    try {
       await pageChargeSchema.validate(req.body, { abortEarly: false });
     } catch (error) {
       console.log("error", error);
@@ -236,9 +235,9 @@ router.post(
     console.log("pageChargeData", pageChargeData)
 
     const database = await db.getConnection();
-    await database.beginTransaction(); //start transaction
 
     try {
+      await database.beginTransaction(); //start transaction
       //query insert to Page_Charge
       const query = `INSERT INTO Page_Charge (
         user_id, pageC_times, pageC_days, journal_name, quality_journal,
@@ -304,25 +303,15 @@ router.post(
         upload_article: pageChargeFiles.upload_article?.[0]?.filename
       };
 
-      //insert to File_pdf
-      const [file_result] = await database.query(
-        "INSERT INTO File_pdf SET ?",
-        fileData
-      );
-      console.log("file_result", file_result);
-
-      //data for Form
-      const formData = {
-        form_type: "Page_Charge",
-        pageC_id: pageCId,
-        form_status: "research",
-      };
-
-      //insert to Form
-      const [form_result] = await database.query(
-        "INSERT INTO Form SET ?",
-        formData
-      );
+      // Insert Form ก่อนเพื่อเอา form_id ไปใช้ใน Notification
+      const [file_result, form_result] = await Promise.all([
+        database.query("INSERT INTO File_pdf SET ?", fileData),
+        database.query("INSERT INTO Form SET ?", {
+          form_type: "Page_Charge",
+          pageC_id: pageCId,
+          form_status: "research",
+        }),
+      ]);
       console.log("form_result", form_result);
 
       //insert data to Notification
@@ -332,7 +321,7 @@ router.post(
           VALUES (?, ?, ?)`,
         [
           pageChargeData.user_id,
-          form_result.insertId,
+          form_result[0].insertId,
           pageChargeData.article_title
         ]
       );
@@ -347,7 +336,7 @@ router.post(
       await database.commit(); //commit transaction
 
        //send email to user
-    const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+    const recipients = ["64070075@kmitl.ac.th"]; //getuser[0].user_email
     const subject =
       "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการส่งแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์บทความวิจัย"
     const message = `
@@ -530,7 +519,10 @@ router.put("/editedFormPageChage/:id", async (req, res) => {
     )
 
     const [getData] = await db.query(
-      `SELECT article_title FROM Page_Charge WHERE pageC_id = ?`, [id]
+      `SELECT u.user_email, u.user_nameth, p.article_title 
+      FROM Page_Charge p 
+      JOIN Users u ON p.user_id = u.user_id
+      WHERE pageC_id = ?`, [id]
     )
     console.log("article_title",getData[0].article_title)
     const [updateNoti_result] = await db.query(
@@ -538,14 +530,14 @@ router.put("/editedFormPageChage/:id", async (req, res) => {
       [findID[0].form_id]
     )
     console.log("updates.professor_reedit", updates.professor_reedit)
-    console.log("enter mail edit")
+
     if (
       updates.professor_reedit === false ||
       updates.professor_reedit === null ||
       updates.professor_reedit === ""
     ) {
-      //send email to user
-    const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+      //send email to professor
+    const recipients = [getData[0].user_email]; //getuser[0].user_email
     const subject =
       "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการแก้ไขแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ของคุณ"
       const message = `
@@ -557,8 +549,8 @@ router.put("/editedFormPageChage/:id", async (req, res) => {
       console.log("Email sent successfully");
     } else if (updates.professor_reedit === true) {
 
-      //send email to user
-    const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+      //send email to user research
+    const recipients = ["64070075@kmitl.ac.th"]; //getuser[0].user_email
     const subject =
       "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการแก้ไขแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ของคุณ"
     const message = `

@@ -526,7 +526,8 @@ router.put("/editedFormConfer/:id", async (req, res) => {
       updates.professor_reedit === null ||
       updates.professor_reedit === ""
     ) {
-      const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+      // sent email to professor
+      const recipients = [getuser[0].user_email]; //getuser[0].user_email
       const subject =
         "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการแก้ไขแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมของคุณ";
       const message = `
@@ -535,7 +536,7 @@ router.put("/editedFormConfer/:id", async (req, res) => {
 
       await sendEmail(recipients, subject, message);
     } else if (updates.professor_reedit === true) {
-      //send email to user
+      //send email to hr
       const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
       const subject =
         "แจ้งเตือนจากระบบสนับสนุนงานวิจัย ผู้ขออนุมัติได้ทำการแก้ไขแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุม";
