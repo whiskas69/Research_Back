@@ -104,11 +104,11 @@ router.get("/form/:user_id", async (req, res) => {
 
     let sql = `
       SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, 
-             f.kris_id, f.form_status, b.budget_year, b.amount_approval,
-             COALESCE(k.user_id, c.user_id, p.user_id) AS user_id,
-             COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title,
-             COALESCE(c.conf_name, p.journal_name) AS article_name,
-             COALESCE(c.doc_submit_date, p.doc_submit_date, k.doc_submit_date) AS doc_submit_date
+      f.kris_id, f.form_status, b.budget_year, b.amount_approval,
+      COALESCE(k.user_id, c.user_id, p.user_id) AS user_id,
+      COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title,
+      COALESCE(c.conf_name, p.journal_name) AS article_name,
+      COALESCE(c.doc_submit_date, p.doc_submit_date, k.doc_submit_date) AS doc_submit_date
       FROM Form f
       LEFT JOIN Research_KRIS k ON f.kris_id = k.kris_id
       LEFT JOIN Conference c ON f.conf_id = c.conf_id
@@ -243,22 +243,6 @@ router.put("/form/:id", async (req, res) => {
   }
 });
 
-// router.get("/editForm/:id", async (req, res) => {
-//   console.log("get id confer in editForm")
-//   const { id } = req.params;
-//   console.log("form id: ", id);
-//   try {
-//     const [form] = await db.query(
-//       "SELECT * FROM Form WHERE conf_id = ?", [
-//       id,
-//     ]);
-//     console.log("get id confer: ", form[0]);
-//     res.status(200).json(form[0]);
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// })
-
 router.put("/editForm/:id", async (req, res) => {
   console.log("editForm in id:", req.params)
   const { id } = req.params;
@@ -310,5 +294,24 @@ router.put("/confirmEditedForm/:id", async (req, res) => {
   }
 })
 
+router.put("/updatestatus_confer/:id", async (req, res) => {
+  console.log("update status in id:", req.params)
+  const { id } = req.params;
+  const body = req.body;
+
+  console.log("req.body:", req.body);
+  console.log("req.params", req.params);
+  try {
+    const [updateStatus] = await db.query(
+      `UPDATE Form SET form_status = ?, return_to = ?, return_note = ? WHERE form_id = ?`,
+      [body.form_status, body.return, body.description, id]
+    );
+    console.log("updateStatus_result :", updateStatus);
+    res.status(200).json({ success: true, message: "Status updated successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+    console.error("Error updating status:", err);
+  }
+})
 
 exports.router = router;
