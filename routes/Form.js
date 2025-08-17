@@ -95,39 +95,25 @@ router.get("/formsOffice", async (req, res) => {
 
 router.get("/form/:user_id", async (req, res) => {
   const { user_id } = req.params;
+  console.log("user_id req.params", req.params)
   try {
-    let { fiscalYear, type } = req.query;
-    // ปีงบประมาณปัจจุบัน (พ.ศ.)
-    const currentYear = new Date().getFullYear() + 543;
-    // ถ้าไม่ส่งปีมา → ใช้ปีปัจจุบัน
-    if (!fiscalYear) {fiscalYear = currentYear;}
-
-    let sql = `
-      SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, 
-             f.kris_id, f.form_status, b.budget_year, b.amount_approval,
-             COALESCE(k.user_id, c.user_id, p.user_id) AS user_id,
-             COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title,
-             COALESCE(c.conf_name, p.journal_name) AS article_name,
-             COALESCE(c.doc_submit_date, p.doc_submit_date, k.doc_submit_date) AS doc_submit_date
-      FROM Form f
+    const [form] = await db.query(
+      `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, 
+      f.kris_id, f.form_status, f.edit_data, f.date_form_edit,
+      f.editor, f.professor_reedit, b.amount_approval
+      ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
+      ,COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title
+      ,COALESCE(c.conf_name, p.journal_name) AS article_name
+      ,COALESCE(c.doc_submit_date, p.doc_submit_date, k.doc_submit_date) AS doc_submit_date
+    FROM Form f
       LEFT JOIN Research_KRIS k ON f.kris_id = k.kris_id
       LEFT JOIN Conference c ON f.conf_id = c.conf_id
       LEFT JOIN Page_Charge p ON f.pageC_id = p.pageC_id
       LEFT JOIN Budget b ON f.form_id = b.form_id
       WHERE COALESCE(k.user_id, c.user_id, p.user_id) = ?
-      AND (b.budget_year = ? OR b.budget_year IS NULL)
-    `;
-    const params = [user_id, fiscalYear];
-
-    // ถ้า type != all ให้ filter เพิ่ม
-    if (type && type !== 'all') {
-      sql += ` AND f.form_type = ?`;
-      params.push(type);
-    }
-
-    sql += ` ORDER BY f.form_id DESC`;
-
-    const [form] = await db.query(sql, params);
+       ORDER BY f.form_id DESC`,
+      [user_id]
+    );
     console.log("form", form)
 
     res.status(200).json(form);
