@@ -409,21 +409,6 @@ router.post(
   }
 );
 
-//get data by user id
-router.get("/conference/user/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    const [conference] = await db.query(
-      "SELECT * FROM Conference WHERE user_id = ?",
-      [id]
-    );
-    console.log("Get conference userid: ", conference);
-    res.status(200).json(conference);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 //get data by id
 router.get("/conference/:id", async (req, res) => {
   const { id } = req.params;
