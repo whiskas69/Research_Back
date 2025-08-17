@@ -27,6 +27,7 @@ const storage = multer.diskStorage({
 
 const uploadDocuments = multer({
   storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: function (req, file, cb) {
     let acceptedFile = false;
     if (
@@ -355,6 +356,60 @@ router.post(
     }
   }
 );
+
+router.put("/upload/:id" ,uploadDocuments.fields([
+  { name: "pc_proof" },
+  { name: "q_pc_proof" },
+  { name: "invoice_public" },
+  { name: "accepted" },
+  { name: "copy_article" },
+  { name: "upload_article" }
+]), async (req, res) => {
+  console.log("in upload file pc", req.params);
+  const { id } = req.params;
+  // const requiredFiles = ["pc_proof", "q_pc_proof", "copy_article", "invoice_public", "upload_article"];
+  //   const missingFiles = requiredFiles.filter((field) => !req.files[field]);
+  //   //เช็คไฟล์
+  //     if (missingFiles.length > 0) {
+  //       console.log(`กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`);
+  //       return res.status(400).json({
+  //         error: `กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`,
+  //       });
+  //     }
+  try {
+    console.log("fileData", req.files)
+    const pageChargeFiles = req.files;
+
+    // รับไฟล์ใหม่ที่ upload เข้ามา
+    const fileData = {
+      pc_proof: pageChargeFiles.pc_proof?.[0]?.filename,
+      q_pc_proof: pageChargeFiles.q_pc_proof?.[0]?.filename,
+      invoice_public: pageChargeFiles.invoice_public?.[0]?.filename,
+      accepted: pageChargeFiles.accepted?.[0]?.filename || null,
+      copy_article: pageChargeFiles.copy_article?.[0]?.filename,
+      upload_article: pageChargeFiles.upload_article?.[0]?.filename
+    };
+    console.log(fileData)
+    // กรองออกเฉพาะ field ที่ไม่เป็น undefined (คือมีการเปลี่ยนไฟล์ใหม่จริง ๆ)
+    const updates = {};
+    for (const key in fileData) {
+      if (fileData[key] !== undefined) {
+        updates[key] = fileData[key];
+      }
+    }
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ message: "ไม่มีไฟล์ใหม่ที่ต้องการอัปเดต" });
+    }
+
+    const [file_result] = await database.query("UPDATE File_pdf SET ? WHERE pageC_id = ?", [
+        fileData, id
+      ]);
+      console.log("file_result", file_result);
+    res.status(200).json(Page_Charge);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 router.get("/page_charges", async (req, res) => {
   console.log("in get pc");
