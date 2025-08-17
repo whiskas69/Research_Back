@@ -229,22 +229,6 @@ router.put("/form/:id", async (req, res) => {
   }
 });
 
-// router.get("/editForm/:id", async (req, res) => {
-//   console.log("get id confer in editForm")
-//   const { id } = req.params;
-//   console.log("form id: ", id);
-//   try {
-//     const [form] = await db.query(
-//       "SELECT * FROM Form WHERE conf_id = ?", [
-//       id,
-//     ]);
-//     console.log("get id confer: ", form[0]);
-//     res.status(200).json(form[0]);
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// })
-
 router.put("/editForm/:id", async (req, res) => {
   console.log("editForm in id:", req.params)
   const { id } = req.params;
@@ -296,5 +280,43 @@ router.put("/confirmEditedForm/:id", async (req, res) => {
   }
 })
 
+router.put("/updatestatus_confer/:id", async (req, res) => {
+  console.log("update status in id:", req.params)
+  const { id } = req.params;
+  const body = req.body;
 
+  console.log("req.body:", req.body);
+  console.log("req.params", req.params);
+  try {
+    const [updateStatus] = await db.query(
+      `UPDATE Form SET form_status = ?, return_to = ?, return_note = ? WHERE conf_id = ?`,
+      [body.form_status, body.return, body.description, id]
+    );
+    console.log("updateStatus_result :", updateStatus);
+    res.status(200).json({ success: true, message: "Status updated successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+    console.error("Error updating status:", err);
+  }
+})
+
+router.put("/updatestatus_pageC/:id", async (req, res) => {
+  console.log("update status in id:", req.params)
+  const { id } = req.params;
+  const body = req.body;
+
+  console.log("req.body:", req.body);
+  console.log("req.params", req.params);
+  try {
+    const [updateStatus] = await db.query(
+      `UPDATE Form SET form_status = ?, return_to = ?, return_note = ? WHERE pageC_id = ?`,
+      [body.form_status, body.return, body.description, id]
+    );
+    console.log("updateStatus_result :", updateStatus);
+    res.status(200).json({ success: true, message: "Status updated successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+    console.error("Error updating status:", err);
+  }
+})
 exports.router = router;
