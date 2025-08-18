@@ -50,7 +50,7 @@ router.get("/formsOffice", async (req, res) => {
           const [fileAccepted] = await db.query(
             "SELECT accepted FROM File_pdf WHERE pageC_id = ?",
             [forms[i].pageC_id]
-          )
+          );
           console.log("nameP", nameP);
           console.log("fileAccepted", fileAccepted);
 
@@ -81,7 +81,7 @@ router.get("/formsOffice", async (req, res) => {
         }
       }
     }
-    console.log("pageC3rr3", pageC)
+    console.log("pageC3rr3", pageC);
     return res.send({
       forms: forms,
       confer: confer,
@@ -95,12 +95,12 @@ router.get("/formsOffice", async (req, res) => {
 
 router.get("/form/:user_id", async (req, res) => {
   const { user_id } = req.params;
-  console.log("user_id req.params", req.params)
+  console.log("user_id req.params", req.params);
   try {
     const [form] = await db.query(
       `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, 
       f.kris_id, f.form_status, f.edit_data, f.date_form_edit,
-      f.editor, f.professor_reedit, b.amount_approval
+      f.editor, f.professor_reedit, b.amount_approval, f.return_to, f.return_note
       ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
       ,COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title
       ,COALESCE(c.conf_name, p.journal_name) AS article_name
@@ -114,7 +114,7 @@ router.get("/form/:user_id", async (req, res) => {
        ORDER BY f.form_id DESC`,
       [user_id]
     );
-    console.log("form", form)
+    console.log("form", form);
 
     res.status(200).json(form);
   } catch (error) {
@@ -129,9 +129,11 @@ router.get("/allForms", async (req, res) => {
     // ปีงบประมาณปัจจุบัน (พ.ศ.)
     const currentYear = new Date().getFullYear() + 543;
     // ถ้าไม่ส่งปีมา → ใช้ปีปัจจุบัน
-    if (!fiscalYear) {fiscalYear = currentYear;}
+    if (!fiscalYear) {
+      fiscalYear = currentYear;
+    }
 
-    let sql =`
+    let sql = `
       SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, 
       f.kris_id, f.form_status,b.budget_year, b.amount_approval, u.user_nameth
       ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
@@ -146,24 +148,24 @@ router.get("/allForms", async (req, res) => {
       LEFT JOIN Users u ON u.user_id = COALESCE(k.user_id, c.user_id, p.user_id)
       LEFT JOIN Budget b ON f.form_id = b.form_id
       WHERE (b.budget_year = ? OR b.budget_year IS NULL)
-      `
+      `;
     const params = [fiscalYear];
 
     // ถ้า type != all ให้ filter เพิ่ม
-    if (type && type !== 'all') {
+    if (type && type !== "all") {
       sql += ` AND f.form_type = ?`;
       params.push(type);
     }
 
     sql += ` ORDER BY f.form_id DESC`;
 
-console.log("fiscalYear =>", fiscalYear);
-console.log("type =>", type);
-console.log("SQL =>", sql);
-console.log("Params =>", params);
+    console.log("fiscalYear =>", fiscalYear);
+    console.log("type =>", type);
+    console.log("SQL =>", sql);
+    console.log("Params =>", params);
 
     const [form] = await db.query(sql, params);
-    console.log("form", form)
+    console.log("form", form);
 
     if (form.length === 0) {
       return res.status(404).json({ message: "has not data" });
@@ -176,7 +178,7 @@ console.log("Params =>", params);
 });
 
 router.get("/formPageCharge/:id", async (req, res) => {
-  console.log("get id pc in form")
+  console.log("get id pc in form");
   const { id } = req.params;
   console.log("form id: ", id);
   try {
@@ -188,22 +190,20 @@ router.get("/formPageCharge/:id", async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-})
-
+});
+ 
 router.get("/formConference/:id", async (req, res) => {
-  console.log("get id confer in form")
+  console.log("get id confer in form");
   const { id } = req.params;
   console.log("form id: ", id);
   try {
-    const [form] = await db.query("SELECT * FROM Form WHERE conf_id = ?", [
-      id,
-    ]);
+    const [form] = await db.query("SELECT * FROM Form WHERE conf_id = ?", [id]);
     console.log("get id confer: ", form[0]);
     res.status(200).json(form[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-})
+});
 
 router.put("/form/:id", async (req, res) => {
   console.log("in Update form");
@@ -217,9 +217,12 @@ router.put("/form/:id", async (req, res) => {
     form_type = ?, conf_id = ?, pageC_id = ?, kris_id = ?,
     form_status = ? WHERE form_id = ?`,
       [
-        updates.form_type, updates.conf_id || null, updates.pageC_id || null,
-        updates.kris_id || null, updates.form_status,
-        id
+        updates.form_type,
+        updates.conf_id || null,
+        updates.pageC_id || null,
+        updates.kris_id || null,
+        updates.form_status,
+        id,
       ]
     );
     console.log("update form: ", form);
@@ -230,35 +233,36 @@ router.put("/form/:id", async (req, res) => {
 });
 
 router.put("/editForm/:id", async (req, res) => {
-  console.log("editForm in id:", req.params)
+  console.log("editForm in id:", req.params);
   const { id } = req.params;
   const updates = req.body;
-  const editDataJson = JSON.stringify(req.body.edit_data)
-  console.log("12345", updates)
-  console.log("12345", editDataJson)
+  const editDataJson = JSON.stringify(req.body.edit_data);
+  console.log("12345", updates);
+  console.log("12345", editDataJson);
   try {
-    console.log("12345")
-    console.log("in conf_id")
+    console.log("12345");
+    console.log("in conf_id");
     const [updateOfficeEditForm] = await db.query(
       `UPDATE Form SET edit_data = ? WHERE conf_id = ?`,
       [editDataJson, id]
-    )
+    );
     console.log("updateOpi_result :", updateOfficeEditForm);
-    res.status(200).json({ success: true, message: "Success", data: updateOfficeEditForm });
-
+    res
+      .status(200)
+      .json({ success: true, message: "Success", data: updateOfficeEditForm });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-})
+});
 
 // test many id
 router.put("/confirmEditedForm/:id", async (req, res) => {
-  console.log("confirmEditedForm in id:", req.params)
+  console.log("confirmEditedForm in id:", req.params);
   const { id } = req.params;
   const updates = req.body;
-  console.log("12345", updates)
+  console.log("12345", updates);
   try {
-    console.log("in form id type", id)
+    console.log("in form id type", id);
     let targetField = null;
     if (updates.conf_id != null) {
       targetField = "conf_id";
@@ -278,10 +282,10 @@ router.put("/confirmEditedForm/:id", async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-})
+});
 
 router.put("/updatestatus_confer/:id", async (req, res) => {
-  console.log("update status in id:", req.params)
+  console.log("update status in id:", req.params);
   const { id } = req.params;
   const body = req.body;
 
@@ -293,15 +297,17 @@ router.put("/updatestatus_confer/:id", async (req, res) => {
       [body.form_status, body.return, body.description, id]
     );
     console.log("updateStatus_result :", updateStatus);
-    res.status(200).json({ success: true, message: "Status updated successfully" });
+    res
+      .status(200)
+      .json({ success: true, message: "Status updated successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
     console.error("Error updating status:", err);
   }
-})
+});
 
 router.put("/updatestatus_pageC/:id", async (req, res) => {
-  console.log("update status in id:", req.params)
+  console.log("update status in id:", req.params);
   const { id } = req.params;
   const body = req.body;
 
@@ -313,10 +319,12 @@ router.put("/updatestatus_pageC/:id", async (req, res) => {
       [body.form_status, body.return, body.description, id]
     );
     console.log("updateStatus_result :", updateStatus);
-    res.status(200).json({ success: true, message: "Status updated successfully" });
+    res
+      .status(200)
+      .json({ success: true, message: "Status updated successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
     console.error("Error updating status:", err);
   }
-})
+});
 exports.router = router;
