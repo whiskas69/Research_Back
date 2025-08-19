@@ -377,7 +377,7 @@ INSERT INTO Users (
 ('research', 'รัตนา วรผลึก', 'Rattana Wolrapaluk', 'rattana@it.kmitl.ac.th', NULL, 0, 80000, '', '', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), false),
 ('hr', 'วิภาดา ศิลา', 'Vipada Sila', 'vipada@it.kmitl.ac.th', NULL, 0, 80000, '', '', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), false),
 ('finance', 'พิจิตรา สุวรรณศรี', 'Pichitra Suwansri', 'pichitra@it.kmitl.ac.th', NULL, 0, 80000, '', '', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), false),
-('admin', 'ศิริกุล อรุณรุ่งเรือง', 'Sirikun Arunrungrueang', 'sirikun@it.kmitl.ac.th', NULL, 0, 80000, '', '', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), false),
+('admin', 'tanamat', 'tanamat', 'tanamat@it.kmitl.ac.th', NULL, 0, 80000, '', '', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), false),
 
 ('associate', 'พีรณัฐ ทิพย์รักษ์', 'Peeranut Thiprak', '64070075@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2024-10-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
 ('hr', 'ศศิกานต์ หลงกระจ่าง', 'Sasikan Longkachang', '64070105@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2000-09-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
