@@ -191,7 +191,7 @@ router.get("/formPageCharge/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
- 
+
 router.get("/formConference/:id", async (req, res) => {
   console.log("get id confer in form");
   const { id } = req.params;
@@ -297,9 +297,17 @@ router.put("/updatestatus_confer/:id", async (req, res) => {
       [body.form_status, body.return, body.description, id]
     );
     console.log("updateStatus_result :", updateStatus);
-    res
-      .status(200)
-      .json({ success: true, message: "Status updated successfully" });
+
+    const recipients = ["64070075@it.kmitl.ac.th"];
+      const subject =
+        "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการตีกลับแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุม";
+      const message = `
+      มีการส่งแบบฟอร์มขอรับการสนับสนุนจาก "{getuser[0][0].user_nameth}" งานวิจัย: "{conferenceData.conf_name}" กำลังรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
+      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
+
+      await sendEmail(recipients, subject, message);
+
+    res.status(200).json({ success: true, message: "Status updated successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
     console.error("Error updating status:", err);
@@ -319,9 +327,17 @@ router.put("/updatestatus_pageC/:id", async (req, res) => {
       [body.form_status, body.return, body.description, id]
     );
     console.log("updateStatus_result :", updateStatus);
-    res
-      .status(200)
-      .json({ success: true, message: "Status updated successfully" });
+
+    const recipients = ["64070075@it.kmitl.ac.th"];
+      const subject =
+        "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการตีกลับแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุม";
+      const message = `
+      มีการส่งแบบฟอร์มขอรับการสนับสนุนจาก "{getuser[0][0].user_nameth}" งานวิจัย: "{conferenceData.conf_name}" กำลังรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
+      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
+
+      await sendEmail(recipients, subject, message);
+
+    res.status(200).json({ success: true, message: "Status updated successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
     console.error("Error updating status:", err);
