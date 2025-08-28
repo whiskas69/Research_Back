@@ -264,10 +264,6 @@ router.get("/budget/conference/:id", async (req, res) => {
       "SELECT * FROM Budget WHERE form_id = ?",
       [find_id[0].form_id]
     );
-    console.log("Get conf budget: ", conf[0]);
-    if (conf.length === 0) {
-      return res.status(404).json({ message: "conf_id not found" });
-    }
     console.log("Get conf kub: ", conf[0]);
     res.status(200).json(conf[0]);
   } catch (err) {

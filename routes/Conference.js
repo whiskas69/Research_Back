@@ -632,27 +632,31 @@ router.put(
 
 router.get("/getFileConf", async (req, res) => {
   const { conf_id } = req.query;
+  console.log("id", conf_id)
 
-  const file = await db.query(
-    `SELECT full_page, date_published_journals, published_journals, accepted, q_proof, call_for_paper, fee_receipt, fx_rate_document, conf_proof FROM File_pdf WHERE conf_id = ?`,
+  const [file] = await db.query(
+    `SELECT full_page, date_published_journals, published_journals, accepted, q_proof, call_for_paper, fee_receipt, fx_rate_document, conf_proof 
+  FROM File_pdf WHERE conf_id = ?`,
     [conf_id]
   );
 
-  console.log("file", file);
+  console.log("file inconfer", file[0]);
 
   const url = baseURL.parsed.VITE_API_BASE_URL;
+  
+  const fileData = file[0];
 
-  const file_full_page = `${url}/uploads/${file[0]?.[0]?.full_page}`;
-  const date_published_journals = file[0][0].date_published_journals;
-  const file_published_journals = `${url}/uploads/${file[0]?.[0]?.published_journals}`;
-  const file_accepted = `${url}/uploads/${file[0]?.[0]?.accepted}`;
-  const file_q_proof = `${url}/uploads/${file[0]?.[0]?.q_proof}`;
-  const file_call_for_paper = `${url}/uploads/${file[0]?.[0]?.call_for_paper}`;
-  const file_fee_receipt = `${url}/uploads/${file[0]?.[0]?.fee_receipt}`;
-  const file_fx_rate_document = `${url}/uploads/${file[0]?.[0]?.fx_rate_document}`;
-  const file_conf_proof = `${url}/uploads/${file[0]?.[0]?.conf_proof}`;
+  const file_full_page = fileData?.full_page ? `${url}/uploads/${fileData.full_page}` : null;
+  const date_published_journals = fileData?.date_published_journals ? `${url}/uploads/${fileData.date_published_journals}` : null;
+  const file_published_journals = fileData?.published_journals ? `${url}/uploads/${fileData.published_journals}` : null;
+  const file_accepted = fileData?.accepted ? `${url}/uploads/${fileData.accepted}` : null;
+  const file_q_proof = fileData?.q_proof ? `${url}/uploads/${fileData.q_proof}` : null;
+  const file_call_for_paper = fileData?.call_for_paper ? `${url}/uploads/${fileData.call_for_paper}` : null;
+  const file_fee_receipt = fileData?.fee_receipt ? `${url}/uploads/${fileData.fee_receipt}` : null;
+  const file_fx_rate_document = fileData?.fx_rate_document ? `${url}/uploads/${fileData.fx_rate_document}` : null;
+  const file_conf_proof = fileData?.conf_proof ? `${url}/uploads/${fileData.conf_proof}` : null;
 
-  res.json({
+  res.status(200).json({
     message: "Get File Successfully",
     file_full_page,
     date_published_journals,

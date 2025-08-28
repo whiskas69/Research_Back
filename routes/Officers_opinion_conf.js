@@ -181,9 +181,9 @@ router.get("/opinionConf/:id", async (req, res) => {
       [id]
     );
     console.log("opinionConf", opinionConf[0]);
-    if (opinionConf.length === 0) {
-      return res.status(404).json({ message: "opinionConf not found" });
-    }
+    // if (opinionConf.length === 0) {
+    //   return res.status(404).json({ message: "opinionConf not found" });
+    // }
     console.log("Get opinionConf: ", opinionConf[0]);
     res.status(200).json(opinionConf[0]);
   } catch (err) {
