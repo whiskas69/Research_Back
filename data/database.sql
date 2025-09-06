@@ -25,14 +25,14 @@ SET FOREIGN_KEY_CHECKS = 1;
 CREATE TABLE Users (
 	user_id INT PRIMARY KEY UNIQUE  AUTO_INCREMENT,
 	user_role ENUM('professor', 'admin', 'hr', 'research', 'finance', 'associate', 'dean') NOT NULL,
-	user_nameth VARCHAR(255) NOT NULL,
-	user_nameeng VARCHAR(255) NOT NULL,
-	user_email VARCHAR(255) NOT NULL,
-	user_signature VARCHAR(255),
+	user_nameth VARCHAR(100) NOT NULL,
+	user_nameeng VARCHAR(100) NOT NULL,
+	user_email VARCHAR(100) NOT NULL,
+	user_signature VARCHAR(50),
 	user_moneyPC DECIMAL(10,2),
     user_moneyCF DECIMAL(10,2),
-	user_positionth VARCHAR(255),
-    user_positioneng VARCHAR(255),
+	user_positionth VARCHAR(10),
+    user_positioneng VARCHAR(20),
     user_startwork DATE NOT NULL,
     user_year INT NOT NULL,
     user_confer boolean NOT NULL
@@ -42,7 +42,7 @@ CREATE TABLE Users (
 CREATE TABLE Conference (
     conf_id INT PRIMARY KEY AUTO_INCREMENT UNIQUE,
     user_id INT NOT NULL,
-    conf_times VARCHAR(255) NOT NULL,
+    conf_times VARCHAR(10) NOT NULL,
     conf_days DATE NOT NULL,
     trav_dateStart DATE NOT NULL,
     trav_dateEnd DATE NOT NULL,
@@ -60,7 +60,7 @@ CREATE TABLE Conference (
     quality_meeting ENUM('standard', 'good', ''),
     presenter_type ENUM('First Author', 'Corresponding Author') NOT NULL,
     time_of_leave ENUM('1', '2'),
-    location VARCHAR(255) NOT NULL,
+    location VARCHAR(50) NOT NULL,
     wos_2_leave ENUM('WoS-Q1', 'WoS-Q2'),
     name_2_leave VARCHAR(255),
     withdraw ENUM('50%', '100%'),
@@ -97,14 +97,14 @@ CREATE TABLE Score (
     hindex_year INT,
     Citation DECIMAL(10,2),
     score_result DECIMAL(10,2),
-    core_rank VARCHAR(255),
+    core_rank VARCHAR(10),
     FOREIGN KEY (conf_id) REFERENCES Conference(conf_id)
 );
 -- ตารางเอกสารขออนุมัติค่า Page Charge (Page_Charge) CHECK
 CREATE TABLE Page_Charge (
     pageC_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
-    pageC_times VARCHAR(255) NOT NULL,
+    pageC_times VARCHAR(10) NOT NULL,
     pageC_days DATE NOT NULL,
     journal_name VARCHAR(255) NOT NULL,
     quality_journal JSON NOT NULL,
@@ -124,15 +124,15 @@ CREATE TABLE Page_Charge (
     course_co_researchers JSON,
     vol_journal INT,
     issue_journal INT,
-    month VARCHAR(255),
+    month VARCHAR(20),
     year INT,
-    ISSN_ISBN VARCHAR(255),
+    ISSN_ISBN VARCHAR(50),
     submission_date DATE NOT NULL,
 	date_review_announce DATE NOT NULL,
     final_date DATE NOT NULL,
     article_research_ject VARCHAR(255),
     research_type ENUM('basic', 'applied', 'research&development', 'other' ),
-    research_type2 VARCHAR(255),
+    research_type2 VARCHAR(100),
     name_funding_source VARCHAR(255),
     budget_limit DECIMAL(10,2),
     annual INT,
@@ -149,7 +149,7 @@ CREATE TABLE Research_KRIS (
 	name_research_th VARCHAR(255) NOT NULL,
 	name_research_en VARCHAR(255) NOT NULL,
 	research_cluster JSON NOT NULL,
-	res_cluster_other VARCHAR(255),
+	res_cluster_other VARCHAR(100),
 	res_standard JSON NOT NULL,
 	res_standard_trade ENUM('52', '53'),
 	h_index DECIMAL(10,2) NOT NULL,
@@ -172,10 +172,11 @@ CREATE TABLE Form (
 	conf_id INT UNIQUE,
 	pageC_id INT UNIQUE,
 	kris_id INT UNIQUE,
-	form_status ENUM('hr', 'research', 'finance', 'associate', 'dean','waitingApproval', 'approve', 'notApproved', 'attendMeeting', 'return') NOT NULL,
+	form_status ENUM('hr', 'research', 'finance', 'pending', 'associate', 'dean','waitingApproval', 'approve', 'notApproved', 'attendMeeting', 'return') NOT NULL,
+    comment_pending VARCHAR(100),
     edit_data JSON,
     date_form_edit DATE DEFAULT (CURRENT_DATE),
-    editor VARCHAR(255),
+    editor VARCHAR(100),
     professor_reedit boolean,
     return_to ENUM('professor', 'hr', 'research', 'finance', 'associate', 'dean'),
     return_note VARCHAR(255),
@@ -379,7 +380,7 @@ INSERT INTO Users (
 ('finance', 'พิจิตรา สุวรรณศรี', 'Pichitra Suwansri', 'pichitra@it.kmitl.ac.th', NULL, 0, 80000, '', '', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), false),
 ('admin', 'tanamat', 'tanamat', 'tanamat@it.kmitl.ac.th', NULL, 0, 80000, '', '', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), false),
 
-('associate', 'พีรณัฐ ทิพย์รักษ์', 'Peeranut Thiprak', '64070075@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2024-10-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
+('associate', 'พีรณัฐ ทิพย์รักษ์', 'Peeranut Thiprak', '64070075@it.kmitl.ac.th', '1757151355818.png', 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2024-10-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
 ('hr', 'ศศิกานต์ หลงกระจ่าง', 'Sasikan Longkachang', '64070105@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2000-09-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
 ('admin', 'admin', 'admin', '64070075@kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2011-08-25', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true);
 
@@ -436,11 +437,35 @@ INSERT INTO `officers_opinion_pc` (`p_office_id`, `research_id`, `associate_id`,
 (1, 40, 44, 4, 1, 'approve', NULL, 'agree', '2025-06-27', 'acknowledge', 'approve', NULL, '2025-06-27', '2025-06-27', '2025-06-27'),
 (2, 40, NULL, NULL, 2, 'approve', NULL, NULL, '2025-07-03', NULL, NULL, NULL, '2025-07-03', NULL, NULL);
 
-INSERT INTO `Budget` (`budget_id`, `user_id`, `form_id`, `budget_year`,`Research_kris_amount`, `Page_Charge_amount`, `Conference_amount`, `num_expenses_approved`, `total_amount_approved`, `remaining_credit_limit`, `amount_approval`, `total_remaining_credit_limit`, `doc_submit_date`, `travelExpenses`, `allowance`, `withdraw`) VALUES
-(1, 42, 1, 2568, NULL, NULL, 1200000.00, 0, 0.00, 1200000.00, 20001.00, 1179999.00, '2025-06-27', 10.00, 100000.00, 100010.00),
-(2, 42, 2, 2568, NULL, 1230000.00, NULL, 0, 0.00, 1230000.00, 12345.00, 1217655.00, '2025-06-27', NULL, NULL, 100000.00),
-(3, 42, 4, 2568, NULL, 700000.00, NULL, 1, 0.00, 700000.00, 40000.00, 660000.00, '2025-07-03', NULL, NULL, NULL),
-(4 ,44 ,3 ,2568 , 60000.00 ,NULL, NULL, 0, 0.00, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL);
+INSERT INTO `Budget` (
+    `budget_id`, `user_id`, `form_id`, `budget_year`,
+    `Research_kris_amount`, `Page_Charge_amount`, `Conference_amount`,
+    `num_expenses_approved`, `total_amount_approved`, `remaining_credit_limit`,
+    `amount_approval`, `total_remaining_credit_limit`, `doc_submit_date`,
+    `travelExpenses`, `allowance`, `withdraw` ) VALUES
+(1, 42, 1, 2568,
+ NULL, NULL, 1200000.00,
+ 0, 0.00, 1200000.00,
+ 20001.00, 1179999.00, '2025-06-27',
+ 10.00, 100000.00, 100010.00),
+
+(2, 42, 2, 2568,
+ NULL, 1230000.00, NULL,
+ 0, 0.00, 1230000.00,
+ 12345.00, 1217655.00, '2025-06-27',
+ NULL, NULL, 100000.00),
+
+(3, 42, 4, 2568,
+ NULL, 700000.00, NULL,
+ 1, 0.00, 700000.00,
+ 40000.00, 660000.00, '2025-07-03',
+ NULL, NULL, NULL),
+
+(4, 44, 3, 2568,
+ 60000.00, NULL, NULL,
+ 0, 0.00, 0.00,
+ 0.00, 0.00, NULL,
+ NULL, NULL, NULL);
 
 UPDATE Users
 SET user_nameth = CONVERT(CAST(CONVERT(user_nameth USING latin1) AS BINARY) USING utf8mb4);
