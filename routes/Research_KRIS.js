@@ -73,7 +73,7 @@ const researchSchema = Joi.object({
   h_index: Joi.number().required(),
   his_invention: Joi.string().required(),
   participation_percent: Joi.number().greater(0).max(100).required(),
-  Research_kris_amout: Joi.number().required(),
+  Research_kris_amount: Joi.number().required(),
   year: Joi.number().integer().required(),
   project_periodStart: Joi.date().required(),
   project_periodEnd: Joi.date()
@@ -172,7 +172,7 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
       form_id: formID,
       user_id: kris_data.user_id,
       budget_year: year,
-      Research_kris_amout: kris_data.Research_kris_amout,
+      Research_kris_amount: kris_data.Research_kris_amount,
       num_expenses_approved: 0,
       total_amount_approved: 0,
       remaining_credit_limit: 0,

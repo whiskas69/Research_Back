@@ -277,7 +277,7 @@ CREATE TABLE Budget (
     user_id INT NOT NULL,
 	form_id INT NOT NULL UNIQUE,
 	budget_year INT NOT NULL,
-    Research_kris_amout DECIMAL(10,2),
+    Research_kris_amount DECIMAL(10,2),
 	Page_Charge_amount DECIMAL(10,2),
     Conference_amount DECIMAL(10,2),
 	num_expenses_approved INT NOT NULL,
@@ -394,6 +394,53 @@ INSERT INTO ConditionCF (
     expense50ASEAN, expense50Asia, expense50EuropeAmericaAustraliaAfrica
 ) VALUES
 (1, 1, 2, 3, 2, 4, 9.38, 'A', 20000, 40000, 60000, 10000, 20000, 30000);
+
+INSERT INTO `Conference` (`conf_id`, `user_id`, `conf_times`, `conf_days`, `trav_dateStart`, `trav_dateEnd`, `conf_research`, `num_co_researchers`, `name_co_researchers`, `course_co_researchers`, `conf_name`, `meeting_date`, `meeting_venue`, `date_submit_organizer`, `argument_date_review`, `last_day_register`, `meeting_type`, `quality_meeting`, `presenter_type`, `time_of_leave`, `location`, `wos_2_leave`, `name_2_leave`, `withdraw`, `wd_100_quality`, `wd_name_100`, `country_conf`, `num_register_articles`, `regist_amount_1_article`, `total_amount`, `domestic_expenses`, `overseas_expenses`, `travel_country`, `inter_expenses`, `airplane_tax`, `num_days_room`, `room_cost_per_night`, `total_room`, `num_travel_days`, `daily_allowance`, `total_allowance`, `all_money`, `doc_submit_date`) VALUES
+(1, 44, 10, '2025-06-01', '2025-07-11', '2025-07-12', '1', 0, 'null', 'null', '1', '2025-07-12', '1', '2025-06-02', '2025-06-11', '2025-06-09', 'facultyHost', '', 'First Author', '1', 'ปากีสถาน', NULL, NULL, '50%', NULL, NULL, 'abroad', 1.00, 1.00, 1.00, NULL, 1.00, 'ปากีสถาน', 1.00, NULL, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 5.00, '2025-06-27');
+
+INSERT INTO `Score` (`sc_id`, `conf_id`, `score_type`, `sjr_score`, `sjr_year`, `hindex_score`, `hindex_year`, `Citation`, `score_result`, `core_rank`) VALUES
+(1, 1, NULL, 0.00, 0, 0.00, 0, 0.00, NULL, NULL);
+
+INSERT INTO `Page_Charge` (`pageC_id`, `user_id`, `pageC_times`, `pageC_days`, `journal_name`, `quality_journal`, `pc_isi_year`, `pc_sjr_year`, `pc_scopus_year`, `impact_factor`, `sjr_score`, `cite_score`, `qt_isi`, `qt_sjr`, `qt_scopus`, `support_limit`, `article_title`, `num_co_researchers`, `name_co_researchers`, `course_co_researchers`, `vol_journal`, `issue_journal`, `month`, `year`, `ISSN_ISBN`, `submission_date`, `date_review_announce`, `final_date`, `article_research_ject`, `research_type`, `research_type2`, `name_funding_source`, `budget_limit`, `annual`, `presenter_type`, `request_support`, `doc_submit_date`) VALUES
+(1, 44, 1, '2025-06-01', '1', '[\"SJR\"]', NULL, 2024, NULL, NULL, 11.00, NULL, NULL, 1, NULL, 60000, '1', 1, '[\"\", \"1\"]', '[\"\", \"1\"]', NULL, NULL, NULL, NULL, NULL, '2025-06-02', '2025-06-13', '2025-06-23', NULL, NULL, NULL, NULL, NULL, NULL, 'First Author', 12345.00, '2025-06-27'),
+(2, 34, 5, '2025-06-25', 'IEEE Transactions on Artificial Intelligence', '[\"SJR\"]', NULL, 2024, NULL, NULL, 1.43, NULL, NULL, 1, NULL, 60000, 'n-LIPO: Framework for Diverse Cooperative Agent Generation using Policy Compatibility', 3, '[\"\", \"Rujikorn Charakorn\", \"Poramate Manoonpong\", \"Nat Dilokthanakul\"]', '[\"\", \"-\", \"-\", \"-\"]', 2025, NULL, NULL, NULL, NULL, '2024-06-27', '2025-04-27', '2025-07-25', 'การสร้างเอเจ้นท์ที่มีความหลากหลายผ่านการเรียนรู้แบบเสริมกำลัง', 'basic', NULL, 'ทุนวิจัยส่งเสริมส่วนงานวิชาการ สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง', 492100.00, 2023, 'Corresponding Author', 40000.00, '2025-07-03');
+
+INSERT INTO `Research_KRIS` (`kris_id`, `user_id`, `name_research_th`, `name_research_en`, `research_cluster`, `res_cluster_other`, `res_standard`, `res_standard_trade`, `h_index`, `his_invention`, `participation_percent`, `year`, `project_periodStart`, `project_periodEnd`, `doc_submit_date`) VALUES
+(1, 44, 'ไทน', 'thai', '[\"Battery & EV\", \"Materials\"]', NULL, '[\"มีการใช้สัตว์ทดลอง\", \"มีการใช้พันธุ์พืช\"]', '53', 88.00, 'jj', 90.00, 1, '2025-06-27', '2025-07-12', '2025-06-27');
+
+INSERT INTO `Form` (`form_id`, `form_type`, `conf_id`, `pageC_id`, `kris_id`, `form_status`, `edit_data`, `date_form_edit`, `editor`, `professor_reedit`) VALUES
+(1, 'Conference', 1, NULL, NULL, 'finance', NULL, '2025-06-27', NULL, NULL),
+(2, 'Page_Charge', NULL, 1, NULL, 'approve', NULL, '2025-06-27', NULL, NULL),
+(3, 'Research_KRIS', NULL, NULL, 1, 'approve', NULL, '2025-06-27', NULL, NULL),
+(4, 'Page_Charge', NULL, 2, NULL, 'finance', NULL, '2025-07-03', NULL, NULL);
+
+INSERT INTO `File_pdf` (`file_id`, `type`, `conf_id`, `pageC_id`, `kris_id`, `kris_file`, `full_page`, `date_published_journals`, `published_journals`, `q_proof`, `call_for_paper`, `fee_receipt`, `fx_rate_document`, `conf_proof`, `pc_proof`, `q_pc_proof`, `invoice_public`, `accepted`, `copy_article`, `upload_article`) VALUES
+(1, 'Conference', 1, NULL, NULL, NULL, '1754289760681.pdf', NULL, NULL, NULL, '1754289760661.pdf', '1754359110929.pdf', '1754359110875.pdf', '1754381356785.pdf', NULL, NULL, NULL, '1755227063306.pdf', NULL, NULL),
+(2, 'Page_Charge', NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '1754289760661.pdf', '1754359110929.pdf', '1754359110875.pdf', '1754381356785.pdf', '1755226923295.pdf', '1755227063306.pdf' ),
+(3, 'Research_KRIS', NULL, NULL, 1, '1754289760681.pdf', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(4, 'Page_Charge', NULL, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '1754289760661.pdf', '1754359110929.pdf', '1754359110875.pdf', '1754381356785.pdf', '1755226923295.pdf', '1755227063306.pdf');
+
+INSERT INTO `Notification` (`noti_id`, `user_id`, `form_id`, `name_form`, `date_update`) VALUES
+(1, 44, 1, '1', '2025-06-27'),
+(2, 44, 2, '1', '2025-06-27'),
+(3, 44, 3, 'ไทน', '2025-06-27'),
+(4, 34, 4, 'n-LIPO: Framework for Diverse Cooperative Agent Generation using Policy Compatibility', '2025-07-03');
+
+INSERT INTO `officers_opinion_conf` (`c_office_id`, `hr_id`, `research_id`, `associate_id`, `dean_id`, `conf_id`, `c_research_hr`, `c_reason`, `c_noteOther`, `c_meet_quality`, `c_quality_reason`, `c_deputy_dean`, `c_approve_result`, `hr_doc_submit_date`, `research_doc_submit_date`, `associate_doc_submit_date`, `dean_doc_submit_date`) VALUES
+(1, 41, 40, 44, 4, 1, 'correct', '', NULL, 'correct', NULL, 'agree', 'acknowledge', '2025-06-27', '2025-06-27', '2025-06-27', '2025-06-27');
+
+INSERT INTO `officers_opinion_kris` (`k_office_id`, `user_id`, `kris_id`, `research_admin`, `doc_submit_date`) VALUES
+(1, 40, 1, 'acknowledge', '2025-06-27');
+
+INSERT INTO `officers_opinion_pc` (`p_office_id`, `research_id`, `associate_id`, `dean_id`, `pageC_id`, `p_research_admin`, `p_reason`, `p_deputy_dean`, `p_date_accepted_approve`, `p_acknowledge`, `p_approve_result`, `p_reason_dean_approve`, `research_doc_submit_date`, `associate_doc_submit_date`, `dean_doc_submit_date`) VALUES
+(1, 40, 44, 4, 1, 'approve', NULL, 'agree', '2025-06-27', 'acknowledge', 'approve', NULL, '2025-06-27', '2025-06-27', '2025-06-27'),
+(2, 40, NULL, NULL, 2, 'approve', NULL, NULL, '2025-07-03', NULL, NULL, NULL, '2025-07-03', NULL, NULL);
+
+INSERT INTO `Budget` (`budget_id`, `user_id`, `form_id`, `budget_year`,`Research_kris_amount`, `Page_Charge_amount`, `Conference_amount`, `num_expenses_approved`, `total_amount_approved`, `remaining_credit_limit`, `amount_approval`, `total_remaining_credit_limit`, `doc_submit_date`, `travelExpenses`, `allowance`, `withdraw`) VALUES
+(1, 42, 1, 2568, NULL, NULL, 1200000.00, 0, 0.00, 1200000.00, 20001.00, 1179999.00, '2025-06-27', 10.00, 100000.00, 100010.00),
+(2, 42, 2, 2568, NULL, 1230000.00, NULL, 0, 0.00, 1230000.00, 12345.00, 1217655.00, '2025-06-27', NULL, NULL, 100000.00),
+(3, 42, 4, 2568, NULL, 700000.00, NULL, 1, 0.00, 700000.00, 40000.00, 660000.00, '2025-07-03', NULL, NULL, NULL),
+(4 ,44 ,3 ,2568 , 60000.00 ,NULL, NULL, 0, 0.00, 0.00, 0.00, 0.00, NULL, NULL, NULL, NULL);
 
 UPDATE Users
 SET user_nameth = CONVERT(CAST(CONVERT(user_nameth USING latin1) AS BINARY) USING utf8mb4);
