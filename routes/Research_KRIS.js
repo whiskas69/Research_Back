@@ -8,6 +8,7 @@ const baseURL = require("dotenv").config();
 
 const db = require("../config.js");
 const sendEmail = require("../middleware/mailer.js");
+const { Console } = require("console");
 
 const router = express.Router();
 
@@ -73,7 +74,7 @@ const researchSchema = Joi.object({
   h_index: Joi.number().required(),
   his_invention: Joi.string().required(),
   participation_percent: Joi.number().greater(0).max(100).required(),
-  Research_kris_amout: Joi.number().required(),
+  Research_kris_amount: Joi.number().required(),
   year: Joi.number().integer().required(),
   project_periodStart: Joi.date().required(),
   project_periodEnd: Joi.date()
@@ -110,8 +111,8 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     //insert data to Research_KRIS
     const [kris_result] = await database.query(
       `INSERT INTO Research_KRIS (
-      user_id, name_research_th, name_research_en, research_cluster, res_cluster_other, res_standard, res_standard_trade, h_index, his_invention, participation_percent, year, project_periodStart, project_periodEnd)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      user_id, name_research_th, name_research_en, research_cluster, res_cluster_other, res_standard, res_standard_trade, h_index, his_invention, participation_percent, year, project_periodStart, project_periodEnd, Research_kris_amount)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         kris_data.user_id,
         kris_data.name_research_th,
@@ -126,6 +127,7 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
         kris_data.year,
         kris_data.project_periodStart,
         kris_data.project_periodEnd,
+        kris_data.Research_kris_amount
       ]
     );
     console.log("kris_result", kris_result);
@@ -288,7 +290,7 @@ router.get("/getFilekris", async (req, res) => {
   );
 
   const url = baseURL.parsed.VITE_API_BASE_URL;
-  const fileUrl = `${url}/uploads/${file[0]?.[0]?.kris_file}`;
+  const fileUrl = `${url}uploads/${file[0]?.[0]?.kris_file}`;
 
   res.json({ message: "Get File successfully", fileUrl });
 });
