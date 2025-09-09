@@ -5,35 +5,29 @@ const sendEmail = require("../middleware/mailer.js");
 router = express.Router();
 
 router.post('/budget', async (req, res) => {
-
   const database = await db.getConnection();
   await database.beginTransaction(); //start transaction
 
   const data = req.body;
-  console.log("in bg")
 
   try {
     if (data.form_status != "pending") {
       const [Budget_result] = await database.query(
-        `INSERT INTO Budget (
-     user_id, form_id, pending, comment_text, budget_year, Page_Charge_amount, Conference_amount,
-     num_expenses_approved, total_amount_approved, remaining_credit_limit,
-     amount_approval, total_remaining_credit_limit, doc_submit_date
-   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
-        [data.user_id, data.form_id, data.pending || null, data.comment_text || null, data.budget_year, data.Page_Charge_amount || null, data.Conference_amount || null, data.num_expenses_approved,
+        `INSERT INTO Budget ( user_id, form_id, comment_text, budget_year, Page_Charge_amount, Conference_amount,
+        num_expenses_approved, total_amount_approved, remaining_credit_limit, amount_approval, total_remaining_credit_limit, doc_submit_date
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+        [data.user_id, data.form_id, data.comment_text || null, data.budget_year, data.Page_Charge_amount || null, data.Conference_amount || null, data.num_expenses_approved,
         data.total_amount_approved, data.remaining_credit_limit, data.amount_approval, data.total_remaining_credit_limit]
       );
       console.log("Budget_result : ", Budget_result)
 
       const [updateForm_result] = await database.query(
-        `UPDATE Form SET form_status = ? WHERE form_id = ?`,
-        [data.form_status, data.form_id]
+        `UPDATE Form SET form_status = ? WHERE form_id = ?`, [data.form_status, data.form_id]
       );
       console.log("updateForm_result : ", updateForm_result)
 
       const [formType] = await database.query(
-        `SELECT conf_id, pageC_id FROM Form WHERE form_id = ?`,
-        [data.form_id]
+        `SELECT conf_id, pageC_id FROM Form WHERE form_id = ?`, [data.form_id]
       );
       console.log("formType : ", formType)
 
@@ -44,7 +38,7 @@ router.post('/budget', async (req, res) => {
       const subject =
         "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มรอการอนุมัติและตรวจสอบ";
       const message = `
-       โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
+      โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
       กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
 
       await sendEmail(recipients, subject, message);
@@ -53,26 +47,15 @@ router.post('/budget', async (req, res) => {
       res.status(201).json({ message: "Budget created successfully!", id: Budget_result.insertId });
 
     } else {
-      console.log("in pending", data.form_status,)
-      console.log("in pending", data.comment_pending)
-      console.log("in pending", data.form_id)
-      const [updateForm_result] = await database.query(
+      const [UpdateForm_result] = await database.query(
         `UPDATE Form SET form_status = ?, comment_pending = ? WHERE form_id = ?`,
         [data.form_status, data.comment_pending, data.form_id]
       );
-      console.log("updateForm_result : ", updateForm_result)
 
-      const [rows] = await database.query(
-        `SELECT form_id, form_status, comment_pending 
-   FROM Form WHERE form_id = ?`,
-        [data.form_id]
-      );
-      console.log("After update:", rows);
+      await database.commit(); //commit transaction
 
       res.status(201).json({ message: "Budget Pending!" });
     }
-
-
   } catch (error) {
     database.rollback(); //rollback transaction
     console.error("Error inserting into database:", error);
