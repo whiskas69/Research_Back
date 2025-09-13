@@ -172,7 +172,7 @@ CREATE TABLE Form (
 	conf_id INT UNIQUE,
 	pageC_id INT UNIQUE,
 	kris_id INT UNIQUE,
-	form_status ENUM('hr', 'research', 'finance', 'pending', 'associate', 'dean','waitingApproval', 'approve', 'notApproved', 'attendMeeting', 'returnSender', 'returnHr', 'returnResearch', 'returnFinance', 'returnAssociate') NOT NULL,
+	form_status ENUM('hr', 'research', 'finance', 'pending', 'associate', 'dean','waitingApproval', 'approve', 'notApproved', 'attendMeeting', 'returnSender') NOT NULL,
     comment_pending VARCHAR(100),
     edit_data JSON,
     date_form_edit DATE DEFAULT (CURRENT_DATE),
@@ -428,7 +428,7 @@ INSERT INTO `Notification` (`noti_id`, `user_id`, `form_id`, `name_form`, `date_
 (4, 34, 4, 'n-LIPO: Framework for Diverse Cooperative Agent Generation using Policy Compatibility', '2025-07-03');
 
 INSERT INTO `officers_opinion_conf` (`c_office_id`, `hr_id`, `research_id`, `associate_id`, `dean_id`, `conf_id`, `c_research_hr`, `c_reason`, `c_noteOther`, `c_meet_quality`, `c_quality_reason`, `c_deputy_dean`, `c_approve_result`, `hr_doc_submit_date`, `research_doc_submit_date`, `associate_doc_submit_date`, `dean_doc_submit_date`) VALUES
-(1, 41, 40, 44, 4, 1, 'correct', '', NULL, 'correct', NULL, 'agree', 'acknowledge', '2025-06-27', '2025-06-27', '2025-06-27', '2025-06-27');
+(1, 41, 40, 44, 4, 1, 'approve', '', NULL, 'correct', NULL, 'agree', 'acknowledge', '2025-06-27', '2025-06-27', '2025-06-27', '2025-06-27');
 
 INSERT INTO `officers_opinion_kris` (`k_office_id`, `user_id`, `kris_id`, `research_admin`, `doc_submit_date`) VALUES
 (1, 40, 1, 'acknowledge', '2025-06-27');
@@ -466,6 +466,7 @@ INSERT INTO `Budget` (
  0, 0.00, 0.00,
  0.00, 0.00, NULL,
  NULL, NULL, NULL);
+
 
 UPDATE Users
 SET user_nameth = CONVERT(CAST(CONVERT(user_nameth USING latin1) AS BINARY) USING utf8mb4);
