@@ -13,16 +13,16 @@ router.post('/budget', async (req, res) => {
   try {
     if (data.form_status != "pending") {
       const [Budget_result] = await database.query(
-        `INSERT INTO Budget ( user_id, form_id, comment_text, budget_year, Page_Charge_amount, Conference_amount,
+        `INSERT INTO Budget ( user_id, form_id, budget_year, Page_Charge_amount, Conference_amount,
         num_expenses_approved, total_amount_approved, remaining_credit_limit, amount_approval, total_remaining_credit_limit, doc_submit_date
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
-        [data.user_id, data.form_id, data.comment_text || null, data.budget_year, data.Page_Charge_amount || null, data.Conference_amount || null, data.num_expenses_approved,
+        [data.user_id, data.form_id, data.budget_year, data.Page_Charge_amount || null, data.Conference_amount || null, data.num_expenses_approved,
         data.total_amount_approved, data.remaining_credit_limit, data.amount_approval, data.total_remaining_credit_limit]
       );
       console.log("Budget_result : ", Budget_result)
 
       const [updateForm_result] = await database.query(
-        `UPDATE Form SET form_status = ? WHERE form_id = ?`, [data.form_status, data.form_id]
+        `UPDATE Form SET form_status = ?, return_to = ? WHERE form_id = ?`, [data.form_status, data.returnto, data.form_id]
       );
       console.log("updateForm_result : ", updateForm_result)
 

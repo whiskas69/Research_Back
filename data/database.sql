@@ -172,14 +172,13 @@ CREATE TABLE Form (
 	conf_id INT UNIQUE,
 	pageC_id INT UNIQUE,
 	kris_id INT UNIQUE,
-	form_status ENUM('hr', 'research', 'finance', 'pending', 'associate', 'dean','waitingApproval', 'approve', 'notApproved', 'attendMeeting', 'returnSender') NOT NULL,
+	form_status ENUM('hr', 'research', 'finance', 'pending', 'associate', 'dean','waitingApproval', 'approve', 'notApproved', 'attendMeeting', 'return') NOT NULL,
     comment_pending VARCHAR(100),
     edit_data JSON,
     date_form_edit DATE DEFAULT (CURRENT_DATE),
     editor VARCHAR(100),
     professor_reedit boolean,
     return_to ENUM('professor', 'hr', 'research', 'finance', 'associate', 'dean'),
-    return_note VARCHAR(255),
 
 	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id),
 	FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id),
@@ -199,7 +198,7 @@ CREATE TABLE File_pdf (
 	published_journals VARCHAR(255),
 	q_proof VARCHAR(255),
 	call_for_paper VARCHAR(255),
-	fee_receipt VARCHAR(255),          
+	fee_receipt VARCHAR(255),
 	fx_rate_document VARCHAR(255),
 	conf_proof VARCHAR(255),
 	pc_proof VARCHAR(255), -- pc
@@ -221,7 +220,7 @@ CREATE TABLE officers_opinion_pc (
     pageC_id INT NOT NULL UNIQUE,
     p_research_admin ENUM('approve', 'waiting letter', 'other', 'return'),
     p_reason VARCHAR(255),
-    p_deputy_dean ENUM('agree', 'disagree', 'return'),
+    p_deputy_dean ENUM('approve', 'notApproved', 'return'),
     p_date_accepted_approve DATE, -- วันที่เอกสารได้รับการอนุมัติ
     p_acknowledge ENUM('acknowledge', 'notApproved'),
     p_approve_result ENUM('acknowledge', 'approve', 'notApproved', 'other', 'return'),
@@ -243,13 +242,13 @@ CREATE TABLE officers_opinion_conf (
     associate_id INT,
     dean_id INT,
 	conf_id INT NOT NULL UNIQUE,
-	c_research_hr ENUM('approve', 'notApproved', 'returnSender'),
-	c_reason VARCHAR(255),
-    c_noteOther VARCHAR(255),
-	c_meet_quality ENUM('correct', 'notCorrect', 'return'),
-	c_quality_reason VARCHAR(255),
-	c_deputy_dean ENUM('agree', 'Disagree', 'return'),
-	c_approve_result ENUM('acknowledge', 'notApproved', 'return'),
+	c_hr_result ENUM('approve', 'notApproved', 'return_professor'),
+	c_hr_reason VARCHAR(255),
+    c_hr_note VARCHAR(255),
+	c_research_result ENUM('approve', 'notApproved', 'return'),
+	c_research_reason VARCHAR(255),
+	c_associate_result ENUM('approve', 'notApproved', 'return'),
+	c_dean_result ENUM('approve', 'notApproved', 'return'),
     hr_doc_submit_date DATE DEFAULT (CURRENT_DATE),
     research_doc_submit_date DATE DEFAULT (CURRENT_DATE),
     associate_doc_submit_date DATE DEFAULT (CURRENT_DATE),
@@ -427,14 +426,14 @@ INSERT INTO `Notification` (`noti_id`, `user_id`, `form_id`, `name_form`, `date_
 (3, 44, 3, 'ไทน', '2025-06-27'),
 (4, 34, 4, 'n-LIPO: Framework for Diverse Cooperative Agent Generation using Policy Compatibility', '2025-07-03');
 
-INSERT INTO `officers_opinion_conf` (`c_office_id`, `hr_id`, `research_id`, `associate_id`, `dean_id`, `conf_id`, `c_research_hr`, `c_reason`, `c_noteOther`, `c_meet_quality`, `c_quality_reason`, `c_deputy_dean`, `c_approve_result`, `hr_doc_submit_date`, `research_doc_submit_date`, `associate_doc_submit_date`, `dean_doc_submit_date`) VALUES
-(1, 41, 40, 44, 4, 1, 'approve', '', NULL, 'correct', NULL, 'agree', 'acknowledge', '2025-06-27', '2025-06-27', '2025-06-27', '2025-06-27');
+INSERT INTO `officers_opinion_conf` (`c_office_id`, `hr_id`, `research_id`, `associate_id`, `dean_id`, `conf_id`, `c_hr_result`, `c_hr_reason`, `c_hr_note`, `c_research_result`, `c_research_reason`, `c_associate_result`, `c_dean_result`, `hr_doc_submit_date`, `research_doc_submit_date`, `associate_doc_submit_date`, `dean_doc_submit_date`) VALUES
+(1, 41, 40, 44, 4, 1, 'approve', '', NULL, 'approve', NULL, 'approve', 'approve', '2025-06-27', '2025-06-27', '2025-06-27', '2025-06-27');
 
 INSERT INTO `officers_opinion_kris` (`k_office_id`, `user_id`, `kris_id`, `research_admin`, `doc_submit_date`) VALUES
 (1, 40, 1, 'acknowledge', '2025-06-27');
 
 INSERT INTO `officers_opinion_pc` (`p_office_id`, `research_id`, `associate_id`, `dean_id`, `pageC_id`, `p_research_admin`, `p_reason`, `p_deputy_dean`, `p_date_accepted_approve`, `p_acknowledge`, `p_approve_result`, `p_reason_dean_approve`, `research_doc_submit_date`, `associate_doc_submit_date`, `dean_doc_submit_date`) VALUES
-(1, 40, 44, 4, 1, 'approve', NULL, 'agree', '2025-06-27', 'acknowledge', 'approve', NULL, '2025-06-27', '2025-06-27', '2025-06-27'),
+(1, 40, 44, 4, 1, 'approve', NULL, 'approve', '2025-06-27', 'acknowledge', 'approve', NULL, '2025-06-27', '2025-06-27', '2025-06-27'),
 (2, 40, NULL, NULL, 2, 'approve', NULL, NULL, '2025-07-03', NULL, NULL, NULL, '2025-07-03', NULL, NULL);
 
 INSERT INTO `Budget` (
