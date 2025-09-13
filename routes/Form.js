@@ -95,26 +95,61 @@ router.get("/formsOffice", async (req, res) => {
 
 router.get("/form/:user_id", async (req, res) => {
   const { user_id } = req.params;
+  let { fiscalYear, type, typeStatus } = req.query;
+
   console.log("user_id req.params", req.params);
+
   try {
-    const [form] = await db.query(
-      `SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, 
-      f.kris_id, f.form_status, f.edit_data, f.date_form_edit,
-      f.editor, f.professor_reedit, b.amount_approval, f.return_to, f.return_note
-      ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
-      ,COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title
-      ,COALESCE(c.conf_name, p.journal_name) AS article_name
-      ,COALESCE(c.doc_submit_date, p.doc_submit_date, k.doc_submit_date) AS doc_submit_date
-    FROM Form f
-      LEFT JOIN Research_KRIS k ON f.kris_id = k.kris_id
-      LEFT JOIN Conference c ON f.conf_id = c.conf_id
-      LEFT JOIN Page_Charge p ON f.pageC_id = p.pageC_id
-      LEFT JOIN Budget b ON f.form_id = b.form_id
+    // ปีงบประมาณปัจจุบัน (พ.ศ.)
+    const currentYear = new Date().getFullYear() + 543;
+    if (!fiscalYear) {
+      fiscalYear = currentYear;
+    }
+
+    let sql = `
+      SELECT f.form_id, f.form_type, f.conf_id, f.pageC_id, 
+        f.kris_id, f.form_status, f.edit_data, f.date_form_edit,
+        f.editor, f.professor_reedit, b.amount_approval, f.return_to, f.return_note
+        ,COALESCE(k.user_id, c.user_id, p.user_id) AS user_id
+        ,COALESCE(k.name_research_th, c.conf_research, p.article_title) AS article_title
+        ,COALESCE(c.conf_name, p.journal_name) AS article_name
+        ,COALESCE(c.doc_submit_date, p.doc_submit_date, k.doc_submit_date) AS doc_submit_date
+      FROM Form f
+        LEFT JOIN Research_KRIS k ON f.kris_id = k.kris_id
+        LEFT JOIN Conference c ON f.conf_id = c.conf_id
+        LEFT JOIN Page_Charge p ON f.pageC_id = p.pageC_id
+        LEFT JOIN Budget b ON f.form_id = b.form_id
       WHERE COALESCE(k.user_id, c.user_id, p.user_id) = ?
-       ORDER BY f.form_id DESC`,
-      [user_id]
-    );
+        AND (b.budget_year = ? OR b.budget_year IS NULL)
+    `;
+
+    const params = [user_id, fiscalYear];
+
+    // filter type
+    if (type && type !== "all") {
+      sql += ` AND f.form_type = ?`;
+      params.push(type);
+    }
+
+    // filter typeStatus (รองรับหลายค่า)
+    if (typeStatus && typeStatus !== "all") {
+      const statuses = typeStatus.split(",").map(s => s.trim());
+      const placeholders = statuses.map(() => "?").join(",");
+      sql += ` AND f.form_status IN (${placeholders})`;
+      params.push(...statuses);
+    }
+
+    sql += ` ORDER BY f.form_id DESC`;
+
+    console.log("SQL =>", sql);
+    console.log("Params =>", params);
+
+    const [form] = await db.query(sql, params);
     console.log("form", form);
+
+    if (form.length === 0) {
+      return res.status(404).json({ message: "has not data" });
+    }
 
     res.status(200).json(form);
   } catch (error) {
@@ -122,10 +157,11 @@ router.get("/form/:user_id", async (req, res) => {
   }
 });
 
+
 router.get("/allForms", async (req, res) => {
   console.log("allForms");
   try {
-    let { fiscalYear, type } = req.query;
+    let { fiscalYear, type, typeStatus } = req.query;
     // ปีงบประมาณปัจจุบัน (พ.ศ.)
     const currentYear = new Date().getFullYear() + 543;
     // ถ้าไม่ส่งปีมา → ใช้ปีปัจจุบัน
@@ -157,12 +193,23 @@ router.get("/allForms", async (req, res) => {
       params.push(type);
     }
 
+    // filter typeStatus
+    if (typeStatus && typeStatus !== "all") {
+      const statuses = typeStatus.split(",").map(s => s.trim());
+      const placeholders = statuses.map(() => "?").join(",");
+      console.log("statuses", statuses)
+      console.log("placeholders", placeholders)
+      sql += ` AND f.form_status IN (${placeholders})`;
+      params.push(...statuses);
+    }
+
     sql += ` ORDER BY f.form_id DESC`;
 
-    console.log("fiscalYear =>", fiscalYear);
-    console.log("type =>", type);
-    console.log("SQL =>", sql);
-    console.log("Params =>", params);
+    // console.log("fiscalYear =>", fiscalYear);
+    // console.log("type =>", type);
+    // console.log("typeStatus =>", typeStatus);
+    // console.log("SQL =>", sql);
+    // console.log("Params =>", params);
 
     const [form] = await db.query(sql, params);
     console.log("form", form);
