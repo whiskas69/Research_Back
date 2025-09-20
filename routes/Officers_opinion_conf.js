@@ -16,8 +16,8 @@ router.post("/opinionConf", async (req, res) => {
     const [createOpi_result] = await database.query(
       `INSERT INTO officers_opinion_conf
           (hr_id, research_id, associate_id, dean_id, conf_id,
-          c_hr_result, c_hr_reason, c_hr_note, c_research_result,
-          c_research_reason, c_associate_result, c_dean_result,
+          c_hr_result, c_hr_reason, c_hr_note, c_quality, c_comment_quality, c_comment_quality_good, 
+          c_research_result, c_research_reason, c_associate_result, c_dean_result,
           research_doc_submit_date, associate_doc_submit_date, dean_doc_submit_date)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
@@ -29,6 +29,9 @@ router.post("/opinionConf", async (req, res) => {
         data.c_hr_result,
         data.c_hr_reason,
         data.c_hr_note || null,
+        data.c_quality || null, 
+        data.c_comment_quality || null, 
+        data.c_comment_quality_good,
         data.c_research_result || null,
         data.c_research_reason || null,
         data.c_associate_result || null,
@@ -154,6 +157,7 @@ router.get("/opinionConf/:id", async (req, res) => {
     const [opinionConf] = await db.query(
       `SELECT ooc.hr_id, ooc.research_id, ooc.associate_id, ooc.dean_id, 
       ooc.c_office_id, ooc.conf_id, ooc.c_hr_result, ooc.c_hr_reason, ooc.c_hr_note,
+      ooc.c_quality, ooc.c_comment_quality, ooc.c_comment_quality_good,
       ooc.c_research_result,ooc.c_research_reason, ooc.c_associate_result,
       ooc.c_dean_result, ooc.hr_doc_submit_date,
       ooc.research_doc_submit_date, ooc.associate_doc_submit_date,
