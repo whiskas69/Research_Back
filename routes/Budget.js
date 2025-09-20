@@ -12,6 +12,8 @@ router.post('/budget', async (req, res) => {
 
   try {
     if (data.form_status != "pending") {
+
+      console.log("data in budget:", data)
       const [Budget_result] = await database.query(
         `INSERT INTO Budget ( user_id, form_id, budget_year, Page_Charge_amount, Conference_amount,
         num_expenses_approved, total_amount_approved, remaining_credit_limit, amount_approval, total_remaining_credit_limit, doc_submit_date

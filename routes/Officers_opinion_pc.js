@@ -15,8 +15,8 @@ router.post("/opinionPC", async (req, res) => {
     //insert research opinion
     const [createOpi_result] = await database.query(
       `INSERT INTO officers_opinion_pc
-          (research_id, associate_id, dean_id, pageC_id, p_research_admin, p_reason, p_deputy_dean,
-          p_date_accepted_approve, p_acknowledge, p_approve_result, research_doc_submit_date,
+          (research_id, associate_id, dean_id, pageC_id, p_research_result, p_research_reason, p_associate_result,
+          p_date_accepted_approve, p_dean_acknowledge, p_dean_result, research_doc_submit_date,
           associate_doc_submit_date, dean_doc_submit_date)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
@@ -24,12 +24,12 @@ router.post("/opinionPC", async (req, res) => {
         data.associate_id || null,
         data.dean_id || null,
         data.pageC_id,
-        data.p_research_admin || null,
-        data.p_reason || null,
-        data.p_deputy_dean || null,
+        data.p_research_result || null,
+        data.p_research_reason || null,
+        data.p_associate_result || null,
         data.p_date_accepted_approve || null,
-        data.p_acknowledge || null,
-        data.p_approve_result || null,
+        data.p_dean_acknowledge || null,
+        data.p_dean_result || null,
         data.research_doc_submit_date || null,
         data.associate_doc_submit_date || null,
         data.dean_doc_submit_date || null,
@@ -87,34 +87,33 @@ router.put("/opinionPC/:id", async (req, res) => {
     const [updateOpi_result] = await database.query(
       `UPDATE officers_opinion_pc SET
           research_id = ?, associate_id = ?, dean_id = ?,
-          pageC_id = ?, p_research_admin = ?, p_reason = ?, p_deputy_dean = ?,
-          p_date_accepted_approve = ?, p_acknowledge = ?, p_approve_result = ?, p_reason_dean_approve = ?,
+          pageC_id = ?, p_research_result = ?, p_research_reason = ?, p_associate_result = ?,
+          p_date_accepted_approve = ?, p_dean_acknowledge = ?, p_dean_result = ?, p_dean_reason = ?,
           research_doc_submit_date = ?, associate_doc_submit_date = ?, dean_doc_submit_date = ? WHERE pageC_id = ?`,
       [
         data.research_id || null,
         data.associate_id || null,
         data.dean_id || null,
         data.pageC_id,
-        data.p_research_admin,
-        data.p_reason,
-        data.p_deputy_dean || null,
+        data.p_research_result,
+        data.p_research_reason,
+        data.p_associate_result || null,
         data.p_date_accepted_approve || null,
-        data.p_acknowledge || null,
-        data.p_approve_result || null,
-        data.p_reason_dean_approve || null,
+        data.p_dean_acknowledge || null,
+        data.p_dean_result || null,
+        data.p_dean_reason || null,
         data.research_doc_submit_date || null,
         data.associate_doc_submit_date || null,
         data.dean_doc_submit_date || null,
         id,
       ]
     );
-
     console.log("updateOpi_result: ", updateOpi_result);
 
     //update status form
     const [updateForm_result] = await database.query(
-      "UPDATE Form SET form_status = ? WHERE pageC_id = ?",
-      [data.form_status, id]
+      "UPDATE Form SET form_status = ?, return_to = ? WHERE pageC_id = ?",
+      [data.form_status, data.returnto, id]
     );
 
     //get pageC_id

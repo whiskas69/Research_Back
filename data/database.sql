@@ -218,13 +218,14 @@ CREATE TABLE officers_opinion_pc (
     associate_id INT,
     dean_id INT,
     pageC_id INT NOT NULL UNIQUE,
-    p_research_admin ENUM('approve', 'waiting letter', 'other', 'return'),
-    p_reason VARCHAR(255),
-    p_deputy_dean ENUM('approve', 'notApproved', 'return'),
+    p_research_result ENUM('approve', 'notApproved', 'return_professor'),
+    p_research_reason VARCHAR(255),
+    p_associate_result ENUM('approve', 'notApproved', 'return'),
+    p_associate_reason VARCHAR(255),
+    p_dean_acknowledge ENUM('acknowledge', 'notAcknowledge'),
+    p_dean_result ENUM('approve', 'notApproved', 'return'),
+    p_dean_reason VARCHAR(255),
     p_date_accepted_approve DATE, -- วันที่เอกสารได้รับการอนุมัติ
-    p_acknowledge ENUM('acknowledge', 'notApproved'),
-    p_approve_result ENUM('acknowledge', 'approve', 'notApproved', 'other', 'return'),
-    p_reason_dean_approve VARCHAR(255),
     research_doc_submit_date DATE DEFAULT (CURRENT_DATE),
     associate_doc_submit_date DATE DEFAULT (CURRENT_DATE),
     dean_doc_submit_date DATE DEFAULT (CURRENT_DATE),
@@ -251,7 +252,9 @@ CREATE TABLE officers_opinion_conf (
 	c_research_result ENUM('approve', 'notApproved', 'return'),
 	c_research_reason VARCHAR(255),
 	c_associate_result ENUM('approve', 'notApproved', 'return'),
+    c_associate_reason VARCHAR(255),
 	c_dean_result ENUM('approve', 'notApproved', 'return'),
+    c_dean_reason VARCHAR(255),
     hr_doc_submit_date DATE DEFAULT (CURRENT_DATE),
     research_doc_submit_date DATE DEFAULT (CURRENT_DATE),
     associate_doc_submit_date DATE DEFAULT (CURRENT_DATE),
@@ -435,7 +438,7 @@ INSERT INTO `officers_opinion_conf` (`c_office_id`, `hr_id`, `research_id`, `ass
 INSERT INTO `officers_opinion_kris` (`k_office_id`, `user_id`, `kris_id`, `research_admin`, `doc_submit_date`) VALUES
 (1, 40, 1, 'acknowledge', '2025-06-27');
 
-INSERT INTO `officers_opinion_pc` (`p_office_id`, `research_id`, `associate_id`, `dean_id`, `pageC_id`, `p_research_admin`, `p_reason`, `p_deputy_dean`, `p_date_accepted_approve`, `p_acknowledge`, `p_approve_result`, `p_reason_dean_approve`, `research_doc_submit_date`, `associate_doc_submit_date`, `dean_doc_submit_date`) VALUES
+INSERT INTO `officers_opinion_pc` (`p_office_id`, `research_id`, `associate_id`, `dean_id`, `pageC_id`, `p_research_result`, `p_research_reason`, `p_associate_result`, `p_date_accepted_approve`, `p_dean_acknowledge`, `p_dean_result`, `p_dean_reason`, `research_doc_submit_date`, `associate_doc_submit_date`, `dean_doc_submit_date`) VALUES
 (1, 40, 44, 4, 1, 'approve', NULL, 'approve', '2025-06-27', 'acknowledge', 'approve', NULL, '2025-06-27', '2025-06-27', '2025-06-27'),
 (2, 40, NULL, NULL, 2, 'approve', NULL, NULL, '2025-07-03', NULL, NULL, NULL, '2025-07-03', NULL, NULL);
 
