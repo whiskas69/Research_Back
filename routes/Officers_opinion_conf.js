@@ -19,7 +19,7 @@ router.post("/opinionConf", async (req, res) => {
           c_hr_result, c_hr_reason, c_hr_note, c_quality, c_comment_quality, c_comment_quality_good, 
           c_research_result, c_research_reason, c_associate_result, c_dean_result,
           research_doc_submit_date, associate_doc_submit_date, dean_doc_submit_date)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         data.hr_id || null,
         data.research_id || null,
@@ -55,6 +55,29 @@ router.post("/opinionConf", async (req, res) => {
       [data.conf_id]
     );
     console.log("GetID : ", getID);
+
+    console.log("data.user_confer :", data.user_confer);
+
+    if (data.user_confer == 1) {
+  const [rows] = await database.query(
+    "SELECT user_id FROM Conference WHERE conf_id = ?",
+    [data.conf_id]
+  );
+
+  if (rows.length > 0) {
+    const userId = rows[0].user_id;
+
+    await database.query(
+      "UPDATE Users SET user_confer = ? WHERE user_id = ?",
+      [data.user_confer, userId]
+    );
+
+    console.log("add user_confer succ");
+  } else {
+    console.log("No user_id found for conf_id:", data.conf_id);
+  }
+}
+
 
     await database.commit(); //commit transaction
 
