@@ -179,6 +179,8 @@ CREATE TABLE Form (
     editor VARCHAR(100),
     professor_reedit boolean,
     return_to ENUM('professor', 'hr', 'research', 'finance', 'associate', 'dean'),
+    return_note VARCHAR(255),
+    past_return ENUM('professor', 'hr', 'research', 'finance', 'associate', 'dean'),
 
 	FOREIGN KEY (conf_id) REFERENCES Conference(conf_id),
 	FOREIGN KEY (pageC_id) REFERENCES Page_Charge(pageC_id),

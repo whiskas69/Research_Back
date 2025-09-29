@@ -24,7 +24,8 @@ router.post('/budget', async (req, res) => {
       console.log("Budget_result : ", Budget_result)
 
       const [updateForm_result] = await database.query(
-        `UPDATE Form SET form_status = ?, return_to = ? WHERE form_id = ?`, [data.form_status, data.returnto, data.form_id]
+        `UPDATE Form SET form_status = ?, return_to = ?, return_note = ?, past_return = ? WHERE form_id = ?`,
+        [data.form_status, data.returnto, data.return_note, data.past_return, data.form_id]
       );
       console.log("updateForm_result : ", updateForm_result)
 
