@@ -429,59 +429,75 @@ router.get("/conference/:id", async (req, res) => {
   }
 });
 
-router.put("/editedFormConfer/:id", async (req, res) => {
+router.put("/editedFormConfer/:id", 
+  uploadDocuments.fields([
+    { name: "full_page" },
+    { name: "published_journals" },
+    { name: "q_proof" },
+    { name: "call_for_paper" },
+    { name: "accepted" },
+    { name: "fee_receipt" },
+    { name: "fx_rate_document" },
+    { name: "conf_proof" },
+  ]),
+  async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
 
+  console.log("update data", updates)
+
   try {
-    const editDataJson = updates.edit_data;
-    const editDataJsonScore = updates.score;
+    const editDataJson = updates.edit_data ? JSON.parse(updates.edit_data) : [];
+      const editDataJsonScore = updates.score ? JSON.parse(updates.score) : [];
 
-    //เช็คว่ามีข้อมูลในส่วนของการกรอกฟอร์มไหม
-    if (editDataJson && editDataJson.length > 0) {
-      //Set ข้อมูลใน Array ก่อนเข้า database
-      const setClause = editDataJson
-        .map((item) => {
-          const value = Array.isArray(item.newValue)
-            ? JSON.stringify(item.newValue)
-            : item.newValue;
+      // ✅ ส่วนไฟล์ มาจาก req.files
+      const files = req.files;
 
-          // escape single quotes เพื่อกัน syntax error ใน SQL
-          const safeValue =
-            typeof value === "string" ? value.replace(/'/g, "''") : value;
-          return `${item.field} = '${safeValue}'`;
-        })
-        .join(", ");
+      if (editDataJson.length > 0) {
+        const setClause = editDataJson
+          .map((item) => {
+            const value = Array.isArray(item.newValue)
+              ? JSON.stringify(item.newValue)
+              : item.newValue;
+            const safeValue = typeof value === "string" ? value.replace(/'/g, "''") : value;
+            return `${item.field} = '${safeValue}'`;
+          })
+          .join(", ");
 
-      //นำเข้า database
-      const sql = await db.query(
-        `UPDATE Conference SET ${setClause} WHERE conf_id = ${id};`
-      );
-    }
+        await db.query(`UPDATE Conference SET ${setClause} WHERE conf_id = ?`, [id]);
+      }
 
-    //เช็คว่ามีข้อมูลในส่วนของการกรอกคะแนนไหม
-    if (editDataJsonScore && editDataJsonScore.length > 0) {
-      //Set ข้อมูลใน Array ก่อนเข้า database
-      const setClauseScore = editDataJsonScore
-        .map((item) => `${item.field} = '${item.newValue}'`)
-        .join(", ");
+      if (editDataJsonScore.length > 0) {
+        const setClauseScore = editDataJsonScore
+          .map((item) => `${item.field} = '${item.newValue}'`)
+          .join(", ");
+        await db.query(`UPDATE Score SET ${setClauseScore} WHERE conf_id = ?`, [id]);
+      }
 
-      //นำเข้า database
-      const sore = await db.query(
-        `UPDATE Score SET ${setClauseScore} WHERE conf_id = ${id};`
-      );
-    }
+    //เช็คว่ามีข้อมูลในส่วนของการกรอก file ไหม
+    if (files && Object.keys(files).length > 0) {
+      console.log("files", files)
+        const setClauseFile = Object.entries(files)
+          .map(([field, fileArr]) => {
+            const file = fileArr[0]; // multer เก็บเป็น array
+            return `${field} = '${file.filename}'`; // หรือ file.path
+          })
+          .join(", ");
+
+        await db.query(`UPDATE File_pdf SET ${setClauseFile} WHERE conf_id = ?`, [id]);
+      }
 
     const allEdit = {
       edit_data: updates.edit_data,
       score: updates.score,
+      file: updates.file,
     };
 
     const allEditString = JSON.stringify(allEdit);
 
     const [updateOfficeEditetForm] = await db.query(
       `UPDATE Form SET edit_data = ?, editor = ?, professor_reedit = ? WHERE conf_id = ?`,
-      [allEditString, updates.editor, updates.professor_reedit, id]
+      [allEditString, updates.editor, true, id]
     );
 
     const [findID] = await db.query(
