@@ -127,6 +127,7 @@ router.put("/opinionConf/:id", async (req, res) => {
     await database.query(sql, values);
 
     //update status form
+    console.log("data.form_status", data.form_status)
     const [updateForm_result] = await database.query(
       "UPDATE Form SET form_status = ?, return_to = ? WHERE conf_id = ?",
       [data.form_status, data.returnto, data.conf_id]
