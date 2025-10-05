@@ -280,4 +280,24 @@ router.get("/budget/conference/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+router.get("/budget/kris/:id", async (req, res) => {
+  const { id } = req.params;
+  console.log("budget/kris/id", id)
+  try {
+    const [find_id] = await db.query(
+      "SELECT form_id FROM Form WHERE kris_id = ?",
+      [id]
+    );
+    console.log("Get find_id budget: ", find_id[0]);
+    const [conf] = await db.query(
+      "SELECT * FROM Budget WHERE form_id = ?",
+      [find_id[0].form_id]
+    );
+    console.log("Get conf kub: ", conf[0]);
+    res.status(200).json(conf[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 exports.router = router;

@@ -676,12 +676,12 @@ router.get("/getFilepage_c", async (req, res) => {
   const url = baseURL.parsed.VITE_API_BASE_URL;
   console.log("url", url)
 
-  const file_pc_proof = `${url}uploads/${file[0]?.[0]?.pc_proof}`;
-  const file_q_pc_proof = `${url}uploads/${file[0]?.[0]?.q_pc_proof}`;
-  const file_invoice_public = `${url}uploads/${file[0]?.[0]?.invoice_public}`;
-  const file_accepted = `${url}uploads/${file[0]?.[0]?.accepted}`;
-  const file_copy_article = `${url}uploads/${file[0]?.[0]?.copy_article}`;
-  const file_upload_article = `${url}uploads/${file[0]?.[0]?.upload_article}`;
+  const file_pc_proof = `${url}/uploads/${file[0]?.[0]?.pc_proof}`;
+  const file_q_pc_proof = `${url}/uploads/${file[0]?.[0]?.q_pc_proof}`;
+  const file_invoice_public = `${url}/uploads/${file[0]?.[0]?.invoice_public}`;
+  const file_accepted = `${url}/uploads/${file[0]?.[0]?.accepted}`;
+  const file_copy_article = `${url}/uploads/${file[0]?.[0]?.copy_article}`;
+  const file_upload_article = `${url}/uploads/${file[0]?.[0]?.upload_article}`;
 
   res.json({
     message: "Get File Successfully",

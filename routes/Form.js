@@ -141,11 +141,7 @@ router.get("/form/:user_id", async (req, res) => {
 
     sql += ` ORDER BY f.form_id DESC`;
 
-    console.log("SQL =>", sql);
-    console.log("Params =>", params);
-
     const [form] = await db.query(sql, params);
-    console.log("form", form);
 
     if (form.length === 0) {
       return res.status(404).json({ message: "has not data" });
@@ -205,14 +201,7 @@ router.get("/allForms", async (req, res) => {
 
     sql += ` ORDER BY f.form_id DESC`;
 
-    // console.log("fiscalYear =>", fiscalYear);
-    // console.log("type =>", type);
-    // console.log("typeStatus =>", typeStatus);
-    // console.log("SQL =>", sql);
-    // console.log("Params =>", params);
-
     const [form] = await db.query(sql, params);
-    console.log("form", form);
 
     if (form.length === 0) {
       return res.status(404).json({ message: "has not data" });
