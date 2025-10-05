@@ -657,15 +657,15 @@ router.get("/getFileConf", async (req, res) => {
 
   const url = baseURL.parsed.VITE_API_BASE_URL;
 
-  const file_full_page = `${url}uploads/${file[0]?.[0]?.full_page}`;
+  const file_full_page = `${url}/uploads/${file[0]?.[0]?.full_page}`;
   const date_published_journals = file[0][0].date_published_journals;
-  const file_published_journals = `${url}uploads/${file[0]?.[0]?.published_journals}`;
-  const file_accepted = `${url}uploads/${file[0]?.[0]?.accepted}`;
-  const file_q_proof = `${url}uploads/${file[0]?.[0]?.q_proof}`;
-  const file_call_for_paper = `${url}uploads/${file[0]?.[0]?.call_for_paper}`;
-  const file_fee_receipt = `${url}uploads/${file[0]?.[0]?.fee_receipt}`;
-  const file_fx_rate_document = `${url}uploads/${file[0]?.[0]?.fx_rate_document}`;
-  const file_conf_proof = `${url}uploads/${file[0]?.[0]?.conf_proof}`;
+  const file_published_journals = `${url}/uploads/${file[0]?.[0]?.published_journals}`;
+  const file_accepted = `${url}/uploads/${file[0]?.[0]?.accepted}`;
+  const file_q_proof = `${url}/uploads/${file[0]?.[0]?.q_proof}`;
+  const file_call_for_paper = `${url}/uploads/${file[0]?.[0]?.call_for_paper}`;
+  const file_fee_receipt = `${url}/uploads/${file[0]?.[0]?.fee_receipt}`;
+  const file_fx_rate_document = `${url}/uploads/${file[0]?.[0]?.fx_rate_document}`;
+  const file_conf_proof = `${url}/uploads/${file[0]?.[0]?.conf_proof}`;
 
   res.json({
     message: "Get File Successfully",

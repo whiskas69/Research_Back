@@ -111,8 +111,8 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     //insert data to Research_KRIS
     const [kris_result] = await database.query(
       `INSERT INTO Research_KRIS (
-      user_id, name_research_th, name_research_en, research_cluster, res_cluster_other, res_standard, res_standard_trade, h_index, his_invention, participation_percent, year, project_periodStart, project_periodEnd, Research_kris_amount)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      user_id, name_research_th, name_research_en, research_cluster, res_cluster_other, res_standard, res_standard_trade, h_index, his_invention, participation_percent, year, project_periodStart, project_periodEnd)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         kris_data.user_id,
         kris_data.name_research_th,
@@ -165,15 +165,34 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     const formID = form_result.insertId;
     console.log("formID", formID)
 
-    const dateStr = kris_data.project_periodStart; // "10/02/2568"
-    const year = parseInt(dateStr.split("-")[0], 10) + 543;
-    console.log(year);
+    const dateStr = kris_data.project_periodStart;
+
+    // ตรวจ format
+    let day, month, thaiYear;
+
+    if (dateStr.includes("/")) {
+      [day, month, thaiYear] = dateStr.split("/").map(num => parseInt(num, 10));
+    } else if (dateStr.includes("-")) {
+      // format "YYYY-MM-DD"
+      const [year, m, d] = dateStr.split("-").map(num => parseInt(num, 10));
+      thaiYear = year + 543;
+      month = m;
+      day = d;
+    } else {
+      throw new Error("Invalid date format: " + dateStr);
+    }
+
+    let fiscalYear = thaiYear;
+    if (month >= 10) {
+      fiscalYear = thaiYear + 1;
+    }
+    console.log("fiscalYear =", fiscalYear);
 
     //data for budget
     const budget = {
       form_id: formID,
       user_id: kris_data.user_id,
-      budget_year: year,
+      budget_year: fiscalYear,
       Research_kris_amount: kris_data.Research_kris_amount,
       num_expenses_approved: 0,
       total_amount_approved: 0,
@@ -290,7 +309,7 @@ router.get("/getFilekris", async (req, res) => {
   );
 
   const url = baseURL.parsed.VITE_API_BASE_URL;
-  const fileUrl = `${url}uploads/${file[0]?.[0]?.kris_file}`;
+  const fileUrl = `${url}/uploads/${file[0]?.[0]?.kris_file}`;
 
   res.json({ message: "Get File successfully", fileUrl });
 });
