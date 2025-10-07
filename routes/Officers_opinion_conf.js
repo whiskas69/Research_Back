@@ -59,25 +59,24 @@ router.post("/opinionConf", async (req, res) => {
     console.log("data.user_confer :", data.user_confer);
 
     if (data.user_confer == 1) {
-  const [rows] = await database.query(
-    "SELECT user_id FROM Conference WHERE conf_id = ?",
-    [data.conf_id]
-  );
+      const [rows] = await database.query(
+        "SELECT user_id FROM Conference WHERE conf_id = ?",
+        [data.conf_id]
+      );
 
-  if (rows.length > 0) {
-    const userId = rows[0].user_id;
+      if (rows.length > 0) {
+        const userId = rows[0].user_id;
 
-    await database.query(
-      "UPDATE Users SET user_confer = ? WHERE user_id = ?",
-      [data.user_confer, userId]
-    );
+        await database.query(
+          "UPDATE Users SET user_confer = ? WHERE user_id = ?",
+          [data.user_confer, userId]
+        );
 
-    console.log("add user_confer succ");
-  } else {
-    console.log("No user_id found for conf_id:", data.conf_id);
-  }
-}
-
+        console.log("add user_confer succ");
+      } else {
+        console.log("No user_id found for conf_id:", data.conf_id);
+      }
+    }
 
     await database.commit(); //commit transaction
 
@@ -109,20 +108,19 @@ router.put("/opinionConf/:id", async (req, res) => {
 
   const fields = [];
   const values = [];
-  
+
   data.updated_data.forEach((item) => {
-  fields.push(`${item.field} = ?`);
-  values.push(
-    Array.isArray(item.value) ? JSON.stringify(item.value) : item.value
-  );
-});
+    fields.push(`${item.field} = ?`);
+    values.push(
+      Array.isArray(item.value) ? JSON.stringify(item.value) : item.value
+    );
+  });
 
   const database = await db.getConnection();
   await database.beginTransaction(); //start transaction
 
   try {
-
-    const sql = `UPDATE officers_opinion_conf SET ${fields.join(', ')} WHERE conf_id = ?`;
+    const sql = `UPDATE officers_opinion_conf SET ${fields.join(", ")} WHERE conf_id = ?`;
     values.push(id);
     await database.query(sql, values);
 
@@ -139,6 +137,26 @@ router.put("/opinionConf/:id", async (req, res) => {
       [id]
     );
     console.log("GetID : ", getID);
+
+    if (data.user_confer == 1) {
+      const [rows] = await database.query(
+        "SELECT user_id FROM Conference WHERE conf_id = ?",
+        [data.conf_id]
+      );
+
+      if (rows.length > 0) {
+        const userId = rows[0].user_id;
+
+        await database.query(
+          "UPDATE Users SET user_confer = ? WHERE user_id = ?",
+          [data.user_confer, userId]
+        );
+
+        console.log("add user_confer succ");
+      } else {
+        console.log("No user_id found for conf_id:", data.conf_id);
+      }
+    }
 
     await database.commit(); //commit transaction
 
