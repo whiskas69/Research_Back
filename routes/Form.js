@@ -192,13 +192,49 @@ router.get("/allForms", async (req, res) => {
     // filter typeStatus
     if (typeStatus && typeStatus !== "all") {
       const statuses = typeStatus.split(",").map(s => s.trim());
-      const placeholders = statuses.map(() => "?").join(",");
-      console.log("statuses", statuses)
-      console.log("placeholders", placeholders)
-      sql += ` AND f.form_status IN (${placeholders})`;
-      params.push(...statuses);
-    }
+      console.log("statuses", statuses);
 
+      // แยกสถานะ 'return' ออกจากสถานะอื่น
+      const returnIndex = statuses.indexOf("return");
+      const isReturning = returnIndex !== -1;
+      let otherStatuses = [...statuses];
+
+      if (isReturning) {
+        otherStatuses.splice(returnIndex, 1); // ลบ 'return' ออกจากกลุ่มสถานะปกติ
+      }
+
+      // สร้างเงื่อนไข WHERE
+      let statusConditions = [];
+
+      // 1. เงื่อนไขสำหรับสถานะที่ไม่ใช่ 'return' (เช่น 'research', 'hr', 'finance', 'pending')
+      if (otherStatuses.length > 0) {
+        const placeholders = otherStatuses.map(() => "?").join(",");
+        statusConditions.push(`f.form_status IN (${placeholders})`);
+        params.push(...otherStatuses);
+      }
+
+      // 2. เงื่อนไขสำหรับสถานะ 'return'
+      if (isReturning) {
+        // เมื่อสถานะเป็น 'return' ต้องตรวจสอบว่า f.return_to เป็นบทบาทใด
+        // เนื่องจาก typeStatus ถูกส่งมาเป็นบทบาทของผู้ใช้, เราจึงใช้บทบาทนั้นเป็นเงื่อนไข
+        // ตัวอย่าง: ถ้า typeStatus คือ 'research,return' บทบาทที่ต้องการคือ 'research'
+        console.log("otherStatuses", otherStatuses);
+
+        const userRole = otherStatuses.length > 0 ? otherStatuses[0] : statuses[0];
+
+        // สำหรับ 'finance' ที่ส่งมาเป็น 'finance,pending' เราจะใช้ 'finance' เป็นตัวเทียบ
+        const roleToMatch = userRole === 'pending' ? 'finance' : userRole;
+
+        statusConditions.push(`(f.form_status = 'return' AND f.return_to = ?)`);
+        params.push(roleToMatch);
+        console.log("Return to role match:", roleToMatch);
+      }
+
+      // รวมเงื่อนไขทั้งหมดเข้าด้วยกัน
+      if (statusConditions.length > 0) {
+        sql += ` AND (${statusConditions.join(" OR ")})`;
+      }
+    }
     sql += ` ORDER BY f.form_id DESC`;
 
     const [form] = await db.query(sql, params);
@@ -206,6 +242,7 @@ router.get("/allForms", async (req, res) => {
     if (form.length === 0) {
       return res.status(404).json({ message: "has not data" });
     }
+    console.log("form", form);
 
     res.status(200).json(form);
   } catch (error) {
@@ -335,13 +372,13 @@ router.put("/updatestatus_confer/:id", async (req, res) => {
     console.log("updateStatus_result :", updateStatus);
 
     const recipients = ["64070075@it.kmitl.ac.th"];
-      const subject =
-        "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการตีกลับแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุม";
-      const message = `
+    const subject =
+      "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการตีกลับแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุม";
+    const message = `
       มีการส่งแบบฟอร์มขอรับการสนับสนุนจาก "{getuser[0][0].user_nameth}" งานวิจัย: "{conferenceData.conf_name}" กำลังรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
       กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
 
-      await sendEmail(recipients, subject, message);
+    await sendEmail(recipients, subject, message);
 
     res.status(200).json({ success: true, message: "Status updated successfully" });
   } catch (err) {
@@ -365,13 +402,13 @@ router.put("/updatestatus_pageC/:id", async (req, res) => {
     console.log("updateStatus_result :", updateStatus);
 
     const recipients = ["64070075@it.kmitl.ac.th"];
-      const subject =
-        "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการตีกลับแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุม";
-      const message = `
+    const subject =
+      "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการตีกลับแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุม";
+    const message = `
       มีการส่งแบบฟอร์มขอรับการสนับสนุนจาก "{getuser[0][0].user_nameth}" งานวิจัย: "{conferenceData.conf_name}" กำลังรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
       กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
 
-      await sendEmail(recipients, subject, message);
+    await sendEmail(recipients, subject, message);
 
     res.status(200).json({ success: true, message: "Status updated successfully" });
   } catch (err) {
