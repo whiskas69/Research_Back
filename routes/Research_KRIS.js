@@ -309,7 +309,7 @@ router.get("/getFilekris", async (req, res) => {
   );
 
   const url = baseURL.parsed.VITE_API_BASE_URL;
-  const fileUrl = `${url}/uploads/${file[0]?.[0]?.kris_file}`;
+  const fileUrl = `${url}uploads/${file[0]?.[0]?.kris_file}`;
 
   res.json({ message: "Get File successfully", fileUrl });
 });
