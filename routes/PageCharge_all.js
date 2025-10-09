@@ -606,14 +606,20 @@ router.put("/editedFormPageChage/:id",
     };
 
       const allEditString = JSON.stringify(allEdit);
-      const [updateOfficeEditetForm] = await db.query(
-        `UPDATE Form SET edit_data = ?, editor = ?, professor_reedit = ? WHERE pageC_id = ?`,
-        [allEditString, updates.editor, true, id]
+
+      const [getForm] = await db.query(
+        `SELECT form_id, past_return FROM Form  WHERE pageC_id = ?`,
+        [id]
       )
 
-      const [findID] = await db.query(
-        `SELECT form_id FROM Form  WHERE pageC_id = ?`,
-        [id]
+    console.log("getForm[0]", getForm[0].past_return);
+
+      const [updateOfficeEditetForm] = await db.query(
+        `UPDATE Form SET 
+        form_status = ?, edit_data = ?, editor = ?, professor_reedit = ?, 
+        return_to = null, return_note = null, past_return = null
+        WHERE pageC_id = ?`,
+        [getForm[0].past_return, allEditString, updates.editor, true, id]
       )
 
       const [getData] = await db.query(
@@ -625,7 +631,7 @@ router.put("/editedFormPageChage/:id",
       console.log("article_title", getData[0].article_title)
       const [updateNoti_result] = await db.query(
         `UPDATE Notification SET date_update = CURRENT_DATE  WHERE form_id = ?`,
-        [findID[0].form_id]
+        [getForm[0].form_id]
       )
       console.log("updates.professor_reedit", updates.professor_reedit)
 
