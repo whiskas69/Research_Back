@@ -429,7 +429,7 @@ router.get("/conference/:id", async (req, res) => {
   }
 });
 
-router.put("/editedFormConfer/:id", 
+router.put("/editedFormConfer/:id",
   uploadDocuments.fields([
     { name: "full_page" },
     { name: "published_journals" },
@@ -441,16 +441,13 @@ router.put("/editedFormConfer/:id",
     { name: "conf_proof" },
   ]),
   async (req, res) => {
-  const { id } = req.params;
-  const updates = req.body;
-
-  console.log("update data", updates)
-
-  try {
-    const editDataJson = updates.edit_data ? JSON.parse(updates.edit_data) : [];
+    const { id } = req.params;
+    const updates = req.body;
+    
+    try {
+      const editDataJson = updates.edit_data ? JSON.parse(updates.edit_data) : [];
       const editDataJsonScore = updates.score ? JSON.parse(updates.score) : [];
 
-      // ✅ ส่วนไฟล์ มาจาก req.files
       const files = req.files;
 
       if (editDataJson.length > 0) {
@@ -495,20 +492,29 @@ router.put("/editedFormConfer/:id",
 
     const allEditString = JSON.stringify(allEdit);
 
+    const [getForm] = await db.query(
+        `SELECT form_id, past_return FROM Form  WHERE conf_id = ?`,
+        [id]
+      )
+
     const [updateOfficeEditetForm] = await db.query(
-      `UPDATE Form SET edit_data = ?, editor = ?, professor_reedit = ? WHERE conf_id = ?`,
-      [allEditString, updates.editor, true, id]
-    );
+        `UPDATE Form SET 
+        form_status = ?, edit_data = ?, editor = ?, professor_reedit = ?, 
+        return_to = null, return_note = null, past_return = null
+        WHERE conf_id = ?`,
+        [getForm[0].past_return, allEditString, updates.editor, true, id]
+      )
 
     const [findID] = await db.query(
       `SELECT form_id FROM Form  WHERE conf_id = ?`,
       [id]
     );
-
-    const [updateNoti_result] = await db.query(
-      `UPDATE Notification SET date_update = CURRENT_DATE  WHERE form_id = ?`,
-      [findID[0].form_id]
-    );
+    
+      const [updateNoti_result] = await db.query(
+        `UPDATE Notification SET date_update = CURRENT_DATE  WHERE form_id = ?`,
+        [getForm[0].form_id]
+      )
+      console.log("updates.professor_reedit", updates.professor_reedit)
 
     const [getuser] = await db.query(
       `
