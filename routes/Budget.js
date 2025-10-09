@@ -192,7 +192,7 @@ router.put("/updateBudget/:id", async (req, res) => {
         .status(201)
         .json({
           message: "Budget created successfully!",
-          id: Budget_result.insertId,
+          id: updateBudget_result.insertId,
         });
     } else {
       const [UpdateForm_result] = await database.query(
@@ -378,6 +378,9 @@ router.get("/budgetsConfer", async (req, res) => {
 });
 
 router.get("/budget/pageCharge/:id", async (req, res) => {
+  console.log("in budget/pageCharge/id");
+
+
   const { id } = req.params;
   console.log("budget/pageCharge/id", id);
   try {
@@ -391,9 +394,9 @@ router.get("/budget/pageCharge/:id", async (req, res) => {
     ]);
     console.log("Query result:", pageC);
 
-    if (pageC.length === 0) {
-      return res.status(404).json({ message: "pageC_id not found" });
-    }
+    // if (pageC.length === 0) {
+    //   return res.status(404).json({ message: "pageC_id not found" });
+    // }
     res.status(200).json(pageC[0]);
   } catch (err) {
     console.error("Error fetching data:", err);
