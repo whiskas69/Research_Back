@@ -102,7 +102,7 @@ router.put("/opinionPC/:id", async (req, res) => {
     //update status form
     const [updateForm_result] = await database.query(
       "UPDATE Form SET form_status = ?, return_to = ?, return_note = ?, past_return = ? WHERE pageC_id = ?",
-      [data.form_status, data.returnto, data.return_note, data.past_return, id]
+      [data.form_status, data.return_to, data.return_note, data.past_return, id]
     );
 
     //get pageC_id

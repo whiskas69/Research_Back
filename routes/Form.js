@@ -158,6 +158,7 @@ router.get("/allForms", async (req, res) => {
   console.log("allForms");
   try {
     let { fiscalYear, type, typeStatus } = req.query;
+    console.log("Query:", req.query);
     // ปีงบประมาณปัจจุบัน (พ.ศ.)
     const currentYear = new Date().getFullYear() + 543;
     // ถ้าไม่ส่งปีมา → ใช้ปีปัจจุบัน

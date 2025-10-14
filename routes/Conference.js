@@ -497,6 +497,7 @@ router.put("/editedFormConfer/:id",
         [id]
       )
 
+      console.log("getForm", getForm[0])
     const [updateOfficeEditetForm] = await db.query(
         `UPDATE Form SET 
         form_status = ?, edit_data = ?, editor = ?, professor_reedit = ?, 

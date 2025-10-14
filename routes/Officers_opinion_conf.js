@@ -45,8 +45,8 @@ router.post("/opinionConf", async (req, res) => {
 
     //update status form
     const [updateForm_result] = await database.query(
-      "UPDATE Form SET form_status = ?, return_to = ? WHERE conf_id = ?",
-      [data.form_status, data.returnto, data.conf_id]
+      "UPDATE Form SET form_status = ?, return_to = ?, return_note = ?, past_return = ? WHERE conf_id = ?",
+      [data.form_status, data.return_to, data.return_note, data.past_return, data.conf_id]
     );
 
     //get form_id
@@ -125,12 +125,12 @@ router.put("/opinionConf/:id", async (req, res) => {
     await database.query(sql, values);
 
     //update status form
+    console.log("id", data.conf_id)
     console.log("data.form_status", data.form_status)
     const [updateForm_result] = await database.query(
-      "UPDATE Form SET form_status = ?, return_to = ? WHERE conf_id = ?",
-      [data.form_status, data.returnto, data.conf_id]
+      "UPDATE Form SET form_status = ?, return_to = ?, return_note = ?, past_return = ? WHERE conf_id = ?",
+      [data.form_status, data.return_to, data.return_note, data.past_return, data.conf_id]
     );
-
     //get form_id
     const [getID] = await database.query(
       "SELECT form_id FROM Form WHERE conf_id = ?",
@@ -212,9 +212,7 @@ router.get("/opinionConf/:id", async (req, res) => {
       [id]
     );
     console.log("opinionConf", opinionConf[0]);
-    // if (opinionConf.length === 0) {
-    //   return res.status(404).json({ message: "opinionConf not found" });
-    // }
+
     console.log("Get opinionConf: ", opinionConf[0]);
     res.status(200).json(opinionConf[0]);
   } catch (err) {
