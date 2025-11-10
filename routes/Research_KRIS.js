@@ -8,6 +8,7 @@ const baseURL = require("dotenv").config();
 
 const db = require("../config.js");
 const sendEmail = require("../middleware/mailer.js");
+const { Console } = require("console");
 
 const router = express.Router();
 
@@ -73,7 +74,7 @@ const researchSchema = Joi.object({
   h_index: Joi.number().required(),
   his_invention: Joi.string().required(),
   participation_percent: Joi.number().greater(0).max(100).required(),
-  proposed_budget: Joi.number().required(),
+  Research_kris_amount: Joi.number().required(),
   year: Joi.number().integer().required(),
   project_periodStart: Joi.date().required(),
   project_periodEnd: Joi.date()
@@ -110,8 +111,8 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     //insert data to Research_KRIS
     const [kris_result] = await database.query(
       `INSERT INTO Research_KRIS (
-      user_id, name_research_th, name_research_en, research_cluster, res_cluster_other, res_standard, res_standard_trade, h_index, his_invention, participation_percent, proposed_budget, year, project_periodStart, project_periodEnd)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      user_id, name_research_th, name_research_en, research_cluster, res_cluster_other, res_standard, res_standard_trade, h_index, his_invention, participation_percent, year, project_periodStart, project_periodEnd)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         kris_data.user_id,
         kris_data.name_research_th,
@@ -123,10 +124,10 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
         kris_data.h_index,
         kris_data.his_invention,
         kris_data.participation_percent || null,
-        kris_data.proposed_budget,
         kris_data.year,
         kris_data.project_periodStart,
         kris_data.project_periodEnd,
+        kris_data.Research_kris_amount
       ]
     );
     console.log("kris_result", kris_result);
@@ -161,6 +162,50 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     );
     console.log("form_result", form_result);
 
+    const formID = form_result.insertId;
+    console.log("formID", formID)
+
+    const dateStr = kris_data.project_periodStart;
+
+    // ตรวจ format
+    let day, month, thaiYear;
+
+    if (dateStr.includes("/")) {
+      [day, month, thaiYear] = dateStr.split("/").map(num => parseInt(num, 10));
+    } else if (dateStr.includes("-")) {
+      // format "YYYY-MM-DD"
+      const [year, m, d] = dateStr.split("-").map(num => parseInt(num, 10));
+      thaiYear = year + 543;
+      month = m;
+      day = d;
+    } else {
+      throw new Error("Invalid date format: " + dateStr);
+    }
+
+    let fiscalYear = thaiYear;
+    if (month >= 10) {
+      fiscalYear = thaiYear + 1;
+    }
+    console.log("fiscalYear =", fiscalYear);
+
+    //data for budget
+    const budget = {
+      form_id: formID,
+      user_id: kris_data.user_id,
+      budget_year: fiscalYear,
+      Research_kris_amount: kris_data.Research_kris_amount,
+      num_expenses_approved: 0,
+      total_amount_approved: 0,
+      remaining_credit_limit: 0,
+      amount_approval: 0,
+      total_remaining_credit_limit: 0,
+    };
+    const [budget_result] = await database.query(
+      "INSERT INTO Budget SET ?",
+      budget
+    );
+    console.log("budget_result", budget_result);
+
     //insert data to Notification
     const [notification_result] = await database.query(
       `INSERT INTO Notification (
@@ -179,7 +224,7 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     await database.commit(); //commit transaction
 
     //send email to user
-    const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+    const recipients = ["64070075@kmitl.ac.th"]; //getuser[0].user_email
     const subject = "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการส่งแบบฟอร์มงานวิจัย";
     const message = `
       มีการส่งแบบฟอร์มงานวิจัยจาก ${getuser[0][0].user_nameth} ชื่อโครงการ: ${kris_data.name_research_th} กำลังรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
@@ -264,7 +309,7 @@ router.get("/getFilekris", async (req, res) => {
   );
 
   const url = baseURL.parsed.VITE_API_BASE_URL;
-  const fileUrl = `${url}/uploads/${file[0]?.[0]?.kris_file}`;
+  const fileUrl = `${url}uploads/${file[0]?.[0]?.kris_file}`;
 
   res.json({ message: "Get File successfully", fileUrl });
 });

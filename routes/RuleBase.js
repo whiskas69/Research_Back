@@ -7,9 +7,9 @@ router = express.Router();
 async function getConditionPC() {
   try {
     const [result] = await db.query(`
-            SELECT * FROM ConditionPC
-            ORDER BY condition_id DESC
-            LIMIT 1;`);
+      SELECT * FROM ConditionPC
+      ORDER BY condition_id DESC
+      LIMIT 1;`);
     return result;
   } catch (error) {
     console.error("Error fetching ConditionPC:", error);
@@ -20,9 +20,9 @@ async function getConditionPC() {
 async function getConditionCF() {
   try {
     const [result] = await db.query(`
-            SELECT * FROM ConditionCF
-            ORDER BY condition_id DESC
-            LIMIT 1;`);
+      SELECT * FROM ConditionCF
+      ORDER BY condition_id DESC
+      LIMIT 1;`);
     return result;
   } catch (error) {
     console.error("Error fetching ConditionCF:", error);

@@ -36,9 +36,6 @@ router.get("/score/:id", async (req, res) => {
       "SELECT * FROM Score WHERE conf_id = ?",
       [id]
     );
-    if (score.length === 0) {
-      return res.status(404).json({ message: "score not found" });
-    }
     console.log("Get score: ", score[0]);
     res.status(200).json(score[0]);
   } catch (err) {

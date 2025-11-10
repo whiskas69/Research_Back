@@ -15,24 +15,27 @@ router.post("/opinionConf", async (req, res) => {
     //insert hr opinion
     const [createOpi_result] = await database.query(
       `INSERT INTO officers_opinion_conf
-          (hr_id, research_id, associate_id, dean_id, conf_id, 
-          c_research_hr, c_reason, c_noteOther, c_meet_quality, 
-          c_quality_reason, c_deputy_dean, c_approve_result, 
+          (hr_id, research_id, associate_id, dean_id, conf_id,
+          c_hr_result, c_hr_reason, c_hr_note, c_quality, c_comment_quality, c_comment_quality_good, 
+          c_research_result, c_research_reason, c_associate_result, c_dean_result,
           research_doc_submit_date, associate_doc_submit_date, dean_doc_submit_date)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         data.hr_id || null,
         data.research_id || null,
         data.associate_id || null,
         data.dean_id || null,
         data.conf_id,
-        data.c_research_hr,
-        data.c_reason,
-        data.c_noteOther || null,
-        data.c_meet_quality || null,
-        data.c_quality_reason || null,
-        data.c_deputy_dean || null,
-        data.c_approve_result || null,
+        data.c_hr_result,
+        data.c_hr_reason,
+        data.c_hr_note || null,
+        data.c_quality || null,
+        data.c_comment_quality || null,
+        data.c_comment_quality_good,
+        data.c_research_result || null,
+        data.c_research_reason || null,
+        data.c_associate_result || null,
+        data.c_dean_result || null,
         data.research_doc_submit_date || null,
         data.associate_doc_submit_date || null,
         data.dean_doc_submit_date || null,
@@ -42,8 +45,8 @@ router.post("/opinionConf", async (req, res) => {
 
     //update status form
     const [updateForm_result] = await database.query(
-      "UPDATE Form SET form_status = ? WHERE conf_id = ?",
-      [data.form_status, data.conf_id]
+      "UPDATE Form SET form_status = ?, return_to = ?, return_note = ?, past_return = ? WHERE conf_id = ?",
+      [data.form_status, data.return_to, data.return_note, data.past_return, data.conf_id]
     );
 
     //get form_id
@@ -52,6 +55,28 @@ router.post("/opinionConf", async (req, res) => {
       [data.conf_id]
     );
     console.log("GetID : ", getID);
+
+    console.log("data.user_confer :", data.user_confer);
+
+    if (data.user_confer == 1) {
+      const [rows] = await database.query(
+        "SELECT user_id FROM Conference WHERE conf_id = ?",
+        [data.conf_id]
+      );
+
+      if (rows.length > 0) {
+        const userId = rows[0].user_id;
+
+        await database.query(
+          "UPDATE Users SET user_confer = ? WHERE user_id = ?",
+          [data.user_confer, userId]
+        );
+
+        console.log("add user_confer succ");
+      } else {
+        console.log("No user_id found for conf_id:", data.conf_id);
+      }
+    }
 
     await database.commit(); //commit transaction
 
@@ -81,52 +106,57 @@ router.put("/opinionConf/:id", async (req, res) => {
   const { id } = req.params;
   const data = req.body;
 
+  const fields = [];
+  const values = [];
+
+  data.updated_data.forEach((item) => {
+    fields.push(`${item.field} = ?`);
+    values.push(
+      Array.isArray(item.value) ? JSON.stringify(item.value) : item.value
+    );
+  });
+
   const database = await db.getConnection();
   await database.beginTransaction(); //start transaction
 
   try {
-    //update: add opinion of other role
-    const [updateOpi_result] = await database.query(
-      `UPDATE officers_opinion_conf SET
-      hr_id = ?, research_id = ?, associate_id = ?, dean_id = ?,
-      conf_id = ?, c_research_hr = ?, c_reason = ?, c_noteOther = ?, c_meet_quality = ?,
-      c_quality_reason = ?, c_deputy_dean = ?, c_approve_result = ?, hr_doc_submit_date = ?,
-      research_doc_submit_date = ?, associate_doc_submit_date = ?, dean_doc_submit_date = ? WHERE conf_id = ?`,
-      [
-        data.hr_id || null,
-        data.research_id || null,
-        data.associate_id || null,
-        data.dean_id || null,
-        data.conf_id,
-        data.c_research_hr,
-        data.c_reason,
-        data.c_noteOther || null,
-        data.c_meet_quality || null,
-        data.c_quality_reason || null,
-        data.c_deputy_dean || null,
-        data.c_approve_result || null,
-        data.hr_doc_submit_date || null,
-        data.research_doc_submit_date || null,
-        data.associate_doc_submit_date || null,
-        data.dean_doc_submit_date || null,
-        id,
-      ]
-    );
-
-    console.log("updateOpi_result :", updateOpi_result);
+    const sql = `UPDATE officers_opinion_conf SET ${fields.join(", ")} WHERE conf_id = ?`;
+    values.push(id);
+    await database.query(sql, values);
 
     //update status form
+    console.log("id", data.conf_id)
+    console.log("data.form_status", data.form_status)
     const [updateForm_result] = await database.query(
-      "UPDATE Form SET form_status = ? WHERE conf_id = ?",
-      [data.form_status, id]
+      "UPDATE Form SET form_status = ?, return_to = ?, return_note = ?, past_return = ? WHERE conf_id = ?",
+      [data.form_status, data.return_to, data.return_note, data.past_return, data.conf_id]
     );
-
     //get form_id
     const [getID] = await database.query(
       "SELECT form_id FROM Form WHERE conf_id = ?",
       [id]
     );
     console.log("GetID : ", getID);
+
+    if (data.user_confer == 1) {
+      const [rows] = await database.query(
+        "SELECT user_id FROM Conference WHERE conf_id = ?",
+        [data.conf_id]
+      );
+
+      if (rows.length > 0) {
+        const userId = rows[0].user_id;
+
+        await database.query(
+          "UPDATE Users SET user_confer = ? WHERE user_id = ?",
+          [data.user_confer, userId]
+        );
+
+        console.log("add user_confer succ");
+      } else {
+        console.log("No user_id found for conf_id:", data.conf_id);
+      }
+    }
 
     await database.commit(); //commit transaction
 
@@ -168,9 +198,10 @@ router.get("/opinionConf/:id", async (req, res) => {
   try {
     const [opinionConf] = await db.query(
       `SELECT ooc.hr_id, ooc.research_id, ooc.associate_id, ooc.dean_id, 
-      ooc.c_office_id, ooc.conf_id, ooc.c_research_hr, ooc.c_reason, ooc.c_noteOther,
-      ooc.c_meet_quality,ooc.c_quality_reason, ooc.c_deputy_dean,
-      ooc.c_approve_result, ooc.hr_doc_submit_date,
+      ooc.c_office_id, ooc.conf_id, ooc.c_hr_result, ooc.c_hr_reason, ooc.c_hr_note,
+      ooc.c_quality, ooc.c_comment_quality, ooc.c_comment_quality_good,
+      ooc.c_research_result,ooc.c_research_reason, ooc.c_associate_result,
+      ooc.c_dean_result, ooc.hr_doc_submit_date,
       ooc.research_doc_submit_date, ooc.associate_doc_submit_date,
       ooc.dean_doc_submit_date, u.user_confer
       FROM officers_opinion_conf ooc
@@ -181,9 +212,7 @@ router.get("/opinionConf/:id", async (req, res) => {
       [id]
     );
     console.log("opinionConf", opinionConf[0]);
-    if (opinionConf.length === 0) {
-      return res.status(404).json({ message: "opinionConf not found" });
-    }
+
     console.log("Get opinionConf: ", opinionConf[0]);
     res.status(200).json(opinionConf[0]);
   } catch (err) {

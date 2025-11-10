@@ -10,13 +10,14 @@ router.post("/opinionPC", async (req, res) => {
 
   const database = await db.getConnection();
   await database.beginTransaction(); //start transaction
+  console.log("data from frontend: ", data);
 
   try {
     //insert research opinion
     const [createOpi_result] = await database.query(
       `INSERT INTO officers_opinion_pc
-          (research_id, associate_id, dean_id, pageC_id, p_research_admin, p_reason, p_deputy_dean,
-          p_date_accepted_approve, p_acknowledge, p_approve_result, research_doc_submit_date,
+          (research_id, associate_id, dean_id, pageC_id, p_research_result, p_research_reason, p_associate_result,
+          p_date_accepted_approve, p_dean_acknowledge, p_dean_result, research_doc_submit_date,
           associate_doc_submit_date, dean_doc_submit_date)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
@@ -24,12 +25,12 @@ router.post("/opinionPC", async (req, res) => {
         data.associate_id || null,
         data.dean_id || null,
         data.pageC_id,
-        data.p_research_admin || null,
-        data.p_reason || null,
-        data.p_deputy_dean || null,
+        data.p_research_result || null,
+        data.p_research_reason || null,
+        data.p_associate_result || null,
         data.p_date_accepted_approve || null,
-        data.p_acknowledge || null,
-        data.p_approve_result || null,
+        data.p_dean_acknowledge || null,
+        data.p_dean_result || null,
         data.research_doc_submit_date || null,
         data.associate_doc_submit_date || null,
         data.dean_doc_submit_date || null,
@@ -40,8 +41,8 @@ router.post("/opinionPC", async (req, res) => {
 
     //update status from
     const [updateForm_result] = await database.query(
-      "UPDATE Form SET form_status = ? WHERE pageC_id = ?",
-      [data.form_status, data.pageC_id]
+      "UPDATE Form SET form_status = ?, return_note = ?, return_to = ?, past_return = ? WHERE pageC_id = ?",
+      [data.form_status, data.return_note, data.returnto, data.past_return, data.pageC_id]
     );
 
     //get pageC_id
@@ -79,42 +80,29 @@ router.put("/opinionPC/:id", async (req, res) => {
   const { id } = req.params;
   const data = req.body;
 
+  const fields = [];
+  const values = [];
+  
+  data.updated_data.forEach((item) => {
+  fields.push(`${item.field} = ?`);
+  values.push(
+    Array.isArray(item.value) ? JSON.stringify(item.value) : item.value
+  );
+});
+
   const database = await db.getConnection();
   await database.beginTransaction(); //start transaction
 
   try {
-    //update: add opinion of other role
-    const [updateOpi_result] = await database.query(
-      `UPDATE officers_opinion_pc SET
-          research_id = ?, associate_id = ?, dean_id = ?,
-          pageC_id = ?, p_research_admin = ?, p_reason = ?, p_deputy_dean = ?,
-          p_date_accepted_approve = ?, p_acknowledge = ?, p_approve_result = ?, p_reason_dean_approve = ?,
-          research_doc_submit_date = ?, associate_doc_submit_date = ?, dean_doc_submit_date = ? WHERE pageC_id = ?`,
-      [
-        data.research_id || null,
-        data.associate_id || null,
-        data.dean_id || null,
-        data.pageC_id,
-        data.p_research_admin,
-        data.p_reason,
-        data.p_deputy_dean || null,
-        data.p_date_accepted_approve || null,
-        data.p_acknowledge || null,
-        data.p_approve_result || null,
-        data.p_reason_dean_approve || null,
-        data.research_doc_submit_date || null,
-        data.associate_doc_submit_date || null,
-        data.dean_doc_submit_date || null,
-        id,
-      ]
-    );
 
-    console.log("updateOpi_result: ", updateOpi_result);
+    const sql = `UPDATE officers_opinion_pc SET ${fields.join(', ')} WHERE pageC_id = ?`;
+    values.push(id);
+    await database.query(sql, values);
 
     //update status form
     const [updateForm_result] = await database.query(
-      "UPDATE Form SET form_status = ? WHERE pageC_id = ?",
-      [data.form_status, id]
+      "UPDATE Form SET form_status = ?, return_to = ?, return_note = ?, past_return = ? WHERE pageC_id = ?",
+      [data.form_status, data.return_to, data.return_note, data.past_return, id]
     );
 
     //get pageC_id
