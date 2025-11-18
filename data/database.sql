@@ -23,7 +23,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 -- สร้างตาราง Users CHECK
 CREATE TABLE Users (
-	user_id_wine INT PRIMARY KEY UNIQUE  AUTO_INCREMENT,
+	user_id INT PRIMARY KEY UNIQUE  AUTO_INCREMENT,
 	user_role ENUM('professor', 'admin', 'hr', 'research', 'finance', 'associate', 'dean') NOT NULL,
 	user_nameth VARCHAR(100) NOT NULL,
 	user_nameeng VARCHAR(100) NOT NULL,
