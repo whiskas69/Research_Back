@@ -12,6 +12,7 @@ app.use(cors({
     credentials: true,
     origin: [
         "http://10.0.15.37:5173",
+        "http://10.0.15.27:5173",
         "http://localhost:5173",
         "https://servicehub.it.kmitl.ac.th" //origin จริงของ prod
     ]
