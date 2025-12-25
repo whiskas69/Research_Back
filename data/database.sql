@@ -31,8 +31,8 @@ CREATE TABLE Users (
 	user_signature VARCHAR(50),
 	user_moneyPC DECIMAL(10,2),
     user_moneyCF DECIMAL(10,2),
-	user_positionth VARCHAR(10),
-    user_positioneng VARCHAR(20),
+	user_positionth VARCHAR(50),
+    user_positioneng VARCHAR(50),
     user_startwork DATE NOT NULL,
     user_year INT NOT NULL,
     user_confer boolean NOT NULL
