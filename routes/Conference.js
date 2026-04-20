@@ -6,14 +6,14 @@ const Joi = require("joi");
 const { DateTime } = require("luxon");
 const baseURL = require("dotenv").config();
 
-const db = require("../config.js");
+const db = require("../config/db");
 const sendEmail = require("../middleware/mailer.js");
 
 const router = express.Router();
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const dir = "uploads"; //สร้างโฟเดอร์ 'uploads'
+    const dir = path.join(__dirname, '..', 'uploads') //สร้างโฟเดอร์ 'uploads'
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir);
     }
@@ -232,7 +232,6 @@ router.post("/conference",
     try {
       //check missing files
       if (missingFiles.length > 0) {
-        console.log(`กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`);
         return res.status(400).json({
           error: `กรุณาอัปโหลดไฟล์: ${missingFiles.join(", ")}`,
         });
@@ -241,7 +240,6 @@ router.post("/conference",
       //check ConferSchema
       await ConferSchema.validate(req.body, { abortEarly: false });
     } catch (error) {
-      console.log("error", error);
       return res
         .status(400)
         .json({ error: error.details.map((err) => err.message) });
@@ -252,8 +250,6 @@ router.post("/conference",
 
     const database = await db.getConnection();
     await database.beginTransaction(); //start transaction
-
-    console.log("conferdata : ", conferenceData);
 
     try {
       //query insert data to Conference
@@ -331,7 +327,6 @@ router.post("/conference",
         scoreData,
       ]);
 
-      console.log("score_result", score_result);
       //data for File_pdf
       const fileData = {
         type: "Conference",
@@ -347,12 +342,10 @@ router.post("/conference",
         fx_rate_document: conferenceFile.fx_rate_document[0].filename,
         conf_proof: conferenceFile.conf_proof[0].filename,
       };
-      console.log("fileData", fileData);
       //insert data to File_pdf
       const [file_result] = await database.query("INSERT INTO File_pdf SET ?", [
         fileData,
       ]);
-      console.log("file_result", file_result);
 
       //data for Form
       const formData = {
@@ -365,7 +358,6 @@ router.post("/conference",
       const [form_result] = await database.query("INSERT INTO Form SET ?", [
         formData,
       ]);
-      console.log("form_result", form_result);
 
       //insert data to Notification
       const [notification_result] = await database.query(
@@ -378,17 +370,18 @@ router.post("/conference",
           conferenceData.conf_research,
         ]
       );
-      console.log("notification_result", notification_result);
+
+      const getOfficer = await database.query(
+        `SELECT user_email FROM Users WHERE user_role = "hr"`
+      )
 
       const getuser = await database.query(
         `SELECT user_nameth FROM Users WHERE user_id = ?`,
         [conferenceData.user_id]
       );
-      console.log("getuser", getuser[0][0]);
 
-      await database.commit(); //commit transaction
-
-      const recipients = ["64070075@it.kmitl.ac.th"];
+      // const recipients = ["64070075@it.kmitl.ac.th"];
+      const recipients = [getOfficer[0][0].user_email];;
       const subject =
         "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการส่งแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุม";
       const message = `
@@ -397,6 +390,7 @@ router.post("/conference",
 
       await sendEmail(recipients, subject, message);
 
+      await database.commit(); //commit transaction
       res.status(200).json({ success: true, message: "Success" });
     } catch (error) {
       database.rollback(); //rollback transaction
@@ -422,14 +416,14 @@ router.get("/conference/:id", async (req, res) => {
       return res.status(404).json({ message: "conference not found" });
     }
 
-    console.log("Get conference: ", conference[0]);
     res.status(200).json(conference[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-router.put("/editedFormConfer/:id",
+router.put(
+  "/editedFormConfer/:id",
   uploadDocuments.fields([
     { name: "full_page" },
     { name: "published_journals" },
@@ -443,123 +437,162 @@ router.put("/editedFormConfer/:id",
   async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
-    
-    try {
-      const editDataJson = updates.edit_data ? JSON.parse(updates.edit_data) : [];
-      const editDataJsonScore = updates.score ? JSON.parse(updates.score) : [];
 
+    const connection = await db.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      const professorReedit = updates.professor_reedit === "true";
+
+      const parsed = updates.edit_data
+        ? JSON.parse(updates.edit_data)
+        : { edit_data: [], score: [] };
+
+      const editDataJson = parsed.edit_data || [];
+      const editDataJsonScore = parsed.score || [];
       const files = req.files;
 
+      // UPDATE Conference
       if (editDataJson.length > 0) {
-        const setClause = editDataJson
-          .map((item) => {
-            const value = Array.isArray(item.newValue)
-              ? JSON.stringify(item.newValue)
-              : item.newValue;
-            const safeValue = typeof value === "string" ? value.replace(/'/g, "''") : value;
-            return `${item.field} = '${safeValue}'`;
-          })
-          .join(", ");
+        const fields = editDataJson.map((item) => item.field);
 
-        await db.query(`UPDATE Conference SET ${setClause} WHERE conf_id = ?`, [id]);
+        const values = editDataJson.map((item) =>
+          Array.isArray(item.newValue)
+            ? JSON.stringify(item.newValue)
+            : item.newValue
+        );
+
+        const setClause = fields.map((f) => `${f} = ?`).join(", ");
+
+        await connection.query(
+          `UPDATE Conference SET ${setClause} WHERE conf_id = ?`,
+          [...values, id]
+        );
       }
 
+      // UPDATE Score
       if (editDataJsonScore.length > 0) {
-        const setClauseScore = editDataJsonScore
-          .map((item) => `${item.field} = '${item.newValue}'`)
-          .join(", ");
-        await db.query(`UPDATE Score SET ${setClauseScore} WHERE conf_id = ?`, [id]);
+        const fields = editDataJsonScore.map((item) => item.field);
+        const values = editDataJsonScore.map((item) => item.newValue);
+
+        const setClause = fields.map((f) => `${f} = ?`).join(", ");
+
+        await connection.query(
+          `UPDATE Score SET ${setClause} WHERE conf_id = ?`,
+          [...values, id]
+        );
       }
 
-    //เช็คว่ามีข้อมูลในส่วนของการกรอก file ไหม
-    if (files && Object.keys(files).length > 0) {
-      console.log("files", files)
-        const setClauseFile = Object.entries(files)
-          .map(([field, fileArr]) => {
-            const file = fileArr[0]; // multer เก็บเป็น array
-            return `${field} = '${file.filename}'`; // หรือ file.path
-          })
-          .join(", ");
+      // UPDATE File_pdf
+      if (files && Object.keys(files).length > 0) {
+        const fileFields = Object.keys(files);
 
-        await db.query(`UPDATE File_pdf SET ${setClauseFile} WHERE conf_id = ?`, [id]);
+        const setClause = fileFields.map((f) => `${f} = ?`).join(", ");
+
+        const fileValues = fileFields.map(
+          (f) => files[f][0].filename
+        );
+
+        await connection.query(
+          `UPDATE File_pdf SET ${setClause} WHERE conf_id = ?`,
+          [...fileValues, id]
+        );
       }
 
-    const allEdit = {
-      edit_data: updates.edit_data,
-      score: updates.score,
-      file: updates.file,
-    };
-
-    const allEditString = JSON.stringify(allEdit);
-
-    const [getForm] = await db.query(
-        `SELECT form_id, past_return FROM Form  WHERE conf_id = ?`,
+      // GET FORM
+      const [getForm] = await connection.query(
+        `SELECT form_id, past_return 
+         FROM Form 
+         WHERE conf_id = ?`,
         [id]
-      )
+      );
 
-      console.log("getForm", getForm[0])
-    const [updateOfficeEditetForm] = await db.query(
+      if (!getForm.length) {
+        throw new Error("Form not found");
+      }
+
+      const { form_id, past_return } = getForm[0];
+
+      const allEdit = {
+        edit_data: editDataJson,
+        score: editDataJsonScore,
+        file: files || null,
+        status: updates.form_status,
+      };
+
+      // UPDATE FORM
+      await connection.query(
         `UPDATE Form SET 
-        form_status = ?, edit_data = ?, editor = ?, professor_reedit = ?, 
-        return_to = null, return_note = null, past_return = null
+          form_status = ?, 
+          edit_data = ?, 
+          editor = ?, 
+          professor_reedit = ?, 
+          return_to = NULL, 
+          return_note = NULL, 
+          past_return = NULL
         WHERE conf_id = ?`,
-        [getForm[0].past_return, allEditString, updates.editor, true, id]
-      )
+        [past_return, JSON.stringify(allEdit), updates.editor, professorReedit, id]
+      );
 
-    const [findID] = await db.query(
-      `SELECT form_id FROM Form  WHERE conf_id = ?`,
-      [id]
-    );
+      // UPDATE Notification
+      await connection.query(
+        `UPDATE Notification 
+         SET date_update = CURRENT_DATE
+         WHERE form_id = ?`,
+        [form_id]
+      );
 
-      const [updateNoti_result] = await db.query(
-        `UPDATE Notification SET date_update = CURRENT_DATE  WHERE form_id = ?`,
-        [getForm[0].form_id]
-      )
-      console.log("updates.professor_reedit", updates.professor_reedit)
+      // GET EMAIL DATA
+      const [[userData]] = await connection.query(
+        `SELECT u.user_email, u.user_nameth, c.conf_research
+         FROM Conference c
+         JOIN Users u ON c.user_id = u.user_id
+         WHERE c.conf_id = ?`,
+        [id]
+      );
 
-    const [getuser] = await db.query(
-      `
-      SELECT u.user_email, u.user_nameth, c.conf_research
-      FROM Conference c
-      JOIN Users u ON c.user_id = u.user_id
-      WHERE c.conf_id = ?`,
-      [id]
-    );
+      const [[hrData]] = await connection.query(
+        `SELECT user_email 
+         FROM Users 
+         WHERE user_role = ?`,
+        ["hr"]
+      );
 
-    console.log("getuser", getuser);
+      // SEND EMAIL
+      let recipients;
+      let subject;
 
-    if (
-      updates.professor_reedit === false ||
-      updates.professor_reedit === null ||
-      updates.professor_reedit === ""
-    ) {
-      // sent email to professor
-      const recipients = [getuser[0].user_email]; //getuser[0].user_email
-      const subject =
-        "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการแก้ไขแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมของคุณ";
+      if (!professorReedit) {
+        recipients = [userData.user_email];
+        subject =
+          "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการแก้ไขแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมของคุณ";
+      } else {
+        recipients = [hrData.user_email];
+        subject =
+          "แจ้งเตือนจากระบบสนับสนุนงานวิจัย ผู้ขออนุมัติได้ทำการแก้ไขแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุม";
+      }
+
       const message = `
-      แบบฟอร์มงานวิจัย: ${getuser[0].conf_research} มีการแก้ไข กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลและยืนยันเพื่อดำเนินการต่อไป
-      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
+        แบบฟอร์มงานวิจัย: ${userData.conf_research} มีการแก้ไข
+        กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลและยืนยันเพื่อดำเนินการต่อไป
+
+        กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติ
+      `;
 
       await sendEmail(recipients, subject, message);
-    } else if (updates.professor_reedit === true) {
-      //send email to hr
-      const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
-      const subject =
-        "แจ้งเตือนจากระบบสนับสนุนงานวิจัย ผู้ขออนุมัติได้ทำการแก้ไขแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุม";
-      const message = `
-      แบบฟอร์มงานวิจัย: ${getuser[0].conf_research} มีการแก้ไข กรุณาเข้าสู่ระบบเพื่อตรวจสอบข้อมูลและยืนยันเพื่อดำเนินการต่อไป
-      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
 
-      await sendEmail(recipients, subject, message);
+      await connection.commit();
+
+      res.status(200).json({ success: true });
+    } catch (err) {
+      await connection.rollback();
+      console.error(err);
+      res.status(500).json({ error: err.message });
+    } finally {
+      connection.release();
     }
-
-    res.status(200).json({ success: true, message: "Success" });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: err.message });
   }
-});
+);
 
 //status page
 router.get("/form/confer/:id", async (req, res) => {
@@ -643,7 +676,6 @@ router.put(
         ]
       );
 
-      console.log("✅ Update successful:", update);
       res.json({ success: true, message: "อัปเดตข้อมูลสำเร็จ" });
     } catch (error) {
       console.error("❌ Error updating database:", error.message);
@@ -659,8 +691,6 @@ router.get("/getFileConf", async (req, res) => {
     `SELECT full_page, date_published_journals, published_journals, accepted, q_proof, call_for_paper, fee_receipt, fx_rate_document, conf_proof FROM File_pdf WHERE conf_id = ?`,
     [conf_id]
   );
-
-  console.log("file", file);
 
   const url = baseURL.parsed.VITE_API_BASE_URL;
 

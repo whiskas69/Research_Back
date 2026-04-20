@@ -1,4 +1,7 @@
 USE ResearchAdministration;
+-- Set consistent collation for database
+ALTER DATABASE researchadministration CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE Users CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 -- ปิดการตรวจสอบ Foreign Key ก่อน
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -36,7 +39,7 @@ CREATE TABLE Users (
     user_startwork DATE NOT NULL,
     user_year INT NOT NULL,
     user_confer boolean NOT NULL
-) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- ตารางเอกสารขออนุมัติค่าเดินทาง (Conference) CHECK
 CREATE TABLE Conference (
@@ -227,7 +230,6 @@ CREATE TABLE officers_opinion_pc (
     p_dean_acknowledge ENUM('acknowledge', 'notAcknowledge'),
     p_dean_result ENUM('approve', 'notApproved', 'return'),
     p_dean_reason VARCHAR(255),
-    p_date_accepted_approve DATE, -- วันที่เอกสารได้รับการอนุมัติ
     research_doc_submit_date DATE DEFAULT (CURRENT_DATE),
     associate_doc_submit_date DATE DEFAULT (CURRENT_DATE),
     dean_doc_submit_date DATE DEFAULT (CURRENT_DATE),
@@ -387,9 +389,12 @@ INSERT INTO Users (
 ('finance', 'พิจิตรา สุวรรณศรี', 'Pichitra Suwansri', 'pichitra@it.kmitl.ac.th', NULL, 0, 80000, '', '', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), false),
 ('admin', 'tanamat', 'tanamat', 'tanamat@it.kmitl.ac.th', NULL, 0, 80000, '', '', '1996-08-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), false),
 
-('associate', 'พีรณัฐ ทิพย์รักษ์', 'Peeranut Thiprak', '64070075@it.kmitl.ac.th', '1757151355818.png', 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2024-10-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
-('hr', 'ศศิกานต์ หลงกระจ่าง', 'Sasikan Longkachang', '64070105@it.kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2000-09-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
-('admin', 'admin', 'admin', '64070075@kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2011-08-25', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true);
+('hr', 'พีรณัฐ ทิพย์รักษ์', 'Peeranut Thiprak', '64070075@it.kmitl.ac.th', '1757151355818.png', 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2024-10-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
+('research', 'research', 'research', '64070075@kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2011-08-25', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
+('finance', 'finance', 'finance', '64070105@kmitl.ac.th', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2000-09-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
+('associate', 'พี', 'Peeranut Thiprak', 'peeranut.wine@gmail.com', '1757151355818.png', 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2024-10-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
+('dean', 'ศศิ', 'Sasikan Longkachang', 'wine.peeranut@gmail.com', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2000-09-13', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true),
+('admin', 'admin', 'admin', 'peeranut.thiprak@gmail.com', NULL, 0, 80000, 'รศ.ดร.', 'Assoc. Prof. Dr.', '2011-08-25', TIMESTAMPDIFF(YEAR, '1996-08-13', CURRENT_DATE), true);
 
 INSERT INTO ConditionPC (
     condition_id, natureAmount, mdpiQuartile1, mdpiQuartile2, otherQuartile1, otherQuartile2, otherQuartile3, otherQuartile4
@@ -440,9 +445,28 @@ INSERT INTO `officers_opinion_conf` (`c_office_id`, `hr_id`, `research_id`, `ass
 INSERT INTO `officers_opinion_kris` (`k_office_id`, `user_id`, `kris_id`, `research_admin`, `doc_submit_date`) VALUES
 (1, 40, 1, 'acknowledge', '2025-06-27');
 
-INSERT INTO `officers_opinion_pc` (`p_office_id`, `research_id`, `associate_id`, `dean_id`, `pageC_id`, `p_research_result`, `p_research_reason`, `p_associate_result`, `p_date_accepted_approve`, `p_dean_acknowledge`, `p_dean_result`, `p_dean_reason`, `research_doc_submit_date`, `associate_doc_submit_date`, `dean_doc_submit_date`) VALUES
-(1, 40, 44, 4, 1, 'approve', NULL, 'approve', '2025-06-27', 'acknowledge', 'approve', NULL, '2025-06-27', '2025-06-27', '2025-06-27'),
-(2, 40, NULL, NULL, 2, 'approve', NULL, NULL, '2025-07-03', NULL, NULL, NULL, '2025-07-03', NULL, NULL);
+INSERT INTO `officers_opinion_pc` (`p_office_id`, `research_id`, `associate_id`, `dean_id`, `pageC_id`, `p_research_result`, `p_research_reason`, `p_associate_result`, `p_dean_acknowledge`, `p_dean_result`, `p_dean_reason`, `research_doc_submit_date`, `associate_doc_submit_date`, `dean_doc_submit_date`) VALUES
+(1, 40, 44, 4, 1,
+ 'approve',
+ NULL,
+ 'approve',
+ 'acknowledge', 
+ 'approve',
+ NULL,
+ '2025-06-27',
+ '2025-06-27',
+ '2025-06-27'),
+
+ (2, 40, NULL, NULL, 2,
+ 'approve',
+ NULL,
+ NULL,
+ NULL,            -- p_dean_acknowledge
+ NULL,            -- p_dean_result
+ NULL,
+ '2025-07-03',
+ NULL,
+ NULL);
 
 INSERT INTO `Budget` (
     `budget_id`, `user_id`, `form_id`, `budget_year`,

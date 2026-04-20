@@ -6,7 +6,7 @@ const Joi = require("joi");
 const { DateTime } = require("luxon");
 const baseURL = require("dotenv").config();
 
-const db = require("../config.js");
+const db = require("../config/db");
 const sendEmail = require("../middleware/mailer.js");
 const { Console } = require("console");
 
@@ -14,7 +14,7 @@ const router = express.Router();
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const dir = "uploads";
+    const dir = path.join(__dirname, '..', 'uploads')
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir);
     }
@@ -96,7 +96,6 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
 
     await researchSchema.validateAsync(req.body, { abortEarly: false });
   } catch (error) {
-    console.log("error", error);
     return res
       .status(400)
       .json({ error: error.details.map((err) => err.message) });
@@ -130,7 +129,6 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
         kris_data.Research_kris_amount
       ]
     );
-    console.log("kris_result", kris_result);
 
     const krisID = kris_result.insertId;
 
@@ -146,7 +144,6 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
       "INSERT INTO File_pdf SET ?",
       fileData
     );
-    console.log("file_result", file_result);
 
     //data for Form
     const formData = {
@@ -160,11 +157,7 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
       "INSERT INTO Form SET ?",
       formData
     );
-    console.log("form_result", form_result);
-
     const formID = form_result.insertId;
-    console.log("formID", formID)
-
     const dateStr = kris_data.project_periodStart;
 
     // ตรวจ format
@@ -186,7 +179,6 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
     if (month >= 10) {
       fiscalYear = thaiYear + 1;
     }
-    console.log("fiscalYear =", fiscalYear);
 
     //data for budget
     const budget = {
@@ -204,7 +196,6 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
       "INSERT INTO Budget SET ?",
       budget
     );
-    console.log("budget_result", budget_result);
 
     //insert data to Notification
     const [notification_result] = await database.query(
@@ -213,24 +204,24 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
       VALUES (?, ?, ?)`,
       [kris_data.user_id, form_result.insertId, kris_data.name_research_th]
     );
-    console.log("notification_result", notification_result);
 
+    const getOfficer = await database.query(
+      `SELECT user_email FROM Users WHERE user_role = "research"`
+    )
     const getuser = await database.query(
       `SELECT user_nameth FROM Users WHERE user_id = ?`,
       [kris_data.user_id]
     );
-    console.log("getuser", getuser[0][0]);
-
-    await database.commit(); //commit transaction
-
     //send email to user
-    const recipients = ["64070075@kmitl.ac.th"]; //getuser[0].user_email
+    const recipients = [getOfficer[0][0].user_email];
     const subject = "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการส่งแบบฟอร์มงานวิจัย";
     const message = `
       มีการส่งแบบฟอร์มงานวิจัยจาก ${getuser[0][0].user_nameth} ชื่อโครงการ: ${kris_data.name_research_th} กำลังรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
       กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
 
-    await sendEmail(recipients, subject, message);
+    // await sendEmail(recipients, subject, message);
+    await database.commit(); //commit transaction
+    
     res.status(200).json({ success: true, message: "Success" });
   } catch (error) {
     database.rollback(); //rollback transaction

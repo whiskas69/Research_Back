@@ -1,5 +1,5 @@
 const express = require("express");
-const db = require("../config.js");
+const db = require("../config/db");
 const sendEmail = require("../middleware/mailer.js");
 
 router = express.Router();
@@ -10,16 +10,15 @@ router.post("/opinionPC", async (req, res) => {
 
   const database = await db.getConnection();
   await database.beginTransaction(); //start transaction
-  console.log("data from frontend: ", data);
 
   try {
     //insert research opinion
     const [createOpi_result] = await database.query(
       `INSERT INTO officers_opinion_pc
           (research_id, associate_id, dean_id, pageC_id, p_research_result, p_research_reason, p_associate_result,
-          p_date_accepted_approve, p_dean_acknowledge, p_dean_result, research_doc_submit_date,
+           p_dean_acknowledge, p_dean_result, research_doc_submit_date,
           associate_doc_submit_date, dean_doc_submit_date)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         data.research_id || null,
         data.associate_id || null,
@@ -28,7 +27,6 @@ router.post("/opinionPC", async (req, res) => {
         data.p_research_result || null,
         data.p_research_reason || null,
         data.p_associate_result || null,
-        data.p_date_accepted_approve || null,
         data.p_dean_acknowledge || null,
         data.p_dean_result || null,
         data.research_doc_submit_date || null,
@@ -37,12 +35,10 @@ router.post("/opinionPC", async (req, res) => {
       ]
     );
 
-    console.log("create Opinion :", createOpi_result);
-
     //update status from
     const [updateForm_result] = await database.query(
       "UPDATE Form SET form_status = ?, return_note = ?, return_to = ?, past_return = ? WHERE pageC_id = ?",
-      [data.form_status, data.return_note, data.returnto, data.past_return, data.pageC_id]
+      [data.form_status, data.return_note, data.return_to, data.past_return, data.pageC_id]
     );
 
     //get pageC_id
@@ -50,21 +46,46 @@ router.post("/opinionPC", async (req, res) => {
       "SELECT form_id FROM Form WHERE pageC_id = ?",
       [data.pageC_id]
     );
-    console.log("GetID : ", getID);
 
-    await database.commit(); //commit transaction
+    const formId = getID[0].form_id;
+    let getEmail;
 
-    //send email to user
-    const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+    if (data.form_status != "return") {
+      [getEmail] = await database.query(
+        `SELECT u.user_email 
+        FROM Form f
+        JOIN Users u ON f.form_status = u.user_role
+        WHERE form_id = ?`,
+        [formId]
+      );
+    } else if (data.return_to == "professor") {
+      [getEmail] = await database.query(
+        `SELECT u.user_email 
+        FROM Page_Charge p 
+        JOIN Users u ON p.user_id = u.user_id
+        WHERE pageC_id = ?`,
+        [data.pageC_id]
+      );
+    } else {
+      [getEmail] = await database.query(
+        `SELECT u.user_email 
+        FROM Form f
+        JOIN Users u ON f.return_to = u.user_role
+        WHERE form_id = ?`,
+        [formId]
+      );
+    }
+
+    const recipients = [getEmail[0].user_email];
     const subject =
       "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ในวารสารรอการอนุมัติและตรวจสอบ";
     const message = `
       มีแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ในวารสารรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
       กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
 
-    await sendEmail(recipients, subject, message);
+    // await sendEmail(recipients, subject, message);
+    await database.commit(); //commit transaction
 
-    console.log("Email sent successfully");
     res.status(200).json({ success: true, message: "Success" });
   } catch (error) {
     database.rollback(); //rollback transaction
@@ -75,64 +96,212 @@ router.post("/opinionPC", async (req, res) => {
   }
 });
 
+async function getRecipientEmail(connection, data, pageC_id, formId) {
+  switch (data.form_status) {
+
+    case "waitingApproval":
+      const [researchRows] = await connection.query(
+        `SELECT user_email
+         FROM Users
+         WHERE user_role = 'research'`
+      );
+
+      return researchRows;
+
+    case "approve":
+    case "notApproved":
+      const [profRows] = await connection.query(
+        `SELECT u.user_email
+         FROM Page_Charge p
+         JOIN Users u ON p.user_id = u.user_id
+         WHERE p.pageC_id = ?`,
+        [pageC_id]
+      );
+
+      return profRows;
+
+    case "return":
+
+      if (data.return_to === "professor") {
+        const [rows] = await connection.query(
+          `SELECT u.user_email
+           FROM Page_Charge p
+           JOIN Users u ON p.user_id = u.user_id
+           WHERE p.pageC_id = ?`,
+          [pageC_id]
+        );
+
+        return rows;
+      }
+      const [officerRows] = await connection.query(
+        `SELECT u.user_email
+         FROM Form f
+         JOIN Users u ON f.return_to = u.user_role
+         WHERE f.form_id = ?`,
+        [formId]
+      );
+
+      return officerRows;
+
+    default:
+      const [nextRows] = await connection.query(
+        `SELECT u.user_email
+         FROM Form f
+         JOIN Users u ON f.form_status = u.user_role
+         WHERE f.form_id = ?`,
+        [formId]
+      );
+
+      return nextRows;
+  }
+}
+
 //update: add opinion of other role
 router.put("/opinionPC/:id", async (req, res) => {
   const { id } = req.params;
   const data = req.body;
 
-  const fields = [];
-  const values = [];
-  
-  data.updated_data.forEach((item) => {
-  fields.push(`${item.field} = ?`);
-  values.push(
-    Array.isArray(item.value) ? JSON.stringify(item.value) : item.value
-  );
-});
-
-  const database = await db.getConnection();
-  await database.beginTransaction(); //start transaction
+  const connection = await db.getConnection();
 
   try {
+    await connection.beginTransaction();
+    //UPDATE officers_opinion_pc
+    const fields = [];
+    const values = [];
 
-    const sql = `UPDATE officers_opinion_pc SET ${fields.join(', ')} WHERE pageC_id = ?`;
-    values.push(id);
-    await database.query(sql, values);
+    if (data.updated_data && data.updated_data.length > 0) {
+      data.updated_data.forEach((item) => {
+        fields.push(`${item.field} = ?`);
+        values.push(
+          Array.isArray(item.value)
+            ? JSON.stringify(item.value)
+            : item.value
+        );
+      });
 
-    //update status form
-    const [updateForm_result] = await database.query(
-      "UPDATE Form SET form_status = ?, return_to = ?, return_note = ?, past_return = ? WHERE pageC_id = ?",
-      [data.form_status, data.return_to, data.return_note, data.past_return, id]
+      const sql = `
+        UPDATE officers_opinion_pc 
+        SET ${fields.join(", ")} 
+        WHERE pageC_id = ?
+      `;
+
+      values.push(id);
+
+      await connection.query(sql, values);
+    }
+
+    // UPDATE FORM STATUS
+    await connection.query(
+      `UPDATE Form 
+       SET form_status = ?, return_to = ?, return_note = ?, past_return = ?
+       WHERE pageC_id = ?`,
+      [
+        data.form_status,// "research"
+        data.return_to,
+        data.return_note,
+        data.past_return,
+        id,
+      ]
     );
 
-    //get pageC_id
-    const [getID] = await database.query(
-      "SELECT form_id FROM Form WHERE pageC_id = ?",
+    //GET FORM ID
+    const [formRows] = await connection.query(
+      `SELECT form_id FROM Form WHERE pageC_id = ?`,
       [id]
     );
-    console.log("GetID : ", getID);
 
-    await database.commit(); //commit transaction
+    if (!formRows.length) {
+      throw new Error("Form not found");
+    }
+    const formId = formRows[0].form_id;
 
-    //send email to user
-    const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+    // GET EMAIL
+    let emailRows = [];
+
+    if (data.form_status === "waitingApproval") {
+      const [rows] = await connection.query(
+        `SELECT user_email
+        FROM Users
+        WHERE user_role = ?`,
+        ["research"]
+      );
+
+      emailRows = rows;
+
+    } else if (data.form_status === "approve" || data.form_status === "notApproved") {
+      const [rows] = await connection.query(
+        `SELECT u.user_email
+        FROM Page_Charge p
+        JOIN Users u ON p.user_id = u.user_id
+        WHERE p.pageC_id = ?`,
+        [id]
+      );
+
+      emailRows = rows;
+
+    } else if (data.form_status === "return" && data.return_to === "professor") {
+      const [rows] = await connection.query(
+        `SELECT u.user_email
+        FROM Page_Charge p
+        JOIN Users u ON p.user_id = u.user_id
+        WHERE p.pageC_id = ?`,
+        [id]
+      );
+
+      emailRows = rows;
+
+    } else if (data.form_status === "return") {
+      const [rows] = await connection.query(
+        `SELECT u.user_email
+        FROM Form f
+        JOIN Users u ON f.return_to = u.user_role
+        WHERE f.form_id = ?`,
+        [formId]
+      );
+
+      emailRows = rows;
+
+    } else {
+      const [rows] = await connection.query(
+        `SELECT u.user_email
+        FROM Form f
+        JOIN Users u ON f.form_status = u.user_role
+        WHERE f.form_id = ?`,
+        [formId]
+      );
+
+      emailRows = rows;
+    }
+
+    if (!emailRows.length) {
+      throw new Error("No recipient email found");
+    }
+    const recipients = [emailRows[0].user_email];
+
+    // SEND EMAIL (หลัง commit)
     const subject =
-      "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ในวารสารรอการอนุมัติและตรวจสอบ";
+      "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มรอการตรวจสอบ";
+
     const message = `
-      มีแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ในวารสารรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
-      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
+      มีแบบฟอร์มรอการดำเนินการ
+      กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ
 
-    await sendEmail(recipients, subject, message);
+      กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติ
+      `;
 
-    console.log("Email sent successfully");
+      // await sendEmail(recipients, subject, message);
+    await connection.commit();
+    res.status(200).json({
+      success: true,
+      message: "Update completed",
+    });
 
-    res.status(200).json({ success: true, message: "Success" });
   } catch (error) {
-    database.rollback(); //rollback transaction
-    console.error("Error inserting into database:", error);
+    await connection.rollback();
+    console.error("Transaction rolled back:", error);
     res.status(500).json({ error: error.message });
   } finally {
-    database.release(); //release connection
+    connection.release();
   }
 });
 
@@ -155,7 +324,6 @@ router.get("/opinionPC/:id", async (req, res) => {
     if (opinionPC.length === 0) {
       return res.status(404).json({ message: "opinionPC not found" });
     }
-    console.log("Get opinionPC: ", opinionPC[0]);
     res.status(200).json(opinionPC[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });

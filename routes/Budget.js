@@ -1,5 +1,5 @@
 const express = require("express");
-const db = require("../config.js");
+const db = require("../config/db");
 const sendEmail = require("../middleware/mailer.js");
 
 router = express.Router();
@@ -12,7 +12,6 @@ router.post("/budget", async (req, res) => {
 
   try {
     if (data.form_status != "pending") {
-      console.log("data in budget:", data);
       const [Budget_result] = await database.query(
         `INSERT INTO Budget ( user_id, form_id, budget_year, Page_Charge_amount, Conference_amount,
         num_expenses_approved, total_amount_approved, remaining_credit_limit, amount_approval, total_remaining_credit_limit, doc_submit_date
@@ -30,30 +29,52 @@ router.post("/budget", async (req, res) => {
           data.total_remaining_credit_limit,
         ]
       );
-      console.log("Budget_result : ", Budget_result);
 
       const [updateForm_result] = await database.query(
         `UPDATE Form SET form_status = ?, return_to = ?, return_note = ?, past_return = ? WHERE form_id = ?`,
         [
           data.form_status,
-          data.returnto,
+          data.return_to,
           data.return_note,
           data.past_return,
           data.form_id,
         ]
       );
-      console.log("updateForm_result : ", updateForm_result);
 
-      const [formType] = await database.query(
-        `SELECT conf_id, pageC_id FROM Form WHERE form_id = ?`,
+      let getEmail;
+
+    if (data.form_status != "return") {
+      [getEmail] = await database.query(
+        `SELECT u.user_email 
+        FROM Form f
+        JOIN Users u ON f.form_status = u.user_role
+        WHERE form_id = ?`,
         [data.form_id]
       );
-      console.log("formType : ", formType);
+    } else if (data.return_to == "professor") {
+      [getEmail] = await database.query(
+        `SELECT u.user_email
+        FROM Form f
+        LEFT JOIN Page_Charge pc ON f.pageC_id = pc.pageC_id
+        LEFT JOIN Conference c ON f.conf_id = c.conf_id
+        LEFT JOIN Research_KRIS rk ON f.kris_id = rk.kris_id
+        JOIN Users u ON u.user_id = COALESCE(pc.user_id, c.user_id, rk.user_id)
+        WHERE f.form_id = ?`,
+        [data.form_id]
+      );
+    } else {
+      [getEmail] = await database.query(
+        `SELECT u.user_email 
+        FROM Form f
+        JOIN Users u ON f.return_to = u.user_role
+        WHERE form_id = ?`,
+        [data.form_id]
+      );
+    }
 
-      await database.commit(); //commit transaction
+    const recipients = [getEmail[0].user_email];
 
-      //send email to user
-      const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+      //send email to finance
       const subject =
         "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มรอการอนุมัติและตรวจสอบ";
       const message = `
@@ -61,8 +82,8 @@ router.post("/budget", async (req, res) => {
       กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
 
       await sendEmail(recipients, subject, message);
+      await database.commit();
 
-      console.log("Email sent successfully");
       res
         .status(201)
         .json({
@@ -81,7 +102,6 @@ router.post("/budget", async (req, res) => {
     }
   } catch (error) {
     database.rollback(); //rollback transaction
-    console.error("Error inserting into database:", error);
     res.status(500).json({ error: error.message });
   } finally {
     database.release(); //release connection
@@ -89,16 +109,13 @@ router.post("/budget", async (req, res) => {
 });
 
 router.put("/withdraw/conference/:id", async (req, res) => {
-  console.log("withdraw in conference id:", req.params);
   const { id } = req.params;
   const updates = req.body;
   try {
-    console.log("in conf_id");
     const [findID] = await db.query(
       `SELECT form_id FROM Form  WHERE conf_id = ?`,
       [id]
     );
-    console.log("findID", findID[0].form_id);
     const [updateWithdrawMoney] = await db.query(
       `UPDATE Budget SET travelExpenses = ?, allowance = ?, withdraw = ? WHERE form_id = ?`,
       [
@@ -108,10 +125,17 @@ router.put("/withdraw/conference/:id", async (req, res) => {
         findID[0].form_id,
       ]
     );
-    console.log("updateresult :", updateWithdrawMoney);
+
+    const [getUser] = await db.query(
+      `SELECT u.user_email 
+      FROM Conference c 
+      JOIN Users u ON c.user_id = u.user_id
+      WHERE c.conf_id = ?`,
+      [id]
+    )
 
     //send email to user
-    const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+    const recipients = [getUser[0].user_email]; //getuser[0].user_email
     const subject =
       "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการตั้งเบิกแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมเรียบร้อย";
     const message = `
@@ -123,7 +147,6 @@ router.put("/withdraw/conference/:id", async (req, res) => {
       .status(200)
       .json({ success: true, message: "Success", data: updateWithdrawMoney });
   } catch (err) {
-    console.error("SQL error →", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -155,30 +178,53 @@ router.put("/updateBudget/:id", async (req, res) => {
           id,
         ]
       );
-      console.log("updateBudget_result : ", updateBudget_result);
 
       const [updateForm_result] = await database.query(
         `UPDATE Form SET form_status = ?, return_to = ?, return_note = ?, past_return = ? WHERE form_id = ?`,
         [
           data.form_status,
-          data.returnto,
+          data.return_to,
           data.return_note,
           data.past_return,
           data.form_id,
         ]
       );
-      console.log("updateForm_result : ", updateForm_result);
 
-      const [formType] = await database.query(
-        `SELECT conf_id, pageC_id FROM Form WHERE form_id = ?`,
-        [data.form_id]
-      );
-      console.log("formType : ", formType);
-
-      await database.commit(); //commit transaction
+      let getEmail;
+      if (data.form_status != "return"){
+        [getEmail] = await database.query(
+          `SELECT u.user_email 
+          FROM Form f
+          JOIN Users u ON f.form_status = u.user_role
+          WHERE form_id = ?`,
+          [data.form_id]
+        )
+      } else if (data.form_status == "return") {
+        if (data.return_to == "professor"){
+          // หา professor จากตาราใดตารา: Page_Charge, Conference, หรือ Research_KRIS
+          [getEmail] = await database.query(
+            `SELECT u.user_email
+            FROM Form f
+            LEFT JOIN Page_Charge pc ON f.pageC_id = pc.pageC_id
+            LEFT JOIN Conference c ON f.conf_id = c.conf_id
+            LEFT JOIN Research_KRIS rk ON f.kris_id = rk.kris_id
+            JOIN Users u ON u.user_id = COALESCE(pc.user_id, c.user_id, rk.user_id)
+            WHERE f.form_id = ?`,
+            [data.form_id]
+          )
+        } else {
+          [getEmail] = await database.query(
+            `SELECT u.user_email 
+            FROM Form f
+            JOIN Users u ON f.return_to = u.user_role
+            WHERE form_id = ?`,
+            [data.form_id]
+          )
+        }
+      }
 
       //send email to user
-      const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+      const recipients = [getEmail[0].user_email] //getuser[0].user_email
       const subject =
         "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีแบบฟอร์มรอการอนุมัติและตรวจสอบ";
       const message = `
@@ -186,8 +232,9 @@ router.put("/updateBudget/:id", async (req, res) => {
       กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
 
       await sendEmail(recipients, subject, message);
+      
+      await database.commit();
 
-      console.log("Email sent successfully");
       res
         .status(201)
         .json({
@@ -214,23 +261,27 @@ router.put("/updateBudget/:id", async (req, res) => {
 });
 
 router.put("/withdraw/pageCharge/:id", async (req, res) => {
-  console.log("withdraw in pageCharge id:", req.params);
   const { id } = req.params;
   const updates = req.body;
   try {
-    console.log("in pageC_id");
     const [findID] = await db.query(
       `SELECT form_id FROM Form  WHERE pageC_id = ?`,
       [id]
     );
-    console.log("findID", findID[0].form_id);
     const [updateWithdrawMoney] = await db.query(
       `UPDATE Budget SET withdraw = ? WHERE form_id = ?`,
       [updates.withdraw, findID[0].form_id]
     );
-    console.log("updateresult :", updateWithdrawMoney);
+
+    const [getUser] = await db.query(
+      `SELECT u.user_email 
+      FROM Page_Charge p
+      JOIN Users u ON p.user_id = u.user_id
+      WHERE p.pageC_id = ?`,
+      [id]
+    )
     //send email to user
-    const recipients = ["64070075@it.kmitl.ac.th"]; //getuser[0].user_email
+    const recipients = [getUser[0].user_email]; //getuser[0].user_email
     const subject =
       "แจ้งเตือนจากระบบสนับสนุนงานวิจัย มีการตั้งเบิกแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ในวารสารเรียบร้อย";
     const message = `
@@ -349,7 +400,6 @@ router.get("/budgetsPC", async (req, res) => {
       JOIN Form f ON f.form_id = b.form_id
       `
     );
-    console.log("budgets PC", budgets);
     res.status(200).json(budgets[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -370,7 +420,6 @@ router.get("/budgetsConfer", async (req, res) => {
     JOIN Form f ON b.form_id = f.form_id;
       `
     );
-    console.log("budgets CONFER", budgets);
     res.status(200).json(budgets[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -378,21 +427,15 @@ router.get("/budgetsConfer", async (req, res) => {
 });
 
 router.get("/budget/pageCharge/:id", async (req, res) => {
-  console.log("in budget/pageCharge/id");
-
-
   const { id } = req.params;
-  console.log("budget/pageCharge/id", id);
   try {
     const [find_id] = await db.query(
       "SELECT form_id FROM Form WHERE pageC_id = ?",
       [id]
     );
-    console.log("Get find_id budget pc: ", find_id[0]);
     const [pageC] = await db.query("SELECT * FROM Budget WHERE form_id = ?", [
       find_id[0].form_id,
     ]);
-    console.log("Query result:", pageC);
 
     // if (pageC.length === 0) {
     //   return res.status(404).json({ message: "pageC_id not found" });
@@ -406,17 +449,14 @@ router.get("/budget/pageCharge/:id", async (req, res) => {
 
 router.get("/budget/conference/:id", async (req, res) => {
   const { id } = req.params;
-  console.log("budget/conference/id", id);
   try {
     const [find_id] = await db.query(
       "SELECT form_id FROM Form WHERE conf_id = ?",
       [id]
     );
-    console.log("Get find_id budget: ", find_id[0].form_id);
     const [conf] = await db.query("SELECT * FROM Budget WHERE form_id = ?", [
       find_id[0].form_id,
     ]);
-    console.log("Get conf kub: ", conf[0]);
     res.status(200).json(conf[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -425,18 +465,15 @@ router.get("/budget/conference/:id", async (req, res) => {
 
 router.get("/budget/kris/:id", async (req, res) => {
   const { id } = req.params;
-  console.log("budget/kris/id", id)
   try {
     const [find_id] = await db.query(
       "SELECT form_id FROM Form WHERE kris_id = ?",
       [id]
     );
-    console.log("Get find_id budget: ", find_id[0]);
     const [conf] = await db.query(
       "SELECT * FROM Budget WHERE form_id = ?",
       [find_id[0].form_id]
     );
-    console.log("Get conf kub: ", conf[0]);
     res.status(200).json(conf[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
