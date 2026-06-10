@@ -219,7 +219,7 @@ router.post("/kris", upload.single("kris_file"), async (req, res) => {
       มีการส่งแบบฟอร์มงานวิจัยจาก ${getuser[0][0].user_nameth} ชื่อโครงการ: ${kris_data.name_research_th} กำลังรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
       กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
 
-    // await sendEmail(recipients, subject, message);
+    await sendEmail(recipients, subject, message);
     await database.commit(); //commit transaction
     
     res.status(200).json({ success: true, message: "Success" });

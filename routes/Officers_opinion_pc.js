@@ -83,7 +83,7 @@ router.post("/opinionPC", async (req, res) => {
       มีแบบฟอร์มขอรับการสนับสนุนการตีพิมพ์ในวารสารรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
       กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
 
-    // await sendEmail(recipients, subject, message);
+    await sendEmail(recipients, subject, message);
     await database.commit(); //commit transaction
 
     res.status(200).json({ success: true, message: "Success" });
@@ -289,7 +289,7 @@ router.put("/opinionPC/:id", async (req, res) => {
       กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติ
       `;
 
-      // await sendEmail(recipients, subject, message);
+      await sendEmail(recipients, subject, message);
     await connection.commit();
     res.status(200).json({
       success: true,

@@ -215,13 +215,15 @@ router.post("/testlogin", async (req, res) => {
 
   if (result.length > 0) {
     const user = result[0];
-
+    console.log("User found:", user);
     //create JWT Token
     const token = jwt.sign(
       { userId: user.user_id, email: user.user_email },
       process.env.SECRET_KEY,
       { expiresIn: "1h" } //อายุของ Token
     );
+
+    console.log("Generated JWT Token:", token);
 
     //setting Secure Cookie (httpOnly Protect attack XSS)
     res.cookie("token", token, {

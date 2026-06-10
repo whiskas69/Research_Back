@@ -309,22 +309,20 @@ router.post(
         }),
       ]);
 
-      //insert data to Notification
-      const [notification_result] = await database.query(
-        `INSERT INTO Notification (
-          user_id, form_id, name_form)
-          VALUES (?, ?, ?)`,
-        [
-          pageChargeData.user_id,
-          form_result[0].insertId,
-          pageChargeData.article_title
-        ]
-      );
+      // const [notification_result] = await database.query(
+      //   `INSERT INTO Notification (
+      //     user_id, form_id, name_form)
+      //     VALUES (?, ?, ?)`,
+      //   [
+      //     pageChargeData.user_id,
+      //     form_result[0].insertId,
+      //     pageChargeData.article_title
+      //   ]
+      // );
 
       const getOfficer = await database.query(
         `SELECT user_email FROM Users WHERE user_role = "research"`
       )
-
 
       const getuser = await database.query(
         `SELECT user_nameth FROM Users WHERE user_id = ?`,
@@ -339,7 +337,7 @@ router.post(
       มีการส่งแบบฟอร์มขอรับการสนับสนุนจาก ${getuser[0][0].user_nameth} บทความ: ${pageChargeData.journal_name} กำลังรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
       กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
 
-      // await sendEmail(recipients, subject, message);
+      await sendEmail(recipients, subject, message);
       await database.commit(); //commit transaction
       res.status(200).json({ success: true, message: "Success" });
     } catch (error) {
@@ -659,7 +657,7 @@ router.put(
         // ส่งให้ research officer
         recipients = [researchOfficer.user_email];
       }
-      // await sendEmail(recipients, subject, message);
+      await sendEmail(recipients, subject, message);
 
       await connection.commit();
       res.status(200).json({

@@ -107,7 +107,7 @@ router.post("/opinionConf", async (req, res) => {
       มีแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
       กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
 
-    // await sendEmail(recipients, subject, message);
+    await sendEmail(recipients, subject, message);
     await database.commit(); //commit transaction
     res.status(200).json({ success: true, message: "Success" });
   } catch (error) {
@@ -322,7 +322,7 @@ router.put("/opinionConf/:id", async (req, res) => {
       มีแบบฟอร์มขอรับการสนับสนุนเข้าร่วมประชุมรอการอนุมัติและตรวจสอบ โปรดเข้าสู่ระบบสนับสนุนงานบริหารงานวิจัยเพื่อทำการอนุมัติและตรวจสอบข้อมูล
       กรุณาอย่าตอบกลับอีเมลนี้ เนื่องจากเป็นระบบอัตโนมัติที่ไม่สามารถตอบกลับได้`;
 
-    // await sendEmail(recipients, subject, message);
+    await sendEmail(recipients, subject, message);
 
     await connection.commit();
     res.status(200).json({
