@@ -12,6 +12,7 @@ app.use(cors({
         "http://10.0.15.37:5173",
         "http://10.0.15.27:5173",
         "http://10.0.35.9:5173",
+        "http://10.0.35.12:5173",
         "http://localhost:5173",
         'http://devdu.it.kmitl.ac.th:5173',
         'http://devdu.it.kmitl.ac.th',
